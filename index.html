@@ -40,7 +40,7 @@
     </script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link rel="stylesheet" href="style.css?v=2">
+    <link rel="stylesheet" href="style.css?v=3">
 </head>
 <body class="bg-m3-bg text-m3-onSurface min-h-screen">
     
@@ -89,16 +89,16 @@
                 </p>
             </div>
             
-            <div class="w-full max-w-3xl flex flex-col gap-6">
+            <div class="w-full flex flex-col gap-6">
                 <!-- Inputs in Grid for Responsiveness -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-5 w-full">
-                    <div class="w-full">
+                    <div class="w-full min-w-0">
                         <label class="block text-m3-onSurfaceVariant text-sm font-medium mb-2 ml-1" for="lb-username">ListenBrainz Username</label>
-                        <input class="w-full bg-m3-surfaceContainer text-m3-onSurface border-none rounded-2xl py-4 px-5 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-shadow" id="lb-username" type="text" placeholder="e.g. your_username">
+                        <input class="w-full min-w-0 bg-m3-surfaceContainer text-m3-onSurface border-none rounded-2xl py-4 px-5 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-shadow" id="lb-username" type="text" placeholder="e.g. your_username">
                     </div>
-                    <div class="w-full">
+                    <div class="w-full min-w-0">
                         <label class="block text-m3-onSurfaceVariant text-sm font-medium mb-2 ml-1" for="lb-date">Start Date</label>
-                        <input class="w-full bg-m3-surfaceContainer text-m3-onSurface border-none rounded-2xl py-4 px-5 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-shadow" id="lb-date" type="date">
+                        <input class="w-full min-w-0 bg-m3-surfaceContainer text-m3-onSurface border-none rounded-2xl py-4 px-5 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-shadow" id="lb-date" type="date">
                     </div>
                 </div>
                 
@@ -207,6 +207,6 @@
             </div>
         </div>
     </div>
-    <script src="app.js?v=2"></script>
+    <script src="app.js?v=3"></script>
 </body>
 </html>

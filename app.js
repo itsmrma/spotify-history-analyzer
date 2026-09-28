@@ -23,7 +23,7 @@ tabAnalyzeBtn.addEventListener('click', () => {
 });
 
 tabLbBtn.addEventListener('click', () => {
-    tabLbBtn.className = "flex items-center justify-center gap-2 px-8 py-3 bg-m3-primaryContainer text-m3-primary font-medium rounded-full sm:rounded-l-none sm:rounded-r-full shadow-md transition-colors focus:outline-none";
+    tabLbBtn.className = "flex items-center justify-center gap-2 px-8 py-3 bg-orange-500 text-white font-medium rounded-full sm:rounded-l-none sm:rounded-r-full shadow-md transition-colors focus:outline-none";
     tabAnalyzeBtn.className = "flex items-center justify-center gap-2 px-8 py-3 bg-m3-surfaceContainer text-m3-onSurfaceVariant font-medium rounded-full sm:rounded-r-none sm:rounded-l-full hover:bg-m3-surface transition-colors focus:outline-none";
     viewLb.classList.remove('hidden');
     viewAnalyze.classList.add('hidden');

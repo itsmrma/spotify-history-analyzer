@@ -40,7 +40,7 @@
     </script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=2">
 </head>
 <body class="bg-m3-bg text-m3-onSurface min-h-screen">
     
@@ -81,11 +81,13 @@
 
         <!-- ListenBrainz View -->
         <div id="view-lb" class="hidden flex-col items-center justify-center bg-m3-surface rounded-[28px] p-6 sm:p-12 shadow-md animate-fade-in w-full">
-            <span class="material-symbols-rounded text-6xl text-orange-500 mb-6">headphones</span>
-            <h2 class="text-3xl font-medium mb-4 text-center">Download from ListenBrainz</h2>
-            <p class="text-m3-onSurfaceVariant mb-8 text-center max-w-xl leading-relaxed">
-                Fetch your recent listens and convert them into Spotify's format. You can integrate them instantly or download the JSON file.
-            </p>
+            <div class="flex flex-col items-center text-center w-full mb-8">
+                <span class="material-symbols-rounded text-6xl text-orange-500 mb-6">headphones</span>
+                <h2 class="text-3xl font-medium mb-4">Download from ListenBrainz</h2>
+                <p class="text-m3-onSurfaceVariant max-w-xl leading-relaxed">
+                    Fetch your recent listens and convert them into Spotify's format. You can integrate them instantly or download the JSON file.
+                </p>
+            </div>
             
             <div class="w-full max-w-3xl flex flex-col gap-6">
                 <!-- Inputs in Grid for Responsiveness -->
@@ -205,6 +207,6 @@
             </div>
         </div>
     </div>
-    <script src="app.js"></script>
+    <script src="app.js?v=2"></script>
 </body>
 </html>

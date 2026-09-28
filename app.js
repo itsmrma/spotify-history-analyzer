@@ -16,15 +16,15 @@ const songsLimitSelect = document.getElementById('songs-limit-select');
 
 // --- Event Listeners: Tabs ---
 tabAnalyzeBtn.addEventListener('click', () => {
-    tabAnalyzeBtn.className = "px-8 py-3 bg-green-500 text-white font-bold rounded-l-full shadow-lg transition-colors focus:outline-none";
-    tabLbBtn.className = "px-8 py-3 bg-gray-700 hover:bg-gray-600 text-gray-300 font-bold rounded-r-full shadow-lg transition-colors focus:outline-none";
+    tabAnalyzeBtn.className = "flex items-center justify-center gap-2 px-8 py-3 bg-m3-primaryContainer text-m3-primary font-medium rounded-full sm:rounded-r-none sm:rounded-l-full shadow-md transition-colors focus:outline-none";
+    tabLbBtn.className = "flex items-center justify-center gap-2 px-8 py-3 bg-m3-surfaceContainer text-m3-onSurfaceVariant font-medium rounded-full sm:rounded-l-none sm:rounded-r-full hover:bg-m3-surface transition-colors focus:outline-none";
     viewAnalyze.classList.remove('hidden');
     viewLb.classList.add('hidden');
 });
 
 tabLbBtn.addEventListener('click', () => {
-    tabLbBtn.className = "px-8 py-3 bg-orange-500 text-white font-bold rounded-r-full shadow-lg transition-colors focus:outline-none";
-    tabAnalyzeBtn.className = "px-8 py-3 bg-gray-700 hover:bg-gray-600 text-gray-300 font-bold rounded-l-full shadow-lg transition-colors focus:outline-none";
+    tabLbBtn.className = "flex items-center justify-center gap-2 px-8 py-3 bg-m3-primaryContainer text-m3-primary font-medium rounded-full sm:rounded-l-none sm:rounded-r-full shadow-md transition-colors focus:outline-none";
+    tabAnalyzeBtn.className = "flex items-center justify-center gap-2 px-8 py-3 bg-m3-surfaceContainer text-m3-onSurfaceVariant font-medium rounded-full sm:rounded-r-none sm:rounded-l-full hover:bg-m3-surface transition-colors focus:outline-none";
     viewLb.classList.remove('hidden');
     viewAnalyze.classList.add('hidden');
     // Hide dashboard if visible to keep UI clean

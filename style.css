@@ -1,4 +1,3 @@
-/* Animazioni Tailwind custom base */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -19,20 +18,19 @@
     100% { transform: translateY(0px); }
 }
 
-.animate-fade-in-down { animation: fadeInDown 0.8s ease-out forwards; }
-.animate-fade-in { animation: fadeIn 0.8s ease-out forwards; }
+.animate-fade-in-down { animation: fadeInDown 0.8s cubic-bezier(0.2, 0, 0, 1) forwards; }
+.animate-fade-in { animation: fadeIn 0.6s cubic-bezier(0.2, 0, 0, 1) forwards; }
 .upload-icon { animation: float 3s ease-in-out infinite; }
 
-/* Spinner personalizzato verde (Analisi) */
-.loader {
-    border-top-color: #22c55e;
-    animation: spinner 1.5s linear infinite;
+/* Material 3 Spinner */
+.loader-material {
+    border-top-color: #D0BCFF; /* m3-primary */
+    animation: spinner 1s cubic-bezier(0.4, 0, 0.2, 1) infinite;
 }
 
-/* Spinner personalizzato arancione (ListenBrainz) */
 .loader-orange {
-    border-top-color: #f97316;
-    animation: spinner 1.5s linear infinite;
+    border-top-color: #F2B8B5; /* m3-error variant */
+    animation: spinner 1s cubic-bezier(0.4, 0, 0.2, 1) infinite;
 }
 
 @keyframes spinner {
@@ -40,14 +38,25 @@
     100% { transform: rotate(360deg); }
 }
 
-.custom-scrollbar::-webkit-scrollbar { width: 8px; height: 8px; }
-.custom-scrollbar::-webkit-scrollbar-track { background: #1f2937; border-radius: 4px; }
-.custom-scrollbar::-webkit-scrollbar-thumb { background: #4b5563; border-radius: 4px; }
-.custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #6b7280; }
+/* Material 3 Scrollbar */
+.custom-scrollbar::-webkit-scrollbar { width: 10px; height: 10px; }
+.custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+.custom-scrollbar::-webkit-scrollbar-thumb { 
+    background: #4F378B; /* m3-primaryContainer */
+    border-radius: 8px; 
+    border: 2px solid #1E1E1E; /* surface match to make it look thinner */
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #D0BCFF; /* m3-primary */ }
 
 /* Effetto Drag Over */
 .drag-over {
-    border-color: #22c55e !important;
-    background-color: rgba(34, 197, 94, 0.1) !important;
+    border-color: #D0BCFF !important;
+    background-color: rgba(208, 188, 255, 0.08) !important;
     transform: scale(1.02);
+}
+
+/* Utility per evitare compenetrazione testo */
+.break-words {
+    word-break: break-word;
+    overflow-wrap: break-word;
 }

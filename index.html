@@ -3,157 +3,200 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Spotify & ListenBrainz Analyzer</title>
+    <title>Music History Analyzer</title>
+    
+    <!-- Google Fonts: Roboto & Material Symbols -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+    
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Roboto', 'sans-serif'],
+                    },
+                    colors: {
+                        m3: {
+                            bg: '#121212',
+                            surface: '#1E1E1E',
+                            surfaceContainer: '#2D2D2D',
+                            primary: '#D0BCFF',
+                            onPrimary: '#381E72',
+                            primaryContainer: '#4F378B',
+                            secondary: '#CCC2DC',
+                            onSurface: '#E6E1E5',
+                            onSurfaceVariant: '#CAC4D0',
+                            outline: '#938F99',
+                            error: '#F2B8B5'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
-<body class="bg-gray-900 text-white min-h-screen font-sans">
+<body class="bg-m3-bg text-m3-onSurface min-h-screen">
     
-    <div class="container mx-auto px-4 py-8 max-w-6xl">
+    <div class="container mx-auto px-4 py-10 max-w-6xl">
         <!-- Header -->
-        <header class="text-center mb-10 animate-fade-in-down">
-            <h1 class="text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-blue-500 mb-4">
-                <i class="fas fa-chart-line mr-3 text-green-500"></i>Music History Analyzer
+        <header class="text-center mb-12 animate-fade-in-down">
+            <h1 class="text-4xl md:text-5xl font-bold text-m3-primary mb-4 flex items-center justify-center gap-3">
+                <span class="material-symbols-rounded text-5xl">insights</span>
+                Music History Analyzer
             </h1>
-            <p class="text-gray-400 text-lg">Explore your listening habits and fill the gaps with ListenBrainz.</p>
+            <p class="text-m3-onSurfaceVariant text-lg">Explore your listening habits and fill the gaps with ListenBrainz.</p>
         </header>
 
         <!-- Tabs Navigation -->
-        <div id="tabs-nav" class="flex justify-center mb-8 animate-fade-in">
-            <button id="tab-analyze-btn" class="px-8 py-3 bg-green-500 text-white font-bold rounded-l-full shadow-lg transition-colors focus:outline-none">
-                <i class="fas fa-chart-pie mr-2"></i>Analyze Data
+        <div id="tabs-nav" class="flex flex-col sm:flex-row justify-center mb-10 animate-fade-in gap-2 sm:gap-0 px-4">
+            <button id="tab-analyze-btn" class="flex items-center justify-center gap-2 px-8 py-3 bg-m3-primaryContainer text-m3-primary font-medium rounded-full sm:rounded-r-none sm:rounded-l-full shadow-md transition-colors focus:outline-none">
+                <span class="material-symbols-rounded">pie_chart</span> Analyze Data
             </button>
-            <button id="tab-lb-btn" class="px-8 py-3 bg-gray-700 hover:bg-gray-600 text-gray-300 font-bold rounded-r-full shadow-lg transition-colors focus:outline-none">
-                <i class="fas fa-cloud-download-alt mr-2"></i>ListenBrainz
+            <button id="tab-lb-btn" class="flex items-center justify-center gap-2 px-8 py-3 bg-m3-surfaceContainer text-m3-onSurfaceVariant font-medium rounded-full sm:rounded-l-none sm:rounded-r-full hover:bg-m3-surface transition-colors focus:outline-none">
+                <span class="material-symbols-rounded">cloud_download</span> ListenBrainz
             </button>
         </div>
 
         <!-- Analyze Data View -->
         <div id="view-analyze" class="animate-fade-in">
-            <!-- Upload Section with Drag & Drop -->
-            <div id="upload-section" class="flex flex-col items-center justify-center bg-gray-800 rounded-2xl p-10 shadow-2xl border-2 border-dashed border-gray-600 transition-all duration-300 hover:border-green-500 hover:bg-gray-800/80">
-                <i class="fas fa-file-archive text-6xl text-gray-500 mb-6 upload-icon pointer-events-none"></i>
-                <h2 class="text-2xl font-semibold mb-2 pointer-events-none">Drag & Drop files here</h2>
-                <p class="text-gray-400 mb-6 text-center max-w-md pointer-events-none">
+            <div id="upload-section" class="flex flex-col items-center justify-center bg-m3-surface rounded-[28px] p-12 shadow-md border-2 border-dashed border-m3-outline transition-all duration-300 hover:border-m3-primary">
+                <span class="material-symbols-rounded text-6xl text-m3-onSurfaceVariant mb-6 upload-icon pointer-events-none">folder_zip</span>
+                <h2 class="text-2xl font-medium mb-3 pointer-events-none">Drag & Drop files here</h2>
+                <p class="text-m3-onSurfaceVariant mb-8 text-center max-w-md pointer-events-none leading-relaxed">
                     We support your Spotify <b>.zip</b> archive or individual <b>.json</b> files. You can drop both your zip and ListenBrainz JSON files together!
                 </p>
-                <label class="relative cursor-pointer bg-gradient-to-r from-green-500 to-green-600 hover:from-green-400 hover:to-green-500 text-white font-bold py-3 px-8 rounded-full shadow-lg transform transition hover:scale-105 z-10">
-                    <span>Choose files...</span>
-                    <!-- allow multiple selection for json files along with zip -->
+                <label class="relative cursor-pointer bg-m3-primary text-m3-onPrimary font-medium py-3 px-8 rounded-full shadow-md hover:opacity-90 transition-opacity z-10 flex items-center gap-2">
+                    <span class="material-symbols-rounded">upload</span> Choose files...
                     <input type="file" id="file-upload" accept=".zip,.json" multiple class="hidden">
                 </label>
             </div>
         </div>
 
         <!-- ListenBrainz View -->
-        <div id="view-lb" class="hidden flex-col items-center justify-center bg-gray-800 rounded-2xl p-10 shadow-2xl border border-gray-700 animate-fade-in">
-            <i class="fas fa-headphones text-6xl text-orange-500 mb-6"></i>
-            <h2 class="text-3xl font-semibold mb-4">Download from ListenBrainz</h2>
-            <p class="text-gray-400 mb-8 text-center max-w-lg">
+        <div id="view-lb" class="hidden flex-col items-center justify-center bg-m3-surface rounded-[28px] p-10 shadow-md animate-fade-in">
+            <span class="material-symbols-rounded text-6xl text-m3-primary mb-6">headphones</span>
+            <h2 class="text-3xl font-medium mb-4 text-center">Download from ListenBrainz</h2>
+            <p class="text-m3-onSurfaceVariant mb-8 text-center max-w-lg leading-relaxed">
                 Fetch your recent listens and convert them into Spotify's format. You can integrate them instantly or download the JSON file.
             </p>
             
-            <div class="w-full max-w-md space-y-4">
+            <div class="w-full max-w-md flex flex-col gap-5">
                 <div>
-                    <label class="block text-gray-400 text-sm font-bold mb-2" for="lb-username">ListenBrainz Username</label>
-                    <input class="w-full bg-gray-700 text-white border border-gray-600 rounded-lg py-3 px-4 focus:outline-none focus:border-orange-500" id="lb-username" type="text" placeholder="e.g. your_username">
+                    <label class="block text-m3-onSurfaceVariant text-sm font-medium mb-2 ml-1" for="lb-username">ListenBrainz Username</label>
+                    <input class="w-full bg-m3-surfaceContainer text-m3-onSurface border-none rounded-2xl py-4 px-5 focus:outline-none focus:ring-2 focus:ring-m3-primary transition-shadow" id="lb-username" type="text" placeholder="e.g. your_username">
                 </div>
                 <div>
-                    <label class="block text-gray-400 text-sm font-bold mb-2" for="lb-date">Start Date</label>
-                    <input class="w-full bg-gray-700 text-white border border-gray-600 rounded-lg py-3 px-4 focus:outline-none focus:border-orange-500" id="lb-date" type="date">
+                    <label class="block text-m3-onSurfaceVariant text-sm font-medium mb-2 ml-1" for="lb-date">Start Date</label>
+                    <input class="w-full bg-m3-surfaceContainer text-m3-onSurface border-none rounded-2xl py-4 px-5 focus:outline-none focus:ring-2 focus:ring-m3-primary transition-shadow" id="lb-date" type="date">
                 </div>
-                <button id="lb-integrate-btn" class="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 px-4 rounded-lg shadow-lg transform transition hover:-translate-y-1 mt-4">
-                    <i class="fas fa-sync-alt mr-2"></i> Integrate with current data
-                </button>
-                <button id="lb-download-btn" class="w-full bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg mt-2 text-sm transition-colors">
-                    <i class="fas fa-download mr-2"></i> Or just download the JSON
-                </button>
+                
+                <div class="flex flex-col gap-3 mt-4">
+                    <button id="lb-integrate-btn" class="flex items-center justify-center gap-2 w-full bg-m3-primary text-m3-onPrimary font-medium py-3 px-4 rounded-full shadow-sm hover:opacity-90 transition-opacity">
+                        <span class="material-symbols-rounded">sync</span> Integrate with current data
+                    </button>
+                    <button id="lb-download-btn" class="flex items-center justify-center gap-2 w-full bg-m3-surfaceContainer text-m3-onSurface font-medium py-3 px-4 rounded-full hover:bg-m3-surface transition-colors">
+                        <span class="material-symbols-rounded">download</span> Or just download the JSON
+                    </button>
+                </div>
             </div>
 
             <!-- LB Loader -->
             <div id="lb-loading" class="hidden flex-col items-center mt-8">
-                <div class="loader-orange ease-linear rounded-full border-4 border-t-4 border-gray-200 h-12 w-12 mb-4"></div>
-                <p id="lb-status" class="text-orange-400 animate-pulse font-semibold">Contacting API...</p>
+                <div class="loader-material ease-linear rounded-full border-4 border-t-4 border-m3-surfaceContainer h-12 w-12 mb-4"></div>
+                <p id="lb-status" class="text-m3-primary animate-pulse font-medium">Contacting API...</p>
             </div>
         </div>
 
-        <!-- Loading Section (Analisi) -->
+        <!-- Loading Section -->
         <div id="loading-section" class="hidden flex-col items-center justify-center py-20">
-            <div class="loader ease-linear rounded-full border-8 border-t-8 border-gray-200 h-24 w-24 mb-4"></div>
-            <h2 class="text-xl font-semibold text-green-400 animate-pulse" id="loading-text">Analyzing your history...</h2>
+            <div class="loader-material ease-linear rounded-full border-8 border-t-8 border-m3-surfaceContainer h-24 w-24 mb-6"></div>
+            <h2 class="text-2xl font-medium text-m3-primary animate-pulse" id="loading-text">Analyzing your history...</h2>
         </div>
 
         <!-- Dashboard -->
-        <div id="dashboard" class="hidden flex-col space-y-8 animate-fade-in">
+        <div id="dashboard" class="hidden flex-col gap-8 animate-fade-in">
+            
             <!-- Global Stats Cards -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div class="bg-gray-800 rounded-xl p-6 shadow-lg border border-gray-700 hover:-translate-y-1 transition-transform">
-                    <div class="text-gray-400 text-sm mb-1 uppercase tracking-wider">Total Streams</div>
-                    <div class="text-4xl font-bold text-blue-400" id="total-tracks-stat">0</div>
+                <div class="bg-m3-surface rounded-[24px] p-6 shadow-sm border border-transparent hover:border-m3-outline transition-colors flex flex-col justify-between h-full">
+                    <div class="text-m3-onSurfaceVariant text-sm font-medium mb-2 uppercase tracking-wide">Total Streams</div>
+                    <div class="text-4xl font-bold text-m3-primary break-words" id="total-tracks-stat">0</div>
                 </div>
-                <div class="bg-gray-800 rounded-xl p-6 shadow-lg border border-gray-700 hover:-translate-y-1 transition-transform">
-                    <div class="text-gray-400 text-sm mb-1 uppercase tracking-wider">Unique Artists</div>
-                    <div class="text-4xl font-bold text-purple-400" id="total-artists-stat">0</div>
+                <div class="bg-m3-surface rounded-[24px] p-6 shadow-sm border border-transparent hover:border-m3-outline transition-colors flex flex-col justify-between h-full">
+                    <div class="text-m3-onSurfaceVariant text-sm font-medium mb-2 uppercase tracking-wide">Unique Artists</div>
+                    <div class="text-4xl font-bold text-m3-secondary break-words" id="total-artists-stat">0</div>
                 </div>
-                <div class="bg-gray-800 rounded-xl p-6 shadow-lg border border-gray-700 hover:-translate-y-1 transition-transform">
-                    <div class="text-gray-400 text-sm mb-1 uppercase tracking-wider">Total Time</div>
-                    <div class="text-4xl font-bold text-green-400" id="total-time-stat">0h 0m</div>
-                </div>
-            </div>
-
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <div class="bg-gray-800 rounded-xl p-6 shadow-lg border border-gray-700">
-                    <h3 class="text-2xl font-bold mb-6 flex items-center"><i class="fas fa-microphone-alt mr-3 text-purple-500"></i>Top 10 Artists</h3>
-                    <canvas id="artistsChart"></canvas>
-                </div>
-                <div class="bg-gray-800 rounded-xl p-6 shadow-lg border border-gray-700">
-                    <h3 class="text-2xl font-bold mb-6 flex items-center"><i class="fas fa-fire mr-3 text-orange-500"></i>Top 5 Global Streaks</h3>
-                    <ul id="global-streaks-list" class="space-y-4"></ul>
+                <div class="bg-m3-surface rounded-[24px] p-6 shadow-sm border border-transparent hover:border-m3-outline transition-colors flex flex-col justify-between h-full">
+                    <div class="text-m3-onSurfaceVariant text-sm font-medium mb-2 uppercase tracking-wide">Total Time</div>
+                    <div class="text-4xl font-bold text-m3-primary break-words" id="total-time-stat">0h 0m</div>
                 </div>
             </div>
 
-            <div class="bg-gray-800 rounded-xl p-6 shadow-lg border border-gray-700">
-                <div class="flex justify-between items-center mb-6">
-                    <h3 class="text-2xl font-bold flex items-center"><i class="fas fa-music mr-3 text-blue-500"></i>Your Top Songs</h3>
-                    <div>
-                        <select id="songs-limit-select" class="bg-gray-700 text-white border border-gray-600 rounded-lg py-2 px-4 focus:outline-none focus:border-green-500">
-                            <option value="25">Show 25</option>
-                            <option value="50">Show 50</option>
-                            <option value="100" selected>Show 100</option>
-                        </select>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Top Artists Chart -->
+                <div class="bg-m3-surface rounded-[28px] p-6 shadow-sm">
+                    <h3 class="text-2xl font-medium mb-6 flex items-center gap-3"><span class="material-symbols-rounded text-m3-primary">mic</span> Top 10 Artists</h3>
+                    <div class="relative w-full overflow-hidden">
+                        <canvas id="artistsChart"></canvas>
                     </div>
                 </div>
-                <div class="overflow-x-auto max-h-[500px] custom-scrollbar">
-                    <table class="min-w-full text-left text-sm">
-                        <thead class="sticky top-0 bg-gray-900 text-gray-400 shadow-sm">
+
+                <!-- Top Streaks -->
+                <div class="bg-m3-surface rounded-[28px] p-6 shadow-sm flex flex-col">
+                    <h3 class="text-2xl font-medium mb-6 flex items-center gap-3"><span class="material-symbols-rounded text-m3-error">local_fire_department</span> Top 5 Global Streaks</h3>
+                    <ul id="global-streaks-list" class="flex flex-col gap-3 flex-grow"></ul>
+                </div>
+            </div>
+
+            <!-- Top Songs -->
+            <div class="bg-m3-surface rounded-[28px] p-6 shadow-sm">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+                    <h3 class="text-2xl font-medium flex items-center gap-3"><span class="material-symbols-rounded text-m3-primary">music_note</span> Your Top Songs</h3>
+                    <select id="songs-limit-select" class="bg-m3-surfaceContainer text-m3-onSurface rounded-xl py-2 px-4 focus:outline-none focus:ring-2 focus:ring-m3-primary cursor-pointer">
+                        <option value="25">Show 25</option>
+                        <option value="50">Show 50</option>
+                        <option value="100" selected>Show 100</option>
+                    </select>
+                </div>
+                <div class="overflow-x-auto custom-scrollbar rounded-xl border border-m3-surfaceContainer">
+                    <table class="min-w-full text-left text-sm whitespace-nowrap">
+                        <thead class="bg-m3-surfaceContainer text-m3-onSurfaceVariant sticky top-0 z-10">
                             <tr>
-                                <th class="py-3 px-4 rounded-tl-lg">#</th>
-                                <th class="py-3 px-4">Title</th>
-                                <th class="py-3 px-4">Artist</th>
-                                <th class="py-3 px-4">Plays</th>
-                                <th class="py-3 px-4 rounded-tr-lg">Total Time</th>
+                                <th class="py-4 px-5 font-medium">#</th>
+                                <th class="py-4 px-5 font-medium">Title</th>
+                                <th class="py-4 px-5 font-medium">Artist</th>
+                                <th class="py-4 px-5 font-medium">Plays</th>
+                                <th class="py-4 px-5 font-medium">Total Time</th>
                             </tr>
                         </thead>
-                        <tbody id="top-songs-table" class="divide-y divide-gray-700"></tbody>
+                        <tbody id="top-songs-table" class="divide-y divide-m3-surfaceContainer"></tbody>
                     </table>
                 </div>
             </div>
 
-            <div class="bg-gray-800 rounded-xl p-8 shadow-lg border border-gray-700 text-center">
-                <h3 class="text-3xl font-bold mb-4">Explore an Artist</h3>
-                <div class="flex max-w-md mx-auto relative mb-4">
-                    <input type="text" id="artist-search-input" placeholder="Search..." class="w-full bg-gray-700 text-white border border-gray-600 rounded-l-full py-3 px-6 focus:outline-none focus:border-green-500">
-                    <button id="artist-search-btn" class="bg-green-500 hover:bg-green-600 text-white py-3 px-6 rounded-r-full font-bold">
-                        <i class="fas fa-search"></i>
+            <!-- Search -->
+            <div class="bg-m3-surface rounded-[28px] p-8 shadow-sm text-center">
+                <h3 class="text-3xl font-medium mb-3">Explore an Artist</h3>
+                <div class="flex flex-col sm:flex-row max-w-lg mx-auto relative mt-6 gap-2 sm:gap-0">
+                    <input type="text" id="artist-search-input" placeholder="Search..." class="w-full bg-m3-surfaceContainer text-m3-onSurface rounded-full sm:rounded-r-none py-4 px-6 focus:outline-none focus:ring-2 focus:ring-m3-primary z-10">
+                    <button id="artist-search-btn" class="bg-m3-primary text-m3-onPrimary py-4 px-8 rounded-full sm:rounded-l-none font-medium hover:opacity-90 transition-opacity flex items-center justify-center gap-2">
+                        <span class="material-symbols-rounded">search</span>
                     </button>
                 </div>
-                <div id="artist-results" class="hidden mt-8 text-left bg-gray-900 p-6 rounded-xl border border-gray-700">
-                    <h4 class="text-3xl font-bold text-green-400 mb-2" id="res-artist-name">...</h4>
-                    <div class="text-gray-400 mb-6"><i class="fas fa-fire text-orange-500"></i> Record: <span class="text-white font-bold ml-1" id="res-artist-streak"></span></div>
-                    <ul id="res-artist-songs" class="space-y-3"></ul>
+                <div id="artist-results" class="hidden mt-8 text-left bg-m3-surfaceContainer p-6 sm:p-8 rounded-[24px]">
+                    <h4 class="text-3xl font-medium text-m3-primary mb-2 break-words" id="res-artist-name">...</h4>
+                    <div class="text-m3-onSurfaceVariant mb-6 flex items-center gap-2 flex-wrap">
+                        <span class="material-symbols-rounded text-m3-error">local_fire_department</span> Record: 
+                        <span class="text-m3-onSurface font-medium" id="res-artist-streak"></span>
+                    </div>
+                    <ul id="res-artist-songs" class="flex flex-col gap-2"></ul>
                 </div>
             </div>
         </div>

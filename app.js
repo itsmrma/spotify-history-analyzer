@@ -326,15 +326,15 @@ function renderDashboard(validPlays, totalMs) {
     streaksListEl.innerHTML = '';
     top5Streaks.forEach((s, idx) => {
         streaksListEl.innerHTML += `
-            <li class="flex items-center justify-between bg-gray-700/50 p-3 rounded-lg border border-gray-600">
-                <div class="flex items-center">
-                    <div class="w-8 h-8 rounded-full bg-orange-500/20 text-orange-400 flex items-center justify-center font-bold mr-3">${idx+1}</div>
-                    <div>
-                        <div class="font-bold text-white">${s.artist}</div>
-                        <div class="text-xs text-gray-400">From ${s.start.toLocaleDateString()} to ${s.end.toLocaleDateString()}</div>
+            <li class="flex items-center justify-between bg-m3-surfaceContainer p-4 rounded-[20px] transition-colors">
+                <div class="flex items-center min-w-0">
+                    <div class="w-10 h-10 shrink-0 rounded-full bg-m3-error/20 text-m3-error flex items-center justify-center font-bold mr-4">${idx+1}</div>
+                    <div class="min-w-0">
+                        <div class="font-medium text-m3-onSurface truncate">${s.artist}</div>
+                        <div class="text-xs text-m3-onSurfaceVariant">From ${s.start.toLocaleDateString()} to ${s.end.toLocaleDateString()}</div>
                     </div>
                 </div>
-                <div class="text-xl font-black text-orange-400">${s.length} <span class="text-sm font-normal">days</span></div>
+                <div class="text-xl font-bold text-m3-error ml-4 shrink-0">${s.length} <span class="text-sm font-normal">days</span></div>
             </li>
         `;
     });
@@ -349,12 +349,12 @@ function renderTopSongs() {
     tbody.innerHTML = '';
     topSongs.forEach((song, idx) => {
         tbody.innerHTML += `
-            <tr class="hover:bg-gray-700 transition-colors">
-                <td class="py-3 px-4 text-gray-400">${idx+1}</td>
-                <td class="py-3 px-4 font-bold text-white">${song.track}</td>
-                <td class="py-3 px-4 text-gray-300">${song.artist}</td>
-                <td class="py-3 px-4 text-blue-400 font-semibold">${song.count.toLocaleString()}</td>
-                <td class="py-3 px-4 text-gray-400">${formatTime(song.ms_played)}</td>
+            <tr class="hover:bg-m3-surfaceContainer/50 transition-colors">
+                <td class="py-4 px-5 text-m3-onSurfaceVariant">${idx+1}</td>
+                <td class="py-4 px-5 font-medium text-m3-onSurface truncate max-w-[200px]" title="${song.track}">${song.track}</td>
+                <td class="py-4 px-5 text-m3-onSurfaceVariant truncate max-w-[150px]">${song.artist}</td>
+                <td class="py-4 px-5 text-m3-primary font-medium">${song.count.toLocaleString()}</td>
+                <td class="py-4 px-5 text-m3-onSurfaceVariant">${formatTime(song.ms_played)}</td>
             </tr>
         `;
     });
@@ -424,9 +424,9 @@ function searchArtist() {
     songsUl.innerHTML = '';
     artistSongs.forEach((song, idx) => {
         songsUl.innerHTML += `
-            <li class="flex justify-between bg-gray-800 p-3 rounded-lg border border-gray-700">
-                <span class="font-bold text-white"><span class="text-gray-500 mr-2">${idx+1}.</span>${song.track}</span>
-                <span class="text-blue-400 font-semibold">${song.count} plays</span>
+            <li class="flex justify-between items-center bg-m3-surface p-4 rounded-2xl transition-colors hover:bg-m3-surfaceContainer">
+                <span class="font-medium text-m3-onSurface truncate pr-4" title="${song.track}"><span class="text-m3-onSurfaceVariant mr-3 w-4 inline-block">${idx+1}.</span>${song.track}</span>
+                <span class="text-m3-primary font-medium shrink-0">${song.count} plays</span>
             </li>
         `;
     });

@@ -1,438 +1,515 @@
-// --- Global Variables ---
+'use strict';
+
+const A = window.HistoryAnalytics;
+const $ = (id) => document.getElementById(id);
 let globalData = [];
-let artistStats = {};
-let trackStats = {};
-let artistDates = {};
-let artistsChartInstance = null;
+let stats = null;
+let artistsChart = null;
+let importing = false;
+let lbController = null;
 
-// --- DOM Elements ---
-const tabAnalyzeBtn = document.getElementById('tab-analyze-btn');
-const tabLbBtn = document.getElementById('tab-lb-btn');
-const viewAnalyze = document.getElementById('view-analyze');
-const viewLb = document.getElementById('view-lb');
-const uploadSection = document.getElementById('upload-section');
-const fileInput = document.getElementById('file-upload');
-const songsLimitSelect = document.getElementById('songs-limit-select');
-
-// --- Event Listeners: Tabs ---
-tabAnalyzeBtn.addEventListener('click', () => {
-    tabAnalyzeBtn.className = "flex items-center justify-center gap-2 px-8 py-3 bg-m3-primaryContainer text-m3-primary font-medium rounded-full sm:rounded-r-none sm:rounded-l-full shadow-md transition-colors focus:outline-none";
-    tabLbBtn.className = "flex items-center justify-center gap-2 px-8 py-3 bg-m3-surfaceContainer text-m3-onSurfaceVariant font-medium rounded-full sm:rounded-l-none sm:rounded-r-full hover:bg-m3-surface transition-colors focus:outline-none";
-    viewAnalyze.classList.remove('hidden');
-    viewLb.classList.add('hidden');
-});
-
-tabLbBtn.addEventListener('click', () => {
-    tabLbBtn.className = "flex items-center justify-center gap-2 px-8 py-3 bg-orange-500 text-white font-medium rounded-full sm:rounded-l-none sm:rounded-r-full shadow-md transition-colors focus:outline-none";
-    tabAnalyzeBtn.className = "flex items-center justify-center gap-2 px-8 py-3 bg-m3-surfaceContainer text-m3-onSurfaceVariant font-medium rounded-full sm:rounded-r-none sm:rounded-l-full hover:bg-m3-surface transition-colors focus:outline-none";
-    viewLb.classList.remove('hidden');
-    viewAnalyze.classList.add('hidden');
-    // Hide dashboard if visible to keep UI clean
-    if (!document.getElementById('dashboard').classList.contains('hidden')) {
-        document.getElementById('dashboard').classList.add('hidden');
-        uploadSection.classList.remove('hidden');
-    }
-});
-
-// --- Event Listeners: Drag & Drop & Upload ---
-fileInput.addEventListener('change', (e) => handleFiles(e.target.files));
-
-uploadSection.addEventListener('dragover', (e) => {
-    e.preventDefault();
-    uploadSection.classList.add('drag-over');
-});
-
-uploadSection.addEventListener('dragleave', () => {
-    uploadSection.classList.remove('drag-over');
-});
-
-uploadSection.addEventListener('drop', (e) => {
-    e.preventDefault();
-    uploadSection.classList.remove('drag-over');
-    if (e.dataTransfer.files.length > 0) {
-        handleFiles(e.dataTransfer.files);
-    }
-});
-
-document.getElementById('artist-search-btn').addEventListener('click', searchArtist);
-document.getElementById('artist-search-input').addEventListener('keypress', e => { if (e.key === 'Enter') searchArtist(); });
-document.getElementById('lb-integrate-btn').addEventListener('click', () => fetchListenBrainz(true));
-document.getElementById('lb-download-btn').addEventListener('click', () => fetchListenBrainz(false));
-
-songsLimitSelect.addEventListener('change', () => {
-    renderTopSongs();
-});
-
-// --- File Handling Logic ---
-async function handleFiles(files) {
-    if (files.length === 0) return;
-    
-    document.getElementById('tabs-nav').classList.add('hidden');
-    viewAnalyze.classList.add('hidden');
-    document.getElementById('loading-section').classList.remove('hidden');
-    
-    let allEntries = [];
-    let processedFilesCount = 0;
-
-    for (let i = 0; i < files.length; i++) {
-        const file = files[i];
-        
-        if (file.name.endsWith('.zip')) {
-            // Unzip logic
-            const zip = new JSZip();
-            try {
-                const contents = await zip.loadAsync(file);
-                const jsonFiles = Object.keys(contents.files).filter(name => name.endsWith('.json') && !name.includes('__MACOSX'));
-                for (const filename of jsonFiles) {
-                    const fileData = await contents.files[filename].async("string");
-                    try {
-                        const parsed = JSON.parse(fileData);
-                        if (Array.isArray(parsed)) allEntries = allEntries.concat(parsed);
-                    } catch (e) { console.error(`Error parsing ${filename}`, e); }
-                    processedFilesCount++;
-                    document.getElementById('loading-text').innerText = `Analyzing file ${processedFilesCount}...`;
-                }
-            } catch (err) {
-                console.error("ZIP Error:", err);
-                alert(`Cannot read zip file: ${file.name}`);
-            }
-        } else if (file.name.endsWith('.json')) {
-            // Raw JSON logic (e.g. dropped ListenBrainz file)
-            try {
-                const text = await file.text();
-                const parsed = JSON.parse(text);
-                if (Array.isArray(parsed)) allEntries = allEntries.concat(parsed);
-                processedFilesCount++;
-                document.getElementById('loading-text').innerText = `Analyzing file ${processedFilesCount}...`;
-            } catch (err) {
-                console.error("JSON Error:", err);
-                alert(`Cannot read json file: ${file.name}`);
-            }
-        }
-    }
-
-    if (allEntries.length === 0) {
-        alert("No valid data found in the uploaded files.");
-        location.reload(); // Quick reset
-        return;
-    }
-    
-    globalData = allEntries;
-    processData(allEntries);
+function showMessage(text, kind = 'success') {
+    $('app-message').textContent = text;
+    $('app-message').dataset.kind = kind;
+    $('app-message').classList.remove('hidden');
 }
 
-// --- ListenBrainz Logic ---
-async function fetchListenBrainz(integrate) {
-    const username = document.getElementById('lb-username').value.trim();
-    const dateStr = document.getElementById('lb-date').value;
-    
-    if (!username || !dateStr) {
-        alert("Please enter both username and start date.");
-        return;
+function setTab(name, focus = false) {
+    for (const tab of ['analyze', 'lb']) {
+        const selected = name === tab;
+        const button = $(`tab-${tab}-btn`);
+        button.classList.toggle('is-active', selected);
+        button.setAttribute('aria-selected', String(selected));
+        button.tabIndex = selected ? 0 : -1;
+        $(`view-${tab}`).classList.toggle('hidden', !selected);
+        if (selected && focus) button.focus();
+    }
+    if (name === 'analyze' && artistsChart) requestAnimationFrame(() => artistsChart.resize());
+}
+
+for (const name of ['analyze', 'lb']) {
+    $(`tab-${name}-btn`).addEventListener('click', () => setTab(name));
+    $(`tab-${name}-btn`).addEventListener('keydown', (event) => {
+        if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
+        event.preventDefault();
+        const next =
+            event.key === 'Home'
+                ? 'analyze'
+                : event.key === 'End'
+                  ? 'lb'
+                  : name === 'analyze'
+                    ? 'lb'
+                    : 'analyze';
+        setTab(next, true);
+    });
+}
+
+function updateBusyControls() {
+    const busy = importing || lbController !== null;
+    for (const id of ['choose-files-btn', 'add-files-btn', 'lb-integrate-btn', 'lb-download-btn'])
+        $(id).disabled = busy;
+    $('file-upload').disabled = busy;
+}
+
+for (const id of ['choose-files-btn', 'add-files-btn'])
+    $(id).addEventListener('click', () => $('file-upload').click());
+$('file-upload').addEventListener('change', (event) => handleFiles(event.target.files));
+$('upload-section').addEventListener('dragover', (event) => {
+    event.preventDefault();
+    if (!importing && !lbController) $('upload-section').classList.add('drag-over');
+});
+$('upload-section').addEventListener('dragleave', (event) => {
+    if (!$('upload-section').contains(event.relatedTarget))
+        $('upload-section').classList.remove('drag-over');
+});
+$('upload-section').addEventListener('drop', (event) => {
+    event.preventDefault();
+    $('upload-section').classList.remove('drag-over');
+    handleFiles(event.dataTransfer.files);
+});
+// Avoid navigating away and losing the dashboard when a file is dropped outside the drop zone.
+for (const type of ['dragover', 'drop'])
+    window.addEventListener(type, (event) => {
+        if (Array.from(event.dataTransfer?.types || []).includes('Files')) event.preventDefault();
+    });
+
+async function handleFiles(fileList) {
+    const files = Array.from(fileList);
+    if (!files.length || importing || lbController) return;
+    importing = true;
+    updateBusyControls();
+    setTab('analyze');
+    $('upload-section').classList.add('hidden');
+    $('dashboard').classList.add('hidden');
+    $('loading-section').classList.remove('hidden');
+    $('app-message').classList.add('hidden');
+    const incoming = [];
+    const warnings = [];
+    let parsedFiles = 0;
+
+    async function readJSON(text, name) {
+        try {
+            const data = JSON.parse(text.replace(/^\uFEFF/, ''));
+            if (!Array.isArray(data)) throw new Error('Expected a listening-history array');
+            // Append without spreading: large exports can exceed the argument limit.
+            for (const entry of data) incoming.push(entry);
+            parsedFiles++;
+        } catch (_) {
+            warnings.push(`Could not read ${name}.`);
+        }
+        $('loading-text').textContent = `Reading your history · ${parsedFiles} JSON files`;
+        await new Promise((resolve) => setTimeout(resolve, 0));
     }
 
-    const targetTs = Math.floor(new Date(dateStr).getTime() / 1000);
-    const lbLoading = document.getElementById('lb-loading');
-    const statusText = document.getElementById('lb-status');
-    const integrateBtn = document.getElementById('lb-integrate-btn');
-    const downloadBtn = document.getElementById('lb-download-btn');
-    
-    lbLoading.classList.remove('hidden');
-    integrateBtn.disabled = true;
-    downloadBtn.disabled = true;
-    
-    let allListens = [];
-    let maxTs = null;
-    let reachedDate = false;
-    
     try {
-        while (!reachedDate) {
-            let url = `https://api.listenbrainz.org/1/user/${username}/listens?count=100`;
-            if (maxTs) url += `&max_ts=${maxTs}`;
-            
-            const response = await fetch(url, { headers: { "Accept": "application/json" } });
-            if (!response.ok) throw new Error(`API Error: ${response.status}`);
-            
-            const data = await response.json();
-            const listens = data.payload?.listens || [];
-            
-            if (listens.length === 0) break;
-            
-            for (const item of listens) {
-                if (item.listened_at < targetTs) {
-                    reachedDate = true;
-                    break;
+        for (const file of files) {
+            const name = file.name.toLowerCase();
+            if (name.endsWith('.zip')) {
+                try {
+                    if (!window.JSZip) throw new Error('ZIP library unavailable');
+                    const zip = await JSZip.loadAsync(file);
+                    const jsonFiles = Object.values(zip.files).filter(
+                        (item) =>
+                            !item.dir &&
+                            /\.json$/i.test(item.name) &&
+                            !item.name.includes('__MACOSX/'),
+                    );
+                    if (!jsonFiles.length) warnings.push(`No JSON files in ${file.name}.`);
+                    for (const item of jsonFiles)
+                        await readJSON(await item.async('string'), item.name);
+                } catch (_) {
+                    warnings.push(
+                        `Could not open ${file.name}. Please try the extracted JSON files.`,
+                    );
                 }
-                
-                const metadata = item.track_metadata || {};
-                if (metadata.artist_name && metadata.track_name) {
-                    // Convert to Spotify format
-                    const d = new Date(item.listened_at * 1000);
-                    const tsStr = d.toISOString().replace(/\.\d{3}Z$/, 'Z');
-                    
-                    allListens.push({
-                        ts: tsStr,
-                        master_metadata_album_artist_name: metadata.artist_name,
-                        master_metadata_track_name: metadata.track_name,
-                        ms_played: 180000 // Fake 3 mins to make them count
-                    });
+            } else if (name.endsWith('.json')) {
+                try {
+                    await readJSON(await file.text(), file.name);
+                } catch (_) {
+                    warnings.push(`Could not read ${file.name}.`);
                 }
-            }
-            
-            maxTs = listens[listens.length - 1].listened_at;
-            statusText.innerText = `Downloaded ${allListens.length} listens...`;
-            
-            // API rate limit pause
-            await new Promise(r => setTimeout(r, 1000));
+            } else warnings.push(`Unsupported file: ${file.name}. Use ZIP or JSON.`);
         }
-        
-        if (allListens.length === 0) {
-            alert("No listens found after this date.");
-        } else {
-            if (integrate) {
-                globalData = globalData.concat(allListens);
-                alert(`🎉 ${allListens.length} listens successfully integrated!`);
-                // Switch back to Analyze View
-                tabAnalyzeBtn.click();
-                processData(globalData);
-            } else {
-                // Download JSON file
-                const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(allListens, null, 2));
-                const downloadAnchor = document.createElement('a');
-                downloadAnchor.setAttribute("href", dataStr);
-                downloadAnchor.setAttribute("download", `Streaming_History_ListenBrainz_${username}_${dateStr}.json`);
-                document.body.appendChild(downloadAnchor);
-                downloadAnchor.click();
-                downloadAnchor.remove();
-                alert("JSON file generated and downloaded!");
-            }
+        const merged = A.mergeEntries(globalData, incoming);
+        if (!incoming.some((entry) => A.normalizeEntry(entry))) {
+            showMessage(
+                `No supported music plays of at least 30 seconds were found. ${warnings.join(' ')}`,
+                'error',
+            );
+            return;
         }
-    } catch (err) {
-        alert("Error during ListenBrainz download: " + err.message);
+        globalData = merged.entries;
+        renderDashboard();
+        const details = [];
+        if (merged.duplicates)
+            details.push(`${merged.duplicates.toLocaleString()} duplicate plays ignored.`);
+        if (merged.skipped)
+            details.push(
+                `${merged.skipped.toLocaleString()} short or unsupported entries ignored.`,
+            );
+        showMessage(
+            `History updated · ${globalData.length.toLocaleString()} music plays. ${details.join(' ')} ${warnings.join(' ')}`.trim(),
+            warnings.length ? 'warning' : 'success',
+        );
+    } catch (error) {
+        showMessage(
+            `Could not import your history: ${error.message}. Your previous data is still available.`,
+            'error',
+        );
     } finally {
-        lbLoading.classList.add('hidden');
-        integrateBtn.disabled = false;
-        downloadBtn.disabled = false;
-        statusText.innerText = "Contacting API...";
+        importing = false;
+        $('file-upload').value = '';
+        $('loading-section').classList.add('hidden');
+        $('dashboard').classList.toggle('hidden', !stats);
+        $('upload-section').classList.toggle('hidden', Boolean(stats));
+        updateBusyControls();
     }
 }
 
-// --- Data Processing Logic (Spotify & ListenBrainz) ---
-function getArtistTrackAndDate(entry) {
-    let artist = entry.master_metadata_album_artist_name || entry.artistName;
-    let track = entry.master_metadata_track_name || entry.trackName;
-    let ms_played = entry.ms_played || entry.msPlayed || 0;
-    let timestamp = entry.ts || entry.endTime;
+function element(tag, className, text) {
+    const node = document.createElement(tag);
+    if (className) node.className = className;
+    if (text !== undefined) node.textContent = text;
+    return node;
+}
 
-    let date_str = null;
-    if (timestamp && typeof timestamp === 'string' && timestamp.length >= 10) {
-        date_str = timestamp.substring(0, 10);
+function formatDate(date) {
+    return new Intl.DateTimeFormat(undefined, {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric',
+        timeZone: 'UTC',
+    }).format(new Date(date));
+}
+
+function renderDashboard() {
+    stats = A.analyze(globalData);
+    $('upload-section').classList.add('hidden');
+    $('dashboard').classList.remove('hidden');
+    $('total-tracks-stat').textContent = stats.totalPlays.toLocaleString();
+    $('total-artists-stat').textContent = stats.artists.size.toLocaleString();
+    $('total-time-stat').textContent = A.formatTime(stats.totalMs);
+    $('time-caption').textContent = stats.estimatedPlays
+        ? `Includes ${stats.estimatedPlays.toLocaleString()} estimated durations`
+        : 'Time spent with your music';
+    $('history-summary').textContent = stats.firstDate
+        ? `${formatDate(stats.firstDate)} – ${formatDate(stats.lastDate)} · Dates and streaks use UTC`
+        : 'No valid timestamps available for streaks.';
+    if (stats.lastDate && !$('lb-date').value) {
+        const nextDay = new Date(`${stats.lastDate}T00:00:00Z`);
+        nextDay.setUTCDate(nextDay.getUTCDate() + 1);
+        const suggested = nextDay.toISOString().slice(0, 10);
+        if (suggested <= $('lb-date').max) $('lb-date').value = suggested;
     }
-    return { artist, track, ms_played, date_str };
-}
-
-function formatTime(ms) {
-    const total_minutes = ms / (1000 * 60);
-    const hours = Math.floor(total_minutes / 60);
-    const minutes = Math.floor(total_minutes % 60);
-    if (hours > 0) return `${hours}h ${minutes}m`;
-    return `${minutes}m`;
-}
-
-function getAllStreaks(listening_dates_set) {
-    const dates = Array.from(listening_dates_set).sort();
-    let streaks = [];
-    if (dates.length === 0) return streaks;
-
-    let currentStart = new Date(dates[0]);
-    let currentLen = 1;
-    let lastDate = currentStart;
-
-    for (let i = 1; i < dates.length; i++) {
-        let d = new Date(dates[i]);
-        let diffTime = Math.abs(d - lastDate);
-        let diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
-        
-        if (diffDays === 1) {
-            currentLen++;
-            lastDate = d;
-        } else if (diffDays > 1) {
-            streaks.push({ start: currentStart, end: lastDate, length: currentLen });
-            currentStart = d;
-            lastDate = d;
-            currentLen = 1;
-        }
+    renderArtistsChart();
+    const streakList = $('global-streaks-list');
+    streakList.replaceChildren();
+    for (const [index, streak] of stats.streaks.slice(0, 5).entries()) {
+        const item = element('li', 'streak-item');
+        const info = element('div', 'streak-info');
+        info.append(
+            element('span', 'streak-name', streak.artist),
+            element(
+                'span',
+                'streak-dates',
+                `${formatDate(streak.start)} – ${formatDate(streak.end)}`,
+            ),
+        );
+        const length = element('span', 'streak-length', `${streak.length} `);
+        length.append(element('small', '', 'days'));
+        item.append(element('span', 'rank', String(index + 1)), info, length);
+        streakList.append(item);
     }
-    streaks.push({ start: currentStart, end: lastDate, length: currentLen });
-    return streaks;
-}
-
-function processData(entries) {
-    artistStats = {};
-    trackStats = {};
-    artistDates = {};
-    let totalMs = 0;
-    let validPlays = 0;
-
-    entries.forEach(entry => {
-        const { artist, track, ms_played, date_str } = getArtistTrackAndDate(entry);
-        
-        if (artist && track && ms_played >= 30000) {
-            validPlays++;
-            totalMs += ms_played;
-
-            if (!artistStats[artist]) {
-                artistStats[artist] = { count: 0, ms_played: 0 };
-                artistDates[artist] = new Set();
-            }
-            artistStats[artist].count++;
-            artistStats[artist].ms_played += ms_played;
-            if (date_str) artistDates[artist].add(date_str);
-
-            const trackKey = `${track}:::${artist}`;
-            if (!trackStats[trackKey]) trackStats[trackKey] = { track, artist, count: 0, ms_played: 0 };
-            
-            trackStats[trackKey].count++;
-            trackStats[trackKey].ms_played += ms_played;
-        }
-    });
-
-    renderDashboard(validPlays, totalMs);
-}
-
-function renderDashboard(validPlays, totalMs) {
-    document.getElementById('loading-section').classList.add('hidden');
-    document.getElementById('dashboard').classList.remove('hidden');
-
-    document.getElementById('total-tracks-stat').innerText = validPlays.toLocaleString();
-    document.getElementById('total-artists-stat').innerText = Object.keys(artistStats).length.toLocaleString();
-    document.getElementById('total-time-stat').innerText = formatTime(totalMs);
-
-    const topArtists = Object.entries(artistStats)
-        .sort((a, b) => b[1].count - a[1].count)
-        .slice(0, 10);
-    
-    renderArtistsChart(topArtists);
-
-    let allGlobalStreaks = [];
-    for (const [artist, datesSet] of Object.entries(artistDates)) {
-        const streaks = getAllStreaks(datesSet);
-        streaks.forEach(s => { if (s.length > 1) allGlobalStreaks.push({ artist, ...s }); });
-    }
-    allGlobalStreaks.sort((a, b) => b.length - a.length);
-    const top5Streaks = allGlobalStreaks.slice(0, 5);
-    
-    const streaksListEl = document.getElementById('global-streaks-list');
-    streaksListEl.innerHTML = '';
-    top5Streaks.forEach((s, idx) => {
-        streaksListEl.innerHTML += `
-            <li class="flex items-center justify-between bg-m3-surfaceContainer p-4 rounded-[20px] transition-colors">
-                <div class="flex items-center min-w-0">
-                    <div class="w-10 h-10 shrink-0 rounded-full bg-m3-error/20 text-m3-error flex items-center justify-center font-bold mr-4">${idx+1}</div>
-                    <div class="min-w-0">
-                        <div class="font-medium text-m3-onSurface truncate">${s.artist}</div>
-                        <div class="text-xs text-m3-onSurfaceVariant">From ${s.start.toLocaleDateString()} to ${s.end.toLocaleDateString()}</div>
-                    </div>
-                </div>
-                <div class="text-xl font-bold text-m3-error ml-4 shrink-0">${s.length} <span class="text-sm font-normal">days</span></div>
-            </li>
-        `;
-    });
-
+    if (!stats.streaks.length)
+        streakList.append(
+            element('li', 'empty-state', 'No consecutive-day streaks yet. Keep the music going!'),
+        );
     renderTopSongs();
+    if ($('artist-search-input').value.trim()) searchArtist();
+    else $('artist-results').classList.add('hidden');
 }
 
 function renderTopSongs() {
-    const limit = parseInt(songsLimitSelect.value, 10);
-    const topSongs = Object.values(trackStats).sort((a, b) => b.count - a.count).slice(0, limit);
-    const tbody = document.getElementById('top-songs-table');
-    tbody.innerHTML = '';
-    topSongs.forEach((song, idx) => {
-        tbody.innerHTML += `
-            <tr class="hover:bg-m3-surfaceContainer/50 transition-colors">
-                <td class="py-4 px-5 text-m3-onSurfaceVariant">${idx+1}</td>
-                <td class="py-4 px-5 font-medium text-m3-onSurface truncate max-w-[200px]" title="${song.track}">${song.track}</td>
-                <td class="py-4 px-5 text-m3-onSurfaceVariant truncate max-w-[150px]">${song.artist}</td>
-                <td class="py-4 px-5 text-m3-primary font-medium">${song.count.toLocaleString()}</td>
-                <td class="py-4 px-5 text-m3-onSurfaceVariant">${formatTime(song.ms_played)}</td>
-            </tr>
-        `;
-    });
+    if (!stats) return;
+    const fragment = document.createDocumentFragment();
+    for (const [index, song] of stats.sortedTracks
+        .slice(0, Number($('songs-limit-select').value))
+        .entries()) {
+        const row = element('tr');
+        const title = element('td', 'song-title', song.track);
+        title.title = song.track;
+        row.append(
+            element('td', '', String(index + 1)),
+            title,
+            element('td', 'song-artist', song.artist),
+            element('td', 'numeric song-plays', song.count.toLocaleString()),
+            element('td', 'numeric muted', A.formatTime(song.ms)),
+        );
+        fragment.append(row);
+    }
+    $('top-songs-table').replaceChildren(fragment);
 }
 
-function renderArtistsChart(topArtists) {
-    const ctx = document.getElementById('artistsChart').getContext('2d');
-    if (artistsChartInstance) artistsChartInstance.destroy();
-
-    artistsChartInstance = new Chart(ctx, {
+function renderArtistsChart() {
+    const top = stats.sortedArtists.slice(0, 10);
+    $('artistsChart').parentElement.style.height = `${Math.max(150, 32 + top.length * 28)}px`;
+    const fallback = $('artists-chart-fallback');
+    fallback.replaceChildren(
+        ...top.map((artist) =>
+            element('li', 'artist-song', `${artist.name} · ${artist.count.toLocaleString()} plays`),
+        ),
+    );
+    // A text alternative is available to screen readers even when the canvas is shown.
+    fallback.className = window.Chart ? 'sr-only' : '';
+    $('artistsChart').parentElement.classList.toggle('hidden', !window.Chart);
+    if (!window.Chart) return;
+    if (artistsChart) artistsChart.destroy();
+    $('artistsChart').setAttribute(
+        'aria-label',
+        `Top artists: ${top.map((artist) => `${artist.name}, ${artist.count} plays`).join('; ')}`,
+    );
+    artistsChart = new Chart($('artistsChart'), {
         type: 'bar',
         data: {
-            labels: topArtists.map(a => a[0]),
-            datasets: [{
-                label: 'Plays',
-                data: topArtists.map(a => a[1].count),
-                backgroundColor: 'rgba(168, 85, 247, 0.6)',
-                borderColor: 'rgba(168, 85, 247, 1)',
-                borderWidth: 1,
-                borderRadius: 4
-            }]
+            labels: top.map((artist) => artist.name),
+            datasets: [
+                {
+                    label: 'Plays',
+                    data: top.map((artist) => artist.count),
+                    backgroundColor: top.map((_, index) => (index === 0 ? '#a8e5cb' : '#b9a7ee')),
+                    borderRadius: 5,
+                    maxBarThickness: 18,
+                },
+            ],
         },
         options: {
+            indexAxis: 'y',
             responsive: true,
-            plugins: { legend: { display: false } },
+            maintainAspectRatio: false,
+            animation: window.matchMedia('(prefers-reduced-motion: reduce)').matches
+                ? false
+                : { duration: 400 },
+            plugins: {
+                legend: { display: false },
+                tooltip: { backgroundColor: '#303447', padding: 12 },
+            },
             scales: {
-                y: { grid: { color: 'rgba(255, 255, 255, 0.1)' }, ticks: { color: '#9ca3af' } },
-                x: { grid: { display: false }, ticks: { color: '#e5e7eb', font: { weight: 'bold' } } }
-            }
-        }
+                x: {
+                    beginAtZero: true,
+                    grid: { color: '#303447' },
+                    border: { display: false },
+                    ticks: { color: '#a7abc0', precision: 0, font: { size: 10 } },
+                },
+                y: {
+                    grid: { display: false },
+                    border: { display: false },
+                    ticks: {
+                        color: '#d7d6e2',
+                        font: { size: 11 },
+                        callback: function (value) {
+                            const label = this.getLabelForValue(value);
+                            return label.length > 22 ? `${label.slice(0, 21)}…` : label;
+                        },
+                    },
+                },
+            },
+        },
     });
 }
 
 function searchArtist() {
-    const query = document.getElementById('artist-search-input').value.toLowerCase().trim();
-    if (!query) return;
-
-    let actualArtist = Object.keys(artistStats).find(a => a.toLowerCase() === query) 
-                    || Object.keys(artistStats).find(a => a.toLowerCase().includes(query));
-
-    const resultsDiv = document.getElementById('artist-results');
-    if (!actualArtist) {
-        alert("Artist not found in your listening history!");
-        resultsDiv.classList.add('hidden');
+    if (!stats) return;
+    const query = $('artist-search-input').value.trim().toLocaleLowerCase();
+    $('search-message').classList.add('hidden');
+    if (!query) {
+        $('artist-results').classList.add('hidden');
         return;
     }
-
-    document.getElementById('res-artist-name').innerText = actualArtist;
-    
-    const datesSet = artistDates[actualArtist];
-    const streaks = getAllStreaks(datesSet);
-    let recordText = "No streaks (single day listens)";
-    if (streaks.length > 0) {
-        const topStreak = streaks.reduce((max, s) => s.length > max.length ? s : max, streaks[0]);
-        if (topStreak.length > 1) {
-            recordText = `${topStreak.length} consecutive days (from ${topStreak.start.toLocaleDateString()} to ${topStreak.end.toLocaleDateString()})`;
-        }
+    const artist =
+        stats.sortedArtists.find((item) => item.name.toLocaleLowerCase() === query) ||
+        stats.sortedArtists.find((item) => item.name.toLocaleLowerCase().includes(query));
+    if (!artist) {
+        $('artist-results').classList.add('hidden');
+        $('search-message').textContent =
+            'No artist matches this name in your history. Try a different search.';
+        $('search-message').classList.remove('hidden');
+        return;
     }
-    document.getElementById('res-artist-streak').innerText = recordText;
+    $('res-artist-name').textContent = artist.name;
+    const streaks = A.getAllStreaks(artist.dates).sort((a, b) => b.length - a.length);
+    const record = streaks[0];
+    $('res-artist-streak').textContent = !record
+        ? 'No valid listening dates available.'
+        : record.length > 1
+          ? `Your record: ${record.length} consecutive days · ${formatDate(record.start)} – ${formatDate(record.end)}`
+          : 'Listened on individual days. No consecutive-day streak yet.';
+    const songs = stats.sortedTracks.filter((song) => song.artist === artist.name).slice(0, 10);
+    $('res-artist-songs').replaceChildren(
+        ...songs.map((song, index) => {
+            const item = element('li', 'artist-song');
+            item.append(
+                element('span', 'artist-song-name', `${index + 1}. ${song.track}`),
+                element('span', 'artist-song-count', `${song.count.toLocaleString()} plays`),
+            );
+            return item;
+        }),
+    );
+    $('artist-results').classList.remove('hidden');
+}
 
-    const artistSongs = Object.values(trackStats)
-        .filter(t => t.artist === actualArtist)
-        .sort((a, b) => b.count - a.count)
-        .slice(0, 10);
+$('songs-limit-select').addEventListener('change', renderTopSongs);
+$('artist-search-form').addEventListener('submit', (event) => {
+    event.preventDefault();
+    searchArtist();
+});
+$('artist-search-input').addEventListener('input', () => {
+    $('search-message').classList.add('hidden');
+    $('artist-results').classList.add('hidden');
+});
+$('lb-date').max = new Date().toISOString().slice(0, 10);
+$('lb-form').addEventListener('submit', (event) => {
+    event.preventDefault();
+    fetchListenBrainz(event.submitter !== $('lb-download-btn'));
+});
+$('lb-cancel-btn').addEventListener('click', () => lbController?.abort());
 
-    const songsUl = document.getElementById('res-artist-songs');
-    songsUl.innerHTML = '';
-    artistSongs.forEach((song, idx) => {
-        songsUl.innerHTML += `
-            <li class="flex justify-between items-center bg-m3-surface p-4 rounded-2xl transition-colors hover:bg-m3-surfaceContainer">
-                <span class="font-medium text-m3-onSurface truncate pr-4" title="${song.track}"><span class="text-m3-onSurfaceVariant mr-3 w-4 inline-block">${idx+1}.</span>${song.track}</span>
-                <span class="text-m3-primary font-medium shrink-0">${song.count} plays</span>
-            </li>
-        `;
+function pause(ms, signal) {
+    return new Promise((resolve, reject) => {
+        if (signal.aborted) {
+            reject(new DOMException('Cancelled', 'AbortError'));
+            return;
+        }
+        const abort = () => {
+            clearTimeout(timer);
+            reject(new DOMException('Cancelled', 'AbortError'));
+        };
+        const timer = setTimeout(() => {
+            signal.removeEventListener('abort', abort);
+            resolve();
+        }, ms);
+        signal.addEventListener('abort', abort, { once: true });
     });
+}
 
-    resultsDiv.classList.remove('hidden');
-    resultsDiv.classList.remove('animate-fade-in');
-    void resultsDiv.offsetWidth; 
-    resultsDiv.classList.add('animate-fade-in');
+async function requestListens(url, signal) {
+    for (let attempt = 0; attempt < 3; attempt++) {
+        // Timeout includes receiving and parsing the response body.
+        const requestSignal = AbortSignal.any([signal, AbortSignal.timeout(30000)]);
+        const response = await fetch(url, {
+            headers: { Accept: 'application/json' },
+            signal: requestSignal,
+        });
+        if (response.status === 429 && attempt < 2) {
+            const retry = Number(response.headers.get('Retry-After'));
+            const delay =
+                Number.isFinite(retry) && retry > 0
+                    ? Math.min(retry, 30) * 1000
+                    : 2000 * (attempt + 1);
+            $('lb-status').textContent = 'ListenBrainz is busy. Retrying shortly…';
+            await pause(delay, signal);
+            continue;
+        }
+        if (response.status === 404)
+            throw new Error('This ListenBrainz user was not found. Check the username');
+        if (!response.ok)
+            throw new Error(
+                `ListenBrainz returned HTTP ${response.status}. Please try again later`,
+            );
+        const data = await response.json();
+        if (!Array.isArray(data.payload?.listens))
+            throw new Error('ListenBrainz returned an unexpected response');
+        return data.payload.listens;
+    }
+}
+
+async function fetchListenBrainz(integrate) {
+    if (lbController || importing) return;
+    const username = $('lb-username').value.trim();
+    const startDate = $('lb-date').value;
+    if (!username || !A.validDate(startDate) || startDate > $('lb-date').max) {
+        showMessage('Enter a username and a valid start date on or before today.', 'error');
+        return;
+    }
+    const targetTs = Date.parse(`${startDate}T00:00:00Z`) / 1000;
+    lbController = new AbortController();
+    const signal = lbController.signal;
+    updateBusyControls();
+    $('lb-loading').classList.remove('hidden');
+    $('lb-status').textContent = 'Contacting ListenBrainz…';
+    $('app-message').classList.add('hidden');
+    const incoming = [];
+    let maxTs = null;
+    try {
+        while (true) {
+            const url = new URL(
+                `https://api.listenbrainz.org/1/user/${encodeURIComponent(username)}/listens`,
+            );
+            url.searchParams.set('count', '1000');
+            if (maxTs !== null) url.searchParams.set('max_ts', maxTs);
+            const listens = await requestListens(url.href, signal);
+            if (!listens.length) break;
+            let oldest = Infinity;
+            for (const item of listens) {
+                if (!Number.isSafeInteger(item?.listened_at) || item.listened_at <= 0) continue;
+                oldest = Math.min(oldest, item.listened_at);
+                if (item.listened_at < targetTs) continue;
+                const entry = A.convertListen(item);
+                if (entry) incoming.push(entry);
+            }
+            if (!Number.isFinite(oldest) || (maxTs !== null && oldest >= maxTs))
+                throw new Error('ListenBrainz pagination did not advance. Please try again');
+            $('lb-status').textContent = `Downloaded ${incoming.length.toLocaleString()} listens…`;
+            if (oldest <= targetTs) break;
+            maxTs = oldest; // The API documents max_ts as exclusive.
+            await pause(1000, signal);
+        }
+        signal.throwIfAborted();
+        if (!incoming.length) {
+            showMessage('No listens were found on or after this date.', 'warning');
+            return;
+        }
+        if (integrate) {
+            const previousCount = globalData.length;
+            const merged = A.mergeEntries(globalData, incoming);
+            if (!merged.entries.length) {
+                showMessage('No music plays of at least 30 seconds were found.', 'warning');
+                return;
+            }
+            globalData = merged.entries;
+            setTab('analyze');
+            renderDashboard();
+            showMessage(
+                `${(globalData.length - previousCount).toLocaleString()} plays added from ListenBrainz.${merged.duplicates ? ` ${merged.duplicates.toLocaleString()} duplicate plays ignored.` : ''}`,
+            );
+        } else {
+            const blob = new Blob([JSON.stringify(incoming, null, 2)], {
+                type: 'application/json',
+            });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `Streaming_History_ListenBrainz_${username.replace(/[^a-zA-Z0-9_-]/g, '_')}_${startDate}.json`;
+            document.body.append(link);
+            link.click();
+            link.remove();
+            setTimeout(() => URL.revokeObjectURL(url), 1000);
+            showMessage(
+                `JSON downloaded · ${incoming.length.toLocaleString()} listens. Estimated durations are marked in the file.`,
+            );
+        }
+    } catch (error) {
+        if (signal.aborted)
+            showMessage('Download cancelled. Your existing history is still available.', 'warning');
+        else if (error.name === 'TimeoutError')
+            showMessage('ListenBrainz took too long to respond. Please try again.', 'error');
+        else
+            showMessage(
+                `Could not download listens: ${error.message}. Your existing history is still available.`,
+                'error',
+            );
+    } finally {
+        lbController = null;
+        $('lb-loading').classList.add('hidden');
+        updateBusyControls();
+    }
 }

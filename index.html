@@ -1,212 +1,381 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Music History Analyzer</title>
-    
-    <!-- Google Fonts: Roboto & Material Symbols -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
-    
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['Roboto', 'sans-serif'],
-                    },
-                    colors: {
-                        m3: {
-                            bg: '#121212',
-                            surface: '#1E1E1E',
-                            surfaceContainer: '#2D2D2D',
-                            primary: '#D0BCFF',
-                            onPrimary: '#381E72',
-                            primaryContainer: '#4F378B',
-                            secondary: '#CCC2DC',
-                            onSurface: '#E6E1E5',
-                            onSurfaceVariant: '#CAC4D0',
-                            outline: '#938F99',
-                            error: '#F2B8B5'
-                        }
-                    }
-                }
-            }
-        }
-    </script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link rel="stylesheet" href="style.css?v=3">
-</head>
-<body class="bg-m3-bg text-m3-onSurface min-h-screen">
-    
-    <div class="container mx-auto px-4 py-10 max-w-6xl">
-        <!-- Header -->
-        <header class="text-center mb-12 animate-fade-in-down">
-            <h1 class="text-4xl md:text-5xl font-bold text-m3-primary mb-4 flex items-center justify-center gap-3">
-                <span class="material-symbols-rounded text-5xl">insights</span>
-                Music History Analyzer
-            </h1>
-            <p class="text-m3-onSurfaceVariant text-lg">Explore your listening habits and fill the gaps with ListenBrainz.</p>
-        </header>
-
-        <!-- Tabs Navigation -->
-        <div id="tabs-nav" class="flex flex-col sm:flex-row justify-center mb-10 animate-fade-in gap-2 sm:gap-0 px-4">
-            <button id="tab-analyze-btn" class="flex items-center justify-center gap-2 px-8 py-3 bg-m3-primaryContainer text-m3-primary font-medium rounded-full sm:rounded-r-none sm:rounded-l-full shadow-md transition-colors focus:outline-none">
-                <span class="material-symbols-rounded">pie_chart</span> Analyze Data
-            </button>
-            <button id="tab-lb-btn" class="flex items-center justify-center gap-2 px-8 py-3 bg-m3-surfaceContainer text-m3-onSurfaceVariant font-medium rounded-full sm:rounded-l-none sm:rounded-r-full hover:bg-m3-surface transition-colors focus:outline-none">
-                <span class="material-symbols-rounded">cloud_download</span> ListenBrainz
-            </button>
-        </div>
-
-        <!-- Analyze Data View -->
-        <div id="view-analyze" class="animate-fade-in">
-            <div id="upload-section" class="flex flex-col items-center justify-center bg-m3-surface rounded-[28px] p-12 shadow-md border-2 border-dashed border-m3-outline transition-all duration-300 hover:border-m3-primary">
-                <span class="material-symbols-rounded text-6xl text-m3-onSurfaceVariant mb-6 upload-icon pointer-events-none">folder_zip</span>
-                <h2 class="text-2xl font-medium mb-3 pointer-events-none">Drag & Drop files here</h2>
-                <p class="text-m3-onSurfaceVariant mb-8 text-center max-w-md pointer-events-none leading-relaxed">
-                    We support your Spotify <b>.zip</b> archive or individual <b>.json</b> files. You can drop both your zip and ListenBrainz JSON files together!
-                </p>
-                <label class="relative cursor-pointer bg-m3-primary text-m3-onPrimary font-medium py-3 px-8 rounded-full shadow-md hover:opacity-90 transition-opacity z-10 flex items-center gap-2">
-                    <span class="material-symbols-rounded">upload</span> Choose files...
-                    <input type="file" id="file-upload" accept=".zip,.json" multiple class="hidden">
-                </label>
-            </div>
-        </div>
-
-        <!-- ListenBrainz View -->
-        <div id="view-lb" class="hidden flex-col items-center justify-center bg-m3-surface rounded-[28px] p-6 sm:p-12 shadow-md animate-fade-in w-full">
-            <div class="flex flex-col items-center text-center w-full mb-8">
-                <span class="material-symbols-rounded text-6xl text-orange-500 mb-6">headphones</span>
-                <h2 class="text-3xl font-medium mb-4">Download from ListenBrainz</h2>
-                <p class="text-m3-onSurfaceVariant max-w-xl leading-relaxed">
-                    Fetch your recent listens and convert them into Spotify's format. You can integrate them instantly or download the JSON file.
-                </p>
-            </div>
-            
-            <div class="w-full flex flex-col gap-6">
-                <!-- Inputs in Grid for Responsiveness -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-5 w-full">
-                    <div class="w-full min-w-0">
-                        <label class="block text-m3-onSurfaceVariant text-sm font-medium mb-2 ml-1" for="lb-username">ListenBrainz Username</label>
-                        <input class="w-full min-w-0 bg-m3-surfaceContainer text-m3-onSurface border-none rounded-2xl py-4 px-5 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-shadow" id="lb-username" type="text" placeholder="e.g. your_username">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta name="theme-color" content="#10121b" />
+        <meta
+            name="description"
+            content="Turn your Spotify listening history into personal charts, favourite songs and artist streaks. Your files stay in your browser."
+        />
+        <title>Music History Analyzer · Your listening, in focus</title>
+        <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+        <link rel="stylesheet" href="style.css?v=4" />
+        <script defer src="vendor/jszip.min.js"></script>
+        <script defer src="vendor/chart.umd.min.js"></script>
+        <script defer src="analytics.js?v=4"></script>
+        <script defer src="app.js?v=4"></script>
+    </head>
+    <body>
+        <svg class="icon-library" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+            <symbol id="icon-wave" viewBox="0 0 24 24">
+                <path d="M4 10v4m4-8v12m4-15v18m4-15v12m4-8v4" />
+            </symbol>
+            <symbol id="icon-upload" viewBox="0 0 24 24">
+                <path d="M12 16V4m-4 4 4-4 4 4M4 16v4h16v-4" />
+            </symbol>
+            <symbol id="icon-chart" viewBox="0 0 24 24">
+                <path d="M4 4v16h16M8 16v-4m4 4V8m4 8v-6" />
+            </symbol>
+            <symbol id="icon-headphones" viewBox="0 0 24 24">
+                <path
+                    d="M4 14v-3a8 8 0 0 1 16 0v3M4 12h3v8H4a2 2 0 0 1-2-2v-4a2 2 0 0 1 2-2Zm16 0h-3v8h3a2 2 0 0 0 2-2v-4a2 2 0 0 0-2-2Z"
+                />
+            </symbol>
+            <symbol id="icon-shield" viewBox="0 0 24 24">
+                <path d="m12 3 8 3v6c0 5-8 9-8 9s-8-4-8-9V6l8-3Zm-4 9 3 3 5-6" />
+            </symbol>
+            <symbol id="icon-search" viewBox="0 0 24 24">
+                <circle cx="10" cy="10" r="6" />
+                <path d="m15 15 6 6" />
+            </symbol>
+            <symbol id="icon-arrow" viewBox="0 0 24 24"><path d="M5 12h14m-5-5 5 5-5 5" /></symbol>
+            <symbol id="icon-note" viewBox="0 0 24 24">
+                <path d="M10 18V5l10-2v13M10 8l10-2" />
+                <ellipse cx="6" cy="18" rx="4" ry="3" />
+                <ellipse cx="16" cy="16" rx="4" ry="3" />
+            </symbol>
+        </svg>
+        <a class="skip-link" href="#main">Skip to content</a>
+        <div class="app-shell">
+            <header class="site-header">
+                <a class="brand" href="./" aria-label="Music History Analyzer home"
+                    ><span class="brand-mark"
+                        ><svg class="icon"><use href="#icon-wave" /></svg></span
+                    ><span>Music History<span class="brand-subtitle">ANALYZER</span></span></a
+                >
+                <span class="privacy-badge"
+                    ><svg class="icon"><use href="#icon-shield" /></svg> Your files stay
+                    private</span
+                >
+            </header>
+            <main id="main">
+                <section class="hero" aria-labelledby="page-title">
+                    <p class="eyebrow">A little closer to your music</p>
+                    <h1 id="page-title">Your listening,<br /><span>in focus.</span></h1>
+                    <p class="hero-description">
+                        Rediscover your favourites, follow your listening streaks,<br
+                            class="desktop-break"
+                        />
+                        and see the story behind every play.
+                    </p>
+                </section>
+                <div class="workspace">
+                    <div class="workspace-bar">
+                        <div id="tabs-nav" class="tabs" role="tablist" aria-label="Data source">
+                            <button
+                                id="tab-analyze-btn"
+                                class="tab is-active"
+                                role="tab"
+                                aria-selected="true"
+                                aria-controls="view-analyze"
+                                tabindex="0"
+                            >
+                                <svg class="icon"><use href="#icon-chart" /></svg> Your history
+                            </button>
+                            <button
+                                id="tab-lb-btn"
+                                class="tab"
+                                role="tab"
+                                aria-selected="false"
+                                aria-controls="view-lb"
+                                tabindex="-1"
+                            >
+                                <svg class="icon"><use href="#icon-headphones" /></svg> ListenBrainz
+                            </button>
+                        </div>
+                        <span class="workspace-note">Your music. A fresh perspective.</span>
                     </div>
-                    <div class="w-full min-w-0">
-                        <label class="block text-m3-onSurfaceVariant text-sm font-medium mb-2 ml-1" for="lb-date">Start Date</label>
-                        <input class="w-full min-w-0 bg-m3-surfaceContainer text-m3-onSurface border-none rounded-2xl py-4 px-5 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-shadow" id="lb-date" type="date">
-                    </div>
+                    <div
+                        id="app-message"
+                        class="message hidden"
+                        role="status"
+                        aria-live="polite"
+                        aria-atomic="true"
+                    ></div>
+                    <section id="view-analyze" role="tabpanel" aria-labelledby="tab-analyze-btn">
+                        <div id="upload-section" class="upload-panel panel">
+                            <div class="upload-art" aria-hidden="true">
+                                <span class="art-orbit"></span
+                                ><svg class="icon"><use href="#icon-upload" /></svg
+                                ><span class="file-tag">.zip / .json</span>
+                            </div>
+                            <p class="eyebrow">Start with your story</p>
+                            <h2>Drop your listening history here</h2>
+                            <p class="muted upload-description">
+                                Add your Spotify ZIP archive or JSON files.<br />You can include
+                                ListenBrainz JSON files in the same upload.
+                            </p>
+                            <button id="choose-files-btn" class="button button-primary">
+                                <svg class="icon"><use href="#icon-upload" /></svg> Choose files
+                                <svg class="icon"><use href="#icon-arrow" /></svg>
+                            </button>
+                            <input
+                                type="file"
+                                id="file-upload"
+                                accept=".zip,.json"
+                                multiple
+                                hidden
+                                aria-label="Choose listening history files"
+                            />
+                            <p class="upload-hint">ZIP & JSON supported · No account needed</p>
+                        </div>
+                        <div
+                            id="loading-section"
+                            class="loading-panel panel hidden"
+                            role="status"
+                            aria-live="polite"
+                        >
+                            <span class="loader" aria-hidden="true"></span>
+                            <h2 id="loading-text">Reading your history…</h2>
+                            <p class="muted">Finding the music that makes you, you.</p>
+                        </div>
+                        <div id="dashboard" class="dashboard hidden">
+                            <div class="dashboard-heading">
+                                <div>
+                                    <p class="eyebrow">Your personal soundtrack</p>
+                                    <h2>Listening overview</h2>
+                                    <p id="history-summary" class="muted"></p>
+                                </div>
+                                <button id="add-files-btn" class="button button-secondary">
+                                    <svg class="icon"><use href="#icon-upload" /></svg> Add files
+                                </button>
+                            </div>
+                            <div class="stats-grid">
+                                <article class="stat-card">
+                                    <span class="stat-label">Total streams</span
+                                    ><strong id="total-tracks-stat">0</strong
+                                    ><span class="stat-caption">Plays of 30 seconds or more</span>
+                                </article>
+                                <article class="stat-card">
+                                    <span class="stat-label">Unique artists</span
+                                    ><strong id="total-artists-stat">0</strong
+                                    ><span class="stat-caption">The voices in your rotation</span>
+                                </article>
+                                <article class="stat-card">
+                                    <span class="stat-label">Listening time</span
+                                    ><strong id="total-time-stat">0m</strong
+                                    ><span id="time-caption" class="stat-caption"
+                                        >Time spent with your music</span
+                                    >
+                                </article>
+                            </div>
+                            <div class="insights-grid">
+                                <section class="panel insight-panel">
+                                    <div class="section-heading">
+                                        <div>
+                                            <p class="eyebrow">On repeat</p>
+                                            <h3>Top 10 artists</h3>
+                                        </div>
+                                        <svg class="icon section-icon">
+                                            <use href="#icon-wave" />
+                                        </svg>
+                                    </div>
+                                    <div class="chart-container">
+                                        <canvas
+                                            id="artistsChart"
+                                            role="img"
+                                            aria-label="Top artists by number of streams"
+                                        ></canvas>
+                                    </div>
+                                    <ol id="artists-chart-fallback" class="hidden"></ol>
+                                </section>
+                                <section class="panel insight-panel">
+                                    <div class="section-heading">
+                                        <div>
+                                            <p class="eyebrow">Day after day</p>
+                                            <h3>Longest artist streaks</h3>
+                                        </div>
+                                        <span class="section-icon streak-symbol" aria-hidden="true"
+                                            >↗</span
+                                        >
+                                    </div>
+                                    <p class="section-description muted">
+                                        The same artist, on consecutive days.
+                                    </p>
+                                    <ol id="global-streaks-list" class="streak-list"></ol>
+                                </section>
+                            </div>
+                            <section class="panel songs-panel">
+                                <div class="section-heading">
+                                    <div>
+                                        <p class="eyebrow">The favourites</p>
+                                        <h3>Your top songs</h3>
+                                    </div>
+                                    <label class="limit-label"
+                                        >Show
+                                        <select
+                                            id="songs-limit-select"
+                                            aria-label="Number of top songs"
+                                        >
+                                            <option value="25">25 songs</option>
+                                            <option value="50">50 songs</option>
+                                            <option value="100" selected>100 songs</option>
+                                        </select></label
+                                    >
+                                </div>
+                                <div
+                                    class="table-scroll"
+                                    role="region"
+                                    aria-label="Top songs, scroll horizontally for more columns"
+                                    tabindex="0"
+                                >
+                                    <table>
+                                        <caption class="sr-only">
+                                            Your most played songs, ranked by streams
+                                        </caption>
+                                        <thead>
+                                            <tr>
+                                                <th scope="col">#</th>
+                                                <th scope="col">Song</th>
+                                                <th scope="col">Artist</th>
+                                                <th scope="col" class="numeric">Plays</th>
+                                                <th scope="col" class="numeric">Time</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="top-songs-table"></tbody>
+                                    </table>
+                                </div>
+                            </section>
+                            <section class="panel search-panel">
+                                <div>
+                                    <p class="eyebrow">Dig a little deeper</p>
+                                    <h3>Explore an artist</h3>
+                                    <p class="muted">
+                                        Find their most played songs and your longest streak.
+                                    </p>
+                                </div>
+                                <form id="artist-search-form" class="search-form" role="search">
+                                    <label for="artist-search-input" class="sr-only"
+                                        >Artist name</label
+                                    ><input
+                                        type="search"
+                                        id="artist-search-input"
+                                        placeholder="Search your artists…"
+                                        autocomplete="off"
+                                        required
+                                    /><button
+                                        id="artist-search-btn"
+                                        class="button button-primary"
+                                        aria-label="Search artist"
+                                    >
+                                        <svg class="icon"><use href="#icon-search" /></svg
+                                        ><span>Search</span>
+                                    </button>
+                                </form>
+                                <p id="search-message" class="muted hidden" role="status"></p>
+                                <div id="artist-results" class="artist-results hidden">
+                                    <h4 id="res-artist-name"></h4>
+                                    <p id="res-artist-streak" class="muted"></p>
+                                    <ol id="res-artist-songs" class="artist-songs"></ol>
+                                </div>
+                            </section>
+                        </div>
+                    </section>
+                    <section
+                        id="view-lb"
+                        class="panel lb-panel hidden"
+                        role="tabpanel"
+                        aria-labelledby="tab-lb-btn"
+                    >
+                        <div class="lb-intro">
+                            <span class="lb-mark"
+                                ><svg class="icon"><use href="#icon-headphones" /></svg
+                            ></span>
+                            <p class="eyebrow">Keep the story going</p>
+                            <h2>Connect the missing plays</h2>
+                            <p class="muted">
+                                Get recent listens from your public ListenBrainz profile. Add them
+                                to your dashboard or save a Spotify-compatible JSON file.
+                            </p>
+                        </div>
+                        <form id="lb-form">
+                            <div class="form-grid">
+                                <div class="field">
+                                    <label for="lb-username">ListenBrainz username</label
+                                    ><input
+                                        id="lb-username"
+                                        type="text"
+                                        placeholder="Your username"
+                                        autocomplete="username"
+                                        required
+                                        maxlength="100"
+                                    />
+                                </div>
+                                <div class="field">
+                                    <label for="lb-date"
+                                        >Start date <span class="muted">(UTC)</span></label
+                                    ><input id="lb-date" type="date" required />
+                                </div>
+                            </div>
+                            <p class="form-help muted">
+                                Choose the first day missing from your Spotify export. When duration
+                                is unavailable, listening time is estimated at 3 minutes per play.
+                            </p>
+                            <div class="form-actions">
+                                <button
+                                    id="lb-integrate-btn"
+                                    class="button button-primary"
+                                    type="submit"
+                                >
+                                    <svg class="icon"><use href="#icon-chart" /></svg> Add to my
+                                    history</button
+                                ><button
+                                    id="lb-download-btn"
+                                    class="button button-secondary"
+                                    type="submit"
+                                >
+                                    <svg class="icon"><use href="#icon-arrow" /></svg> Download JSON
+                                </button>
+                            </div>
+                        </form>
+                        <div
+                            id="lb-loading"
+                            class="lb-loading hidden"
+                            role="status"
+                            aria-live="polite"
+                        >
+                            <span class="loader" aria-hidden="true"></span
+                            ><span id="lb-status">Contacting ListenBrainz…</span
+                            ><button
+                                id="lb-cancel-btn"
+                                class="button button-secondary"
+                                type="button"
+                            >
+                                Cancel
+                            </button>
+                        </div>
+                    </section>
                 </div>
-                
-                <!-- Buttons -->
-                <div class="flex flex-col sm:flex-row gap-3 mt-4 w-full">
-                    <button id="lb-integrate-btn" class="flex-1 flex items-center justify-center gap-2 bg-orange-500 text-white font-medium py-4 px-6 rounded-full shadow-sm hover:bg-orange-600 transition-colors">
-                        <span class="material-symbols-rounded">sync</span> Integrate with current data
-                    </button>
-                    <button id="lb-download-btn" class="flex-1 flex items-center justify-center gap-2 bg-m3-surfaceContainer text-m3-onSurface font-medium py-4 px-6 rounded-full hover:bg-m3-surface transition-colors border border-transparent hover:border-orange-500/30">
-                        <span class="material-symbols-rounded">download</span> Or just download the JSON
-                    </button>
+                <div class="trust-note">
+                    <svg class="icon"><use href="#icon-shield" /></svg>
+                    <p>
+                        Made for your music, with your privacy in mind.<br /><span
+                            >Your uploaded files are processed in this browser and never sent to a
+                            server.</span
+                        >
+                    </p>
                 </div>
-            </div>
-
-            <!-- LB Loader -->
-            <div id="lb-loading" class="hidden flex-col items-center mt-8">
-                <div class="loader-orange ease-linear rounded-full border-4 border-t-4 border-m3-surfaceContainer h-12 w-12 mb-4"></div>
-                <p id="lb-status" class="text-orange-400 animate-pulse font-medium">Contacting API...</p>
-            </div>
+            </main>
+            <footer>
+                <span>Music History Analyzer</span
+                ><span>Independent project · Not affiliated with Spotify or ListenBrainz</span>
+            </footer>
         </div>
-
-        <!-- Loading Section -->
-        <div id="loading-section" class="hidden flex-col items-center justify-center py-20">
-            <div class="loader-material ease-linear rounded-full border-8 border-t-8 border-m3-surfaceContainer h-24 w-24 mb-6"></div>
-            <h2 class="text-2xl font-medium text-m3-primary animate-pulse" id="loading-text">Analyzing your history...</h2>
-        </div>
-
-        <!-- Dashboard -->
-        <div id="dashboard" class="hidden flex-col gap-8 animate-fade-in">
-            
-            <!-- Global Stats Cards -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div class="bg-m3-surface rounded-[24px] p-6 shadow-sm border border-transparent hover:border-m3-outline transition-colors flex flex-col justify-between h-full">
-                    <div class="text-m3-onSurfaceVariant text-sm font-medium mb-2 uppercase tracking-wide">Total Streams</div>
-                    <div class="text-4xl font-bold text-m3-primary break-words" id="total-tracks-stat">0</div>
-                </div>
-                <div class="bg-m3-surface rounded-[24px] p-6 shadow-sm border border-transparent hover:border-m3-outline transition-colors flex flex-col justify-between h-full">
-                    <div class="text-m3-onSurfaceVariant text-sm font-medium mb-2 uppercase tracking-wide">Unique Artists</div>
-                    <div class="text-4xl font-bold text-m3-secondary break-words" id="total-artists-stat">0</div>
-                </div>
-                <div class="bg-m3-surface rounded-[24px] p-6 shadow-sm border border-transparent hover:border-m3-outline transition-colors flex flex-col justify-between h-full">
-                    <div class="text-m3-onSurfaceVariant text-sm font-medium mb-2 uppercase tracking-wide">Total Time</div>
-                    <div class="text-4xl font-bold text-m3-primary break-words" id="total-time-stat">0h 0m</div>
-                </div>
-            </div>
-
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <!-- Top Artists Chart -->
-                <div class="bg-m3-surface rounded-[28px] p-6 shadow-sm">
-                    <h3 class="text-2xl font-medium mb-6 flex items-center gap-3"><span class="material-symbols-rounded text-m3-primary">mic</span> Top 10 Artists</h3>
-                    <div class="relative w-full overflow-hidden">
-                        <canvas id="artistsChart"></canvas>
-                    </div>
-                </div>
-
-                <!-- Top Streaks -->
-                <div class="bg-m3-surface rounded-[28px] p-6 shadow-sm flex flex-col">
-                    <h3 class="text-2xl font-medium mb-6 flex items-center gap-3"><span class="material-symbols-rounded text-m3-error">local_fire_department</span> Top 5 Global Streaks</h3>
-                    <ul id="global-streaks-list" class="flex flex-col gap-3 flex-grow"></ul>
-                </div>
-            </div>
-
-            <!-- Top Songs -->
-            <div class="bg-m3-surface rounded-[28px] p-6 shadow-sm">
-                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
-                    <h3 class="text-2xl font-medium flex items-center gap-3"><span class="material-symbols-rounded text-m3-primary">music_note</span> Your Top Songs</h3>
-                    <select id="songs-limit-select" class="bg-m3-surfaceContainer text-m3-onSurface rounded-xl py-2 px-4 focus:outline-none focus:ring-2 focus:ring-m3-primary cursor-pointer">
-                        <option value="25">Show 25</option>
-                        <option value="50">Show 50</option>
-                        <option value="100" selected>Show 100</option>
-                    </select>
-                </div>
-                <div class="overflow-x-auto custom-scrollbar rounded-xl border border-m3-surfaceContainer">
-                    <table class="min-w-full text-left text-sm whitespace-nowrap">
-                        <thead class="bg-m3-surfaceContainer text-m3-onSurfaceVariant sticky top-0 z-10">
-                            <tr>
-                                <th class="py-4 px-5 font-medium">#</th>
-                                <th class="py-4 px-5 font-medium">Title</th>
-                                <th class="py-4 px-5 font-medium">Artist</th>
-                                <th class="py-4 px-5 font-medium">Plays</th>
-                                <th class="py-4 px-5 font-medium">Total Time</th>
-                            </tr>
-                        </thead>
-                        <tbody id="top-songs-table" class="divide-y divide-m3-surfaceContainer"></tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- Search -->
-            <div class="bg-m3-surface rounded-[28px] p-8 shadow-sm text-center">
-                <h3 class="text-3xl font-medium mb-3">Explore an Artist</h3>
-                <div class="flex flex-col sm:flex-row max-w-lg mx-auto relative mt-6 gap-2 sm:gap-0">
-                    <input type="text" id="artist-search-input" placeholder="Search..." class="w-full bg-m3-surfaceContainer text-m3-onSurface rounded-full sm:rounded-r-none py-4 px-6 focus:outline-none focus:ring-2 focus:ring-m3-primary z-10">
-                    <button id="artist-search-btn" class="bg-m3-primary text-m3-onPrimary py-4 px-8 rounded-full sm:rounded-l-none font-medium hover:opacity-90 transition-opacity flex items-center justify-center gap-2">
-                        <span class="material-symbols-rounded">search</span>
-                    </button>
-                </div>
-                <div id="artist-results" class="hidden mt-8 text-left bg-m3-surfaceContainer p-6 sm:p-8 rounded-[24px]">
-                    <h4 class="text-3xl font-medium text-m3-primary mb-2 break-words" id="res-artist-name">...</h4>
-                    <div class="text-m3-onSurfaceVariant mb-6 flex items-center gap-2 flex-wrap">
-                        <span class="material-symbols-rounded text-m3-error">local_fire_department</span> Record: 
-                        <span class="text-m3-onSurface font-medium" id="res-artist-streak"></span>
-                    </div>
-                    <ul id="res-artist-songs" class="flex flex-col gap-2"></ul>
-                </div>
-            </div>
-        </div>
-    </div>
-    <script src="app.js?v=3"></script>
-</body>
+        <noscript
+            ><p class="message">
+                Enable JavaScript to analyze your listening history locally.
+            </p></noscript
+        >
+    </body>
 </html>

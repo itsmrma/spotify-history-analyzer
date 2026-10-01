@@ -1,18 +1,9 @@
-import json
 import os
 from collections import defaultdict
+from history_utils import get_artist_track_and_date, load_history
 
 def get_artist_and_track(entry):
-    # Recupera i dati sia dal formato esteso che da quello standard/ListenBrainz
-    artist = entry.get('master_metadata_album_artist_name')
-    track = entry.get('master_metadata_track_name')
-    ms_played = entry.get('ms_played', 0)
-    
-    if not artist and not track:
-        artist = entry.get('artistName')
-        track = entry.get('trackName')
-        ms_played = entry.get('msPlayed', 0)
-        
+    artist, track, ms_played, _ = get_artist_track_and_date(entry)
     return artist, track, ms_played
 
 def format_time(ms):
@@ -27,17 +18,7 @@ def format_time(ms):
         return f"{minutes}m"
 
 def top_100_songs(folder_path):
-    all_entries = []
-    
-    # 1. Carica tutti i file JSON nella cartella (incluso quello di ListenBrainz se c'è)
-    for filename in os.listdir(folder_path):
-        if filename.endswith('.json'):
-            file_path = os.path.join(folder_path, filename)
-            with open(file_path, 'r', encoding='utf-8') as f:
-                try:
-                    all_entries.extend(json.load(f))
-                except json.JSONDecodeError:
-                    print(f"Errore nel leggere il file: {filename}")
+    all_entries = load_history(folder_path)
                     
     if not all_entries:
         print("Nessun dato trovato. Assicurati che la cartella contenga i file JSON.")
@@ -76,7 +57,7 @@ if __name__ == "__main__":
     if not cartella_json:
         cartella_json = "."
         
-    if os.path.exists(cartella_json):
+    if os.path.isdir(cartella_json):
         top_100_songs(cartella_json)
     else:
         print("Il percorso specificato non esiste.")

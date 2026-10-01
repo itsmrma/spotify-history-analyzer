@@ -1,0 +1,21 @@
+{
+    "name": "spotify-history-analyzer",
+    "version": "1.0.0",
+    "private": true,
+    "description": "Private, browser-based Spotify and ListenBrainz history analysis",
+    "scripts": {
+        "test": "node --test tests/analytics.test.cjs",
+        "test:e2e": "playwright test",
+        "vendor": "node scripts/vendor.cjs",
+        "start": "node scripts/serve.cjs",
+        "format": "prettier --write .",
+        "format:check": "prettier --check ."
+    },
+    "devDependencies": {
+        "@axe-core/playwright": "^4.13.0",
+        "@playwright/test": "^1.63.0",
+        "chart.js": "^4.5.1",
+        "jszip": "^3.10.1",
+        "prettier": "^3.9.9"
+    }
+}

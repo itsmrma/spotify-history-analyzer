@@ -1,28 +1,7 @@
-import json
 import os
 from collections import defaultdict
 from datetime import datetime, timedelta
-
-def get_artist_track_and_date(entry):
-    # La cronologia estesa di Spotify usa solitamente questi campi
-    artist = entry.get('master_metadata_album_artist_name')
-    track = entry.get('master_metadata_track_name')
-    ms_played = entry.get('ms_played', 0)
-    timestamp = entry.get('ts') 
-    
-    # Fallback per il formato base di Spotify
-    if not artist and not track:
-        artist = entry.get('artistName')
-        track = entry.get('trackName')
-        ms_played = entry.get('msPlayed', 0)
-        timestamp = entry.get('endTime') 
-        
-    # Estraiamo solo la data (YYYY-MM-DD) dal timestamp
-    date_str = None
-    if timestamp and isinstance(timestamp, str) and len(timestamp) >= 10:
-        date_str = timestamp[:10]
-        
-    return artist, track, ms_played, date_str
+from history_utils import get_artist_track_and_date, load_history
 
 def format_time(ms):
     # Converte i millisecondi in ore e minuti
@@ -38,10 +17,10 @@ def format_time(ms):
 def get_all_streaks(listening_dates):
     # Funzione di supporto per calcolare tutte le streak da un set di date
     valid_dates = []
-    for d in listening_dates:
+    for d in set(listening_dates):
         try:
             valid_dates.append(datetime.strptime(d, '%Y-%m-%d').date())
-        except ValueError:
+        except (ValueError, TypeError):
             continue
             
     valid_dates.sort()
@@ -64,17 +43,7 @@ def get_all_streaks(listening_dates):
     return streaks
 
 def analyze_spotify_history(folder_path):
-    all_entries = []
-    
-    # 1. Carica tutti i file JSON (ora sia Spotify che ListenBrainz avranno il campo 'ts')
-    for filename in os.listdir(folder_path):
-        if filename.endswith('.json'):
-            file_path = os.path.join(folder_path, filename)
-            with open(file_path, 'r', encoding='utf-8') as f:
-                try:
-                    all_entries.extend(json.load(f))
-                except json.JSONDecodeError:
-                    print(f"Errore nel leggere il file: {filename}")
+    all_entries = load_history(folder_path)
                     
     if not all_entries:
         print("Nessun dato trovato. Assicurati che la cartella contenga i file JSON.")
@@ -201,7 +170,7 @@ if __name__ == "__main__":
     if not cartella_json:
         cartella_json = "."
         
-    if os.path.exists(cartella_json):
+    if os.path.isdir(cartella_json):
         analyze_spotify_history(cartella_json)
     else:
         print("Il percorso specificato non esiste.")

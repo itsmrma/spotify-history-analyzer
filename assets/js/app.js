@@ -1,6 +1,7 @@
 'use strict';
 
 const A = window.HistoryAnalytics;
+const I = window.HistoryInsights;
 const $ = (id) => document.getElementById(id);
 let globalData = [];
 let stats = null;
@@ -24,7 +25,11 @@ function setTab(name, focus = false) {
         $(`view-${tab}`).classList.toggle('hidden', !selected);
         if (selected && focus) button.focus();
     }
-    if (name === 'analyze' && artistsChart) requestAnimationFrame(() => artistsChart.resize());
+    if (name === 'analyze')
+        requestAnimationFrame(() => {
+            if (artistsChart) artistsChart.resize();
+            I.resizeCharts();
+        });
 }
 
 for (const name of ['analyze', 'lb']) {
@@ -48,6 +53,7 @@ function updateBusyControls() {
     const busy = importing || lbController !== null;
     for (const id of ['choose-files-btn', 'add-files-btn', 'lb-integrate-btn', 'lb-download-btn'])
         $(id).disabled = busy;
+    $('export-rankings-btn').disabled = busy || !stats?.totalPlays;
     $('file-upload').disabled = busy;
 }
 
@@ -183,7 +189,12 @@ function formatDate(date) {
 }
 
 function renderDashboard() {
-    stats = A.analyze(globalData);
+    let filters = I.getFilters();
+    stats = A.analyze(globalData, filters);
+    if (I.updateYears(stats)) {
+        filters = I.getFilters();
+        stats = A.analyze(globalData, filters);
+    }
     $('upload-section').classList.add('hidden');
     $('dashboard').classList.remove('hidden');
     $('total-tracks-stat').textContent = stats.totalPlays.toLocaleString();
@@ -193,10 +204,12 @@ function renderDashboard() {
         ? `Includes ${stats.estimatedPlays.toLocaleString()} estimated durations`
         : 'Time spent with your music';
     $('history-summary').textContent = stats.firstDate
-        ? `${formatDate(stats.firstDate)} – ${formatDate(stats.lastDate)} · Dates and streaks use UTC`
-        : 'No valid timestamps available for streaks.';
-    if (stats.lastDate && !$('lb-date').value) {
-        const nextDay = new Date(`${stats.lastDate}T00:00:00Z`);
+        ? `${formatDate(stats.firstDate)} – ${formatDate(stats.lastDate)} · ${stats.sortedTracks.length.toLocaleString()} unique songs · UTC`
+        : stats.totalPlays
+          ? 'No valid timestamps available for streaks.'
+          : 'No plays in the selected period.';
+    if (stats.historyLastDate && !$('lb-date').value) {
+        const nextDay = new Date(`${stats.historyLastDate}T00:00:00Z`);
         nextDay.setUTCDate(nextDay.getUTCDate() + 1);
         const suggested = nextDay.toISOString().slice(0, 10);
         if (suggested <= $('lb-date').max) $('lb-date').value = suggested;
@@ -225,6 +238,8 @@ function renderDashboard() {
             element('li', 'empty-state', 'No consecutive-day streaks yet. Keep the music going!'),
         );
     renderTopSongs();
+    I.render(stats, filters);
+    updateBusyControls();
     if ($('artist-search-input').value.trim()) searchArtist();
     else $('artist-results').classList.add('hidden');
 }
@@ -248,6 +263,13 @@ function renderTopSongs() {
         fragment.append(row);
     }
     $('top-songs-table').replaceChildren(fragment);
+    if (!stats.sortedTracks.length) {
+        const cell = element('td', 'empty-state', 'No songs in this period.');
+        cell.colSpan = 5;
+        const row = element('tr');
+        row.append(cell);
+        $('top-songs-table').append(row);
+    }
 }
 
 function renderArtistsChart() {
@@ -256,17 +278,28 @@ function renderArtistsChart() {
     const fallback = $('artists-chart-fallback');
     fallback.replaceChildren(
         ...top.map((artist) =>
-            element('li', 'artist-song', `${artist.name} · ${artist.count.toLocaleString()} plays`),
+            (() => {
+                const item = element('li');
+                const button = element(
+                    'button',
+                    'artist-song artist-link',
+                    `${artist.name} · ${artist.count.toLocaleString()} plays`,
+                );
+                button.type = 'button';
+                button.addEventListener('click', () => exploreArtist(artist.name));
+                item.append(button);
+                return item;
+            })(),
         ),
     );
-    // A text alternative is available to screen readers even when the canvas is shown.
-    fallback.className = window.Chart ? 'sr-only' : '';
+    // A compact, keyboard-accessible artist picker also accompanies the canvas.
+    fallback.className = 'artist-picker';
     $('artistsChart').parentElement.classList.toggle('hidden', !window.Chart);
     if (!window.Chart) return;
     if (artistsChart) artistsChart.destroy();
     $('artistsChart').setAttribute(
         'aria-label',
-        `Top artists: ${top.map((artist) => `${artist.name}, ${artist.count} plays`).join('; ')}`,
+        `Top artists: ${top.map((artist) => `${artist.name}, ${I.getFilters().metric === 'ms' ? A.formatTime(artist.ms) : `${artist.count} plays`}`).join('; ')}`,
     );
     artistsChart = new Chart($('artistsChart'), {
         type: 'bar',
@@ -274,8 +307,10 @@ function renderArtistsChart() {
             labels: top.map((artist) => artist.name),
             datasets: [
                 {
-                    label: 'Plays',
-                    data: top.map((artist) => artist.count),
+                    label: I.getFilters().metric === 'ms' ? 'Hours' : 'Plays',
+                    data: top.map((artist) =>
+                        I.getFilters().metric === 'ms' ? artist.ms / 3600000 : artist.count,
+                    ),
                     backgroundColor: top.map((_, index) => (index === 0 ? '#a8e5cb' : '#b9a7ee')),
                     borderRadius: 5,
                     maxBarThickness: 18,
@@ -283,6 +318,9 @@ function renderArtistsChart() {
             ],
         },
         options: {
+            onClick: (_event, items) => {
+                if (items.length) exploreArtist(top[items[0].index].name);
+            },
             indexAxis: 'y',
             responsive: true,
             maintainAspectRatio: false,
@@ -298,7 +336,11 @@ function renderArtistsChart() {
                     beginAtZero: true,
                     grid: { color: '#303447' },
                     border: { display: false },
-                    ticks: { color: '#a7abc0', precision: 0, font: { size: 10 } },
+                    ticks: {
+                        color: '#a7abc0',
+                        precision: I.getFilters().metric === 'ms' ? 1 : 0,
+                        font: { size: 10 },
+                    },
                 },
                 y: {
                     grid: { display: false },
@@ -343,6 +385,24 @@ function searchArtist() {
         : record.length > 1
           ? `Your record: ${record.length} consecutive days · ${formatDate(record.start)} – ${formatDate(record.end)}`
           : 'Listened on individual days. No consecutive-day streak yet.';
+    $('res-artist-facts').replaceChildren(
+        element('span', '', `${artist.count.toLocaleString()} plays · ${A.formatTime(artist.ms)}`),
+        element(
+            'span',
+            '',
+            `${((artist.count / stats.totalPlays) * 100).toFixed(1)}% of this period's plays`,
+        ),
+        element(
+            'span',
+            '',
+            `First seen in loaded history: ${stats.firstSeen.has(artist.name) ? formatDate(stats.firstSeen.get(artist.name)) : 'Date not recorded'}`,
+        ),
+        element(
+            'span',
+            '',
+            `Last play in this period: ${artist.lastDate ? formatDate(artist.lastDate) : 'Date not recorded'}`,
+        ),
+    );
     const songs = stats.sortedTracks.filter((song) => song.artist === artist.name).slice(0, 10);
     $('res-artist-songs').replaceChildren(
         ...songs.map((song, index) => {
@@ -356,6 +416,22 @@ function searchArtist() {
     );
     $('artist-results').classList.remove('hidden');
 }
+
+function exploreArtist(name) {
+    $('artist-search-input').value = name;
+    searchArtist();
+    $('artist-explorer').scrollIntoView({
+        behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches
+            ? 'instant'
+            : 'smooth',
+        block: 'start',
+    });
+    $('artist-search-input').focus({ preventScroll: true });
+}
+
+I.initialize(() => {
+    if (stats) renderDashboard();
+}, exploreArtist);
 
 $('songs-limit-select').addEventListener('change', renderTopSongs);
 $('artist-search-form').addEventListener('submit', (event) => {

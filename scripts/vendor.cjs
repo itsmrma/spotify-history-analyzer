@@ -1,6 +1,6 @@
 const { copyFileSync, mkdirSync } = require('node:fs');
 const { join } = require('node:path');
-const target = join(__dirname, '..', 'vendor');
+const target = join(__dirname, '..', 'assets', 'vendor');
 mkdirSync(target, { recursive: true });
 const root = join(__dirname, '..', 'node_modules');
 for (const [source, destination] of [

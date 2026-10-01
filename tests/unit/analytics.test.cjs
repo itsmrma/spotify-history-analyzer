@@ -1,6 +1,6 @@
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
-const A = require('../analytics.js');
+const A = require('../../assets/js/analytics.js');
 const play = (artist, track, ts = '2026-03-01T12:00:00Z', ms = 60000) => ({
     master_metadata_album_artist_name: artist,
     master_metadata_track_name: track,

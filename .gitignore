@@ -1,6 +1,42 @@
+# Dependencies and generated output
 node_modules/
 test-results/
 playwright-report/
+blob-report/
+playwright/.cache/
+coverage/
+.cache/
+/dist/
+/tmp/
+/temp/
+*.log
+
+# Personal listening exports and downloaded rankings
+/data/
+/exports/
+*.zip
+*.csv
+Streaming_History*.json
+StreamingHistory*.json
+endsong*.json
+
+# Local configuration and secrets
+.env
+.env.*
+!.env.example
+*.local
+.vscode/
+.idea/
+
+# OS files and editor backups
+.DS_Store
+Thumbs.db
+Desktop.ini
+*.swp
+*.swo
+*~
+
+# Leftovers from the retired Python scripts
 __pycache__/
-*.pyc
+*.py[cod]
 .venv/

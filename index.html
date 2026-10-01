@@ -9,12 +9,13 @@
             content="Turn your Spotify listening history into personal charts, favourite songs and artist streaks. Your files stay in your browser."
         />
         <title>Music History Analyzer · Your listening, in focus</title>
-        <link rel="icon" href="favicon.svg" type="image/svg+xml" />
-        <link rel="stylesheet" href="style.css?v=4" />
-        <script defer src="vendor/jszip.min.js"></script>
-        <script defer src="vendor/chart.umd.min.js"></script>
-        <script defer src="analytics.js?v=4"></script>
-        <script defer src="app.js?v=4"></script>
+        <link rel="icon" href="assets/icons/favicon.svg" type="image/svg+xml" />
+        <link rel="stylesheet" href="assets/css/style.css?v=5" />
+        <script defer src="assets/vendor/jszip.min.js"></script>
+        <script defer src="assets/vendor/chart.umd.min.js"></script>
+        <script defer src="assets/js/analytics.js?v=5"></script>
+        <script defer src="assets/js/insights.js?v=5"></script>
+        <script defer src="assets/js/app.js?v=5"></script>
     </head>
     <body>
         <svg class="icon-library" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
@@ -151,7 +152,63 @@
                                     <svg class="icon"><use href="#icon-upload" /></svg> Add files
                                 </button>
                             </div>
-                            <div class="stats-grid">
+                            <form id="analysis-filters" class="panel filter-panel">
+                                <div class="filter-controls">
+                                    <div class="field">
+                                        <label for="period-select">Listening period</label
+                                        ><select id="period-select">
+                                            <option value="all">All history</option>
+                                            <option value="custom">Custom dates</option>
+                                        </select>
+                                    </div>
+                                    <div class="field">
+                                        <label for="ranking-metric">Rank & compare by</label
+                                        ><select id="ranking-metric">
+                                            <option value="count">Number of plays</option>
+                                            <option value="ms">Listening time</option>
+                                        </select>
+                                    </div>
+                                    <button
+                                        id="reset-filters-btn"
+                                        type="button"
+                                        class="button button-secondary"
+                                    >
+                                        Reset filters
+                                    </button>
+                                </div>
+                                <div id="custom-dates" class="custom-dates hidden">
+                                    <div class="field">
+                                        <label for="filter-start">From (UTC)</label
+                                        ><input id="filter-start" type="date" />
+                                    </div>
+                                    <div class="field">
+                                        <label for="filter-end">To (UTC, inclusive)</label
+                                        ><input id="filter-end" type="date" />
+                                    </div>
+                                    <button class="button button-primary" type="submit">
+                                        Apply dates
+                                    </button>
+                                </div>
+                                <p
+                                    id="filter-message"
+                                    class="muted filter-note"
+                                    role="status"
+                                    aria-live="polite"
+                                >
+                                    Filters apply to every section below. Dates and hours use UTC.
+                                </p>
+                            </form>
+                            <nav class="analysis-links" aria-label="Jump to an insight">
+                                <a href="#overview-stats">Overview</a
+                                ><a href="#listening-rhythm">Rhythm</a
+                                ><a href="#library-insights">Library</a
+                                ><a href="#top-songs-section">Songs</a
+                                ><a href="#artist-explorer">Artist explorer</a>
+                            </nav>
+                            <p id="filtered-empty" class="message hidden" role="status">
+                                No plays in this period. Try another year or reset the filters.
+                            </p>
+                            <div id="overview-stats" class="stats-grid">
                                 <article class="stat-card">
                                     <span class="stat-label">Total streams</span
                                     ><strong id="total-tracks-stat">0</strong
@@ -170,7 +227,125 @@
                                     >
                                 </article>
                             </div>
+                            <div id="listening-facts" class="facts-grid"></div>
+                            <section id="listening-rhythm" class="panel insight-panel">
+                                <div class="section-heading">
+                                    <div>
+                                        <p class="eyebrow">Your music over time</p>
+                                        <h3>Listening timeline</h3>
+                                    </div>
+                                    <span id="timeline-total" class="muted small-copy"></span>
+                                </div>
+                                <p class="section-description muted">
+                                    Every month in the selected period, including months with no
+                                    recorded plays.
+                                </p>
+                                <div class="trend-chart">
+                                    <canvas
+                                        id="timelineChart"
+                                        role="img"
+                                        aria-label="Monthly listening activity"
+                                    ></canvas>
+                                </div>
+                                <div id="timeline-fallback" class="sr-only"></div>
+                                <div id="timeline-highlights" class="timeline-highlights"></div>
+                            </section>
+                            <section class="panel insight-panel calendar-panel">
+                                <div class="section-heading">
+                                    <div>
+                                        <p class="eyebrow">One day at a time</p>
+                                        <h3>Your listening calendar</h3>
+                                    </div>
+                                    <label class="limit-label"
+                                        >Year
+                                        <select
+                                            id="calendar-year"
+                                            aria-label="Listening calendar year"
+                                        ></select
+                                    ></label>
+                                </div>
+                                <p class="section-description muted">
+                                    Tap a day for its soundtrack. Empty cells mean no plays in the
+                                    loaded data. Dates use UTC.
+                                </p>
+                                <div
+                                    class="calendar-scroll"
+                                    role="region"
+                                    aria-label="Listening activity calendar, scroll horizontally for the full year"
+                                    tabindex="0"
+                                >
+                                    <div
+                                        id="calendar-months"
+                                        class="calendar-months"
+                                        aria-hidden="true"
+                                    ></div>
+                                    <div class="calendar-body">
+                                        <div class="calendar-weekdays" aria-hidden="true">
+                                            <span>Mon</span><span></span><span>Wed</span
+                                            ><span></span><span>Fri</span><span></span
+                                            ><span>Sun</span>
+                                        </div>
+                                        <div
+                                            id="activity-calendar"
+                                            class="activity-calendar"
+                                            role="group"
+                                            aria-label="Daily listening activity"
+                                        ></div>
+                                    </div>
+                                </div>
+                                <div class="calendar-legend">
+                                    <span>Less</span><i data-level="0"></i><i data-level="1"></i
+                                    ><i data-level="2"></i><i data-level="3"></i
+                                    ><i data-level="4"></i><span>More plays</span>
+                                </div>
+                                <div
+                                    id="calendar-day-detail"
+                                    class="day-detail"
+                                    role="status"
+                                    aria-live="polite"
+                                ></div>
+                            </section>
                             <div class="insights-grid">
+                                <section class="panel insight-panel">
+                                    <div class="section-heading">
+                                        <div>
+                                            <p class="eyebrow">Find your rhythm</p>
+                                            <h3>Favourite days of the week</h3>
+                                        </div>
+                                    </div>
+                                    <p class="section-description muted">
+                                        Total activity by weekday · UTC
+                                    </p>
+                                    <div class="rhythm-chart">
+                                        <canvas
+                                            id="weekdayChart"
+                                            role="img"
+                                            aria-label="Listening activity by weekday"
+                                        ></canvas>
+                                    </div>
+                                    <div id="weekday-fallback" class="sr-only"></div>
+                                </section>
+                                <section class="panel insight-panel">
+                                    <div class="section-heading">
+                                        <div>
+                                            <p class="eyebrow">Early bird or night owl?</p>
+                                            <h3>Your listening hours</h3>
+                                        </div>
+                                    </div>
+                                    <p class="section-description muted">
+                                        When plays were recorded · 24-hour clock, UTC
+                                    </p>
+                                    <div class="rhythm-chart">
+                                        <canvas
+                                            id="hoursChart"
+                                            role="img"
+                                            aria-label="Listening activity by hour"
+                                        ></canvas>
+                                    </div>
+                                    <div id="hours-fallback" class="sr-only"></div>
+                                </section>
+                            </div>
+                            <div id="library-insights" class="insights-grid">
                                 <section class="panel insight-panel">
                                     <div class="section-heading">
                                         <div>
@@ -206,23 +381,90 @@
                                     <ol id="global-streaks-list" class="streak-list"></ol>
                                 </section>
                             </div>
-                            <section class="panel songs-panel">
+                            <div class="insights-grid">
+                                <section class="panel insight-panel">
+                                    <div class="section-heading">
+                                        <div>
+                                            <p class="eyebrow">More than a single</p>
+                                            <h3>Your top albums</h3>
+                                        </div>
+                                    </div>
+                                    <p id="album-coverage" class="section-description muted"></p>
+                                    <ol id="top-albums-list" class="ranked-list"></ol>
+                                </section>
+                                <section class="panel insight-panel">
+                                    <div class="section-heading">
+                                        <div>
+                                            <p class="eyebrow">Fresh in your rotation</p>
+                                            <h3>Artist discoveries</h3>
+                                        </div>
+                                        <span id="discovery-count" class="count-badge"></span>
+                                    </div>
+                                    <p class="section-description muted">
+                                        First seen in your loaded history. Only artists first
+                                        appearing in this period are included.
+                                    </p>
+                                    <ol id="discoveries-list" class="ranked-list"></ol>
+                                </section>
+                            </div>
+                            <section class="panel insight-panel">
+                                <div class="section-heading">
+                                    <div>
+                                        <p class="eyebrow">The chapters of your soundtrack</p>
+                                        <h3>Your years in music</h3>
+                                    </div>
+                                </div>
+                                <div id="year-recaps" class="year-recaps"></div>
+                            </section>
+                            <div class="insights-grid">
+                                <section class="panel insight-panel">
+                                    <div class="section-heading">
+                                        <div>
+                                            <p class="eyebrow">How you press play</p>
+                                            <h3>Listening habits</h3>
+                                        </div>
+                                    </div>
+                                    <div id="listening-habits" class="habit-list"></div>
+                                </section>
+                                <section class="panel insight-panel">
+                                    <div class="section-heading">
+                                        <div>
+                                            <p class="eyebrow">Where the music happens</p>
+                                            <h3>Your devices & platforms</h3>
+                                        </div>
+                                    </div>
+                                    <p class="section-description muted">
+                                        Platform labels are reported by Spotify. Missing labels are
+                                        shown separately.
+                                    </p>
+                                    <ol id="platforms-list" class="platform-list"></ol>
+                                </section>
+                            </div>
+                            <section id="top-songs-section" class="panel songs-panel">
                                 <div class="section-heading">
                                     <div>
                                         <p class="eyebrow">The favourites</p>
                                         <h3>Your top songs</h3>
                                     </div>
-                                    <label class="limit-label"
-                                        >Show
-                                        <select
-                                            id="songs-limit-select"
-                                            aria-label="Number of top songs"
+                                    <div class="songs-tools">
+                                        <button
+                                            id="export-rankings-btn"
+                                            class="button button-secondary"
+                                            type="button"
                                         >
-                                            <option value="25">25 songs</option>
-                                            <option value="50">50 songs</option>
-                                            <option value="100" selected>100 songs</option>
-                                        </select></label
-                                    >
+                                            Export CSV</button
+                                        ><label class="limit-label"
+                                            >Show
+                                            <select
+                                                id="songs-limit-select"
+                                                aria-label="Number of top songs"
+                                            >
+                                                <option value="25">25 songs</option>
+                                                <option value="50">50 songs</option>
+                                                <option value="100" selected>100 songs</option>
+                                            </select></label
+                                        >
+                                    </div>
                                 </div>
                                 <div
                                     class="table-scroll"
@@ -247,7 +489,7 @@
                                     </table>
                                 </div>
                             </section>
-                            <section class="panel search-panel">
+                            <section id="artist-explorer" class="panel search-panel">
                                 <div>
                                     <p class="eyebrow">Dig a little deeper</p>
                                     <h3>Explore an artist</h3>
@@ -277,6 +519,7 @@
                                 <div id="artist-results" class="artist-results hidden">
                                     <h4 id="res-artist-name"></h4>
                                     <p id="res-artist-streak" class="muted"></p>
+                                    <div id="res-artist-facts" class="artist-facts"></div>
                                     <ol id="res-artist-songs" class="artist-songs"></ol>
                                 </div>
                             </section>

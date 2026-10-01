@@ -1,5 +1,7 @@
-vendor/
+assets/vendor/
 node_modules/
 test-results/
 playwright-report/
 package-lock.json
+coverage/
+blob-report/

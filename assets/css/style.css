@@ -1025,6 +1025,539 @@ tbody tr:hover {
 .lb-panel :focus-visible {
     outline-color: #ffc28f;
 }
+.filter-panel {
+    padding: 20px 24px;
+    border-radius: 18px;
+}
+.filter-controls {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+    align-items: end;
+    gap: 16px;
+}
+.filter-controls select {
+    width: 100%;
+}
+.filter-controls .button {
+    white-space: nowrap;
+}
+.filter-note {
+    font-size: 0.75rem;
+    margin-top: 14px;
+}
+.filter-error {
+    color: #ffc2cb;
+}
+.custom-dates {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+    align-items: end;
+    gap: 16px;
+    margin-top: 18px;
+    padding-top: 18px;
+    border-top: 1px solid var(--line);
+}
+.analysis-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: -4px;
+}
+.analysis-links a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 40px;
+    padding: 8px 14px;
+    border: 1px solid var(--line);
+    border-radius: 30px;
+    color: var(--muted);
+    font-size: 0.75rem;
+}
+.analysis-links a:hover {
+    color: var(--primary);
+    border-color: var(--primary);
+}
+.facts-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+}
+.fact-card {
+    min-width: 0;
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    background: rgba(25, 28, 40, 0.6);
+}
+.fact-card strong {
+    color: var(--mint);
+    font-size: 1.3rem;
+    line-height: 1.35;
+    letter-spacing: -0.03em;
+    overflow-wrap: anywhere;
+}
+.fact-card .stat-label {
+    font-size: 0.6rem;
+    min-height: 20px;
+}
+.fact-card .stat-caption {
+    line-height: 1.5;
+}
+.small-copy {
+    font-size: 0.75rem;
+    text-align: right;
+}
+.trend-chart {
+    height: 260px;
+    position: relative;
+    min-width: 0;
+}
+.rhythm-chart {
+    height: 210px;
+    position: relative;
+    min-width: 0;
+}
+.timeline-highlights {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 24px;
+    margin-top: 20px;
+    color: var(--muted);
+    font-size: 0.75rem;
+}
+.timeline-highlights span {
+    padding-left: 12px;
+    border-left: 2px solid var(--primary);
+}
+.chart-fallback {
+    font-size: 0.8rem;
+    color: var(--muted);
+    max-height: 260px;
+    overflow: auto;
+}
+.calendar-scroll {
+    overflow-x: auto;
+    scrollbar-width: thin;
+    scrollbar-color: #60547d var(--surface);
+    padding: 6px;
+    margin: 0 -6px;
+}
+.calendar-months {
+    display: grid;
+    gap: 3px;
+    font-size: 0.6rem;
+    color: var(--muted);
+    margin-left: 37px;
+    margin-bottom: 8px;
+    width: max-content;
+}
+.calendar-months span {
+    white-space: nowrap;
+}
+.calendar-body {
+    display: flex;
+    gap: 8px;
+    width: max-content;
+}
+.calendar-weekdays {
+    display: grid;
+    grid-template-rows: repeat(7, 13px);
+    gap: 3px;
+    flex-shrink: 0;
+    width: 29px;
+    font-size: 0.55rem;
+    color: var(--muted);
+    line-height: 13px;
+}
+.activity-calendar {
+    display: grid;
+    grid-auto-flow: column;
+    grid-template-rows: repeat(7, 13px);
+    gap: 3px;
+    width: max-content;
+}
+.calendar-day {
+    width: 13px;
+    height: 13px;
+    min-height: 0;
+    border: 0;
+    padding: 0;
+    border-radius: 3px;
+    background: #303447;
+}
+.calendar-day[data-level='1'],
+.calendar-legend i[data-level='1'] {
+    background: #38574d;
+}
+.calendar-day[data-level='2'],
+.calendar-legend i[data-level='2'] {
+    background: #538c73;
+}
+.calendar-day[data-level='3'],
+.calendar-legend i[data-level='3'] {
+    background: #75b595;
+}
+.calendar-day[data-level='4'],
+.calendar-legend i[data-level='4'] {
+    background: #a8e5cb;
+}
+.calendar-day[data-level='outside'] {
+    background: #242633;
+}
+.calendar-day:hover,
+.calendar-day.is-selected {
+    box-shadow: 0 0 0 2px var(--primary);
+}
+.calendar-legend {
+    display: flex;
+    gap: 5px;
+    align-items: center;
+    justify-content: flex-end;
+    margin-top: 16px;
+    font-size: 0.6rem;
+    color: var(--muted);
+}
+.calendar-legend i {
+    display: block;
+    width: 13px;
+    height: 13px;
+    border-radius: 3px;
+    background: #303447;
+}
+.calendar-legend span {
+    margin: 0 4px;
+}
+.day-detail {
+    border-top: 1px solid var(--line);
+    margin-top: 18px;
+    padding-top: 18px;
+    min-height: 68px;
+    font-size: 0.8rem;
+    overflow-wrap: anywhere;
+}
+.day-detail strong {
+    color: var(--mint);
+}
+.day-detail p {
+    font-size: 0.75rem;
+    margin-top: 6px;
+}
+.day-songs {
+    display: grid;
+    gap: 6px;
+    margin-top: 12px;
+    color: var(--muted);
+    font-size: 0.75rem;
+}
+.ranked-list {
+    display: grid;
+    gap: 8px;
+}
+.ranked-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--line);
+    min-width: 0;
+    font-size: 0.8rem;
+}
+.ranked-item:last-child {
+    border-bottom: 0;
+}
+.ranked-info {
+    min-width: 0;
+    flex: 1;
+}
+.ranked-info strong,
+.ranked-info span {
+    display: block;
+    overflow-wrap: anywhere;
+}
+.ranked-info span {
+    font-size: 0.7rem;
+    margin-top: 4px;
+}
+.ranked-value {
+    color: var(--primary);
+    font-size: 0.75rem;
+    flex-shrink: 0;
+    white-space: nowrap;
+}
+.count-badge {
+    display: inline-flex;
+    padding: 4px 10px;
+    background: #2d2840;
+    color: var(--primary);
+    border-radius: 8px;
+    font-size: 0.75rem;
+}
+.discovery-link {
+    flex: 1;
+    min-width: 0;
+    background: transparent;
+    border: 0;
+    color: var(--text);
+    text-align: left;
+    padding: 0;
+    font-size: 0.8rem;
+    overflow-wrap: anywhere;
+}
+.discovery-link:hover {
+    color: var(--primary);
+}
+.discovery-date {
+    font-size: 0.65rem;
+    flex-shrink: 0;
+}
+.year-recaps {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
+    gap: 14px;
+}
+.year-card {
+    padding: 20px;
+    border-radius: 14px;
+    background: var(--surface-raised);
+    min-width: 0;
+    font-size: 0.8rem;
+}
+.year-card p {
+    overflow-wrap: anywhere;
+    margin-top: 8px;
+}
+.year-card .muted {
+    font-size: 0.7rem;
+}
+.year-number {
+    font-size: 1.75rem;
+    color: var(--primary);
+    line-height: 1.2;
+    letter-spacing: -0.05em;
+}
+.year-link {
+    border: 0;
+    background: transparent;
+    color: var(--mint);
+    font-size: 0.75rem;
+    text-align: left;
+    padding: 12px 0 0;
+    margin-top: 6px;
+}
+.habit-list {
+    display: grid;
+    gap: 16px;
+}
+.habit-item {
+    display: grid;
+    grid-template-columns: minmax(80px, 1fr) minmax(0, 1.4fr);
+    gap: 4px 16px;
+    font-size: 0.75rem;
+    min-width: 0;
+}
+.habit-item > span {
+    grid-row: 1/3;
+}
+.habit-item strong {
+    overflow-wrap: anywhere;
+    font-weight: 600;
+}
+.habit-item small {
+    grid-column: 2;
+    font-size: 0.65rem;
+    overflow-wrap: anywhere;
+}
+.platform-list {
+    display: grid;
+    gap: 18px;
+}
+.platform-label {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    font-size: 0.7rem;
+}
+.platform-label > span:first-child {
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+.platform-label > .muted {
+    flex-shrink: 0;
+}
+.platform-bar {
+    height: 6px;
+    background: var(--surface-raised);
+    border-radius: 6px;
+    margin-top: 8px;
+    overflow: hidden;
+}
+.platform-bar span {
+    display: block;
+    background: var(--primary);
+    height: 100%;
+    border-radius: 6px;
+}
+.songs-tools {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 12px;
+}
+.songs-tools .button {
+    font-size: 0.75rem;
+    padding: 8px 12px;
+}
+.artist-picker {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 18px;
+}
+.artist-link {
+    display: block;
+    font-size: 0.65rem;
+    margin: 0;
+    padding: 6px 10px;
+    min-height: 32px;
+    border: 1px solid var(--line);
+    color: var(--muted);
+    width: auto;
+    max-width: 180px;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+}
+.artist-link:hover {
+    color: var(--primary);
+    border-color: var(--primary);
+}
+.artist-facts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 18px;
+    margin: 18px 0;
+    color: var(--muted);
+    font-size: 0.75rem;
+    overflow-wrap: anywhere;
+}
+#overview-stats,
+#listening-rhythm,
+#library-insights,
+#top-songs-section,
+#artist-explorer {
+    scroll-margin-top: 24px;
+}
+@media (max-width: 900px) {
+    .facts-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+@media (max-width: 600px) {
+    .filter-panel {
+        padding: 18px 16px;
+    }
+    .filter-controls {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+    }
+    .filter-controls .button {
+        grid-column: 1/-1;
+        justify-self: start;
+        min-height: 40px;
+        padding: 8px 12px;
+    }
+    .filter-controls .field label {
+        font-size: 0.7rem;
+    }
+    .filter-controls select {
+        font-size: 0.75rem;
+        padding: 10px;
+    }
+    .custom-dates {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+    .custom-dates .button {
+        justify-self: start;
+    }
+    .facts-grid {
+        gap: 10px;
+    }
+    .fact-card {
+        padding: 16px 12px;
+    }
+    .fact-card strong {
+        font-size: 1.15rem;
+    }
+    .fact-card .stat-label {
+        font-size: 0.55rem;
+        min-height: 28px;
+    }
+    .fact-card .stat-caption {
+        font-size: 0.65rem;
+    }
+    .analysis-links a {
+        font-size: 0.65rem;
+        padding: 6px 12px;
+    }
+    .timeline-highlights {
+        flex-direction: column;
+        gap: 10px;
+        font-size: 0.7rem;
+    }
+    .trend-chart {
+        height: 220px;
+    }
+    .rhythm-chart {
+        height: 200px;
+    }
+    .calendar-panel .section-heading {
+        flex-wrap: wrap;
+    }
+    .calendar-panel .limit-label {
+        margin-left: auto;
+    }
+    .ranked-item {
+        gap: 8px;
+    }
+    .ranked-value {
+        font-size: 0.65rem;
+    }
+    .discovery-date {
+        font-size: 0.6rem;
+    }
+    .platform-label {
+        flex-wrap: wrap;
+        gap: 4px;
+    }
+    .platform-label > .muted {
+        flex-shrink: 1;
+    }
+    .songs-tools {
+        width: 100%;
+        justify-content: space-between;
+        gap: 8px;
+    }
+    .songs-tools .limit-label {
+        margin-left: 0;
+    }
+    .artist-link {
+        max-width: 135px;
+    }
+    .small-copy {
+        font-size: 0.65rem;
+    }
+    .habit-item {
+        gap: 4px 10px;
+    }
+    .year-card {
+        padding: 16px;
+    }
+}
 @media (prefers-reduced-motion: reduce) {
     *,
     *::before,

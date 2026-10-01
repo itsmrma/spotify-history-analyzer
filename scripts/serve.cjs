@@ -18,7 +18,8 @@ http.createServer((req, res) => {
         return;
     }
     const file = path.resolve(root, `.${name === '/' ? '/index.html' : name}`);
-    if (!file.startsWith(root + path.sep)) {
+    const publicAsset = file.startsWith(path.join(root, 'assets') + path.sep);
+    if (file !== path.join(root, 'index.html') && !publicAsset) {
         res.writeHead(403).end();
         return;
     }

@@ -159,6 +159,35 @@ window.HistoryInsights = (() => {
         return card;
     }
 
+    function renderTopListening(stats) {
+        const artist = stats.sortedArtists[0];
+        const song = stats.sortedTracks[0];
+        const album = stats.sortedAlbums[0];
+        const byTime = currentFilters.metric === 'ms';
+        const label = (kind) => (byTime ? `Top ${kind} by listening time` : `Most played ${kind}`);
+        const detail = (item) => {
+            if (!item) return 'No plays in this period';
+            const plays = `${number(item.count)} ${item.count === 1 ? 'play' : 'plays'}`;
+            const time = A.formatTime(item.ms);
+            const totals = byTime ? `${time} · ${plays}` : `${plays} · ${time}`;
+            return item.artist ? `${item.artist} · ${totals}` : totals;
+        };
+        $('top-listening').replaceChildren(
+            fact(label('artist'), artist?.name || '—', detail(artist), 'top-artist'),
+            fact(label('song'), song?.track || '—', detail(song), 'top-song'),
+            fact(
+                label('album'),
+                album?.album || (stats.totalPlays ? 'Not recorded' : '—'),
+                album
+                    ? detail(album)
+                    : stats.totalPlays
+                      ? 'Album names are missing from these files'
+                      : detail(null),
+                'top-album',
+            ),
+        );
+    }
+
     function renderFacts(stats) {
         const record = stats.sortedDays[0];
         const streak = stats.listeningStreaks[0];
@@ -682,6 +711,7 @@ window.HistoryInsights = (() => {
         $('filter-message').classList.remove('filter-error');
         $('filter-message').textContent =
             `Showing ${number(stats.totalPlays)} plays · ${filters.metric === 'ms' ? 'Ranked by listening time' : 'Ranked by plays'} · Dates and hours use UTC.${stats.undatedPlays ? ` ${number(stats.undatedPlays)} plays without valid timestamps ${filters.startDate ? 'excluded from this date filter' : 'included in totals, excluded from time-based views'}.` : ''}${stats.estimatedPlays ? ' Time-based statistics include estimated durations.' : ''}`;
+        renderTopListening(stats);
         renderFacts(stats);
         renderRhythm(stats);
         const selectedYear = $('calendar-year').value;

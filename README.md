@@ -11,12 +11,13 @@ A personal project for viewing Spotify listening stats and adding listens from L
 3. Use **Add files** to combine additional exports. Exact duplicates with the same timestamp, artist and track are ignored. Records without valid timestamps remain countable but cannot be reliably deduplicated or used for streaks.
 4. Open **Scrobblers**, choose ListenBrainz, Last.fm or Maloja and the first missing day, then add listens to the dashboard or download a Spotify-compatible JSON file. ListenBrainz uses your public username; Last.fm also needs [your API key](https://www.last.fm/api/account/create); Maloja uses your server base URL and requires browser access (CORS). Use an HTTPS Maloja server when the app is hosted over HTTPS. You can also upload native JSON exports (ListenBrainz listens, Last.fm recent tracks or Maloja scrobbles) from **Your history**. These services can only fill dates they already recorded.
 
-Only music plays lasting at least 30 seconds count. Podcasts, short plays and malformed records are ignored. Dates and streaks use UTC. Known ListenBrainz and Maloja durations are used when available; missing durations are estimated at three minutes and marked `duration_estimated` in downloaded files. Choose a start date after your Spotify export to avoid overlapping history: Spotify and scrobblers may timestamp the same listen differently, so overlapping plays with different timestamps are not automatically matched.
+Only music plays lasting at least 30 seconds count. Podcasts, short plays and malformed records are ignored. Dates and streaks use UTC. Date input fields always use `gg/mm/yyyy` (day/month/year), with a calendar shortcut. Known ListenBrainz and Maloja durations are used when available; missing durations are estimated at three minutes and marked `duration_estimated` in downloaded files. Choose a start date after your Spotify export to avoid overlapping history: Spotify and scrobblers may timestamp the same listen differently, so overlapping plays with different timestamps are not automatically matched.
 
 Your history, filters and search results stay available when switching tabs. Invalid files and failed or cancelled downloads preserve the existing dashboard. Your data is held in memory for the current page session; refreshing clears it.
 
 ## Analysis features
 
+- **History search:** search artists, albums and songs with suggestions after 500 ms. Select a result to view every matching play across the complete loaded history, newest first, in pages of 100. Rows show day/month/year dates, UTC time, duration, platform and source, with expandable shuffle/offline, country and playback details when recorded. Dashboard filters do not limit this search.
 - **Personal records:** unique songs, active days, average time per active day, busiest day, longest consecutive-day listening streak across any artist and repeat-play share.
 - **Listening rhythm:** monthly trends with empty months included, busiest month, favourite weekday and peak hour, using UTC timestamps.
 - **Interactive calendar:** year selector, daily intensity, per-day song details, leap-year support and arrow-key navigation. Empty cells describe the imported files; they do not prove that you did not listen on that date.
@@ -64,6 +65,8 @@ assets/
   fonts/                    Inter, Material Icons and their licenses
   js/analytics.js           DOM-free validation and analysis
   js/insights.js            Filters, charts, calendar and CSV export
+  js/date-fields.js         Day/month/year input and native calendar shortcuts
+  js/history-explorer.js    Suggestions and detailed full-history search
   js/app.js                 Imports, navigation, rankings and scrobblers
   vendor/                   Pinned libraries and their licenses
 scripts/

@@ -2,6 +2,8 @@
 
 const A = window.HistoryAnalytics;
 const I = window.HistoryInsights;
+const H = window.HistoryExplorer;
+const tabNames = ['analyze', 'lb', 'explore'];
 const $ = (id) => document.getElementById(id);
 if (window.Chart) Chart.defaults.font.family = 'Inter, system-ui, sans-serif';
 let globalData = [];
@@ -17,7 +19,7 @@ function showMessage(text, kind = 'success') {
 }
 
 function setTab(name, focus = false) {
-    for (const tab of ['analyze', 'lb']) {
+    for (const tab of tabNames) {
         const selected = name === tab;
         const button = $(`tab-${tab}-btn`);
         button.classList.toggle('is-active', selected);
@@ -33,19 +35,22 @@ function setTab(name, focus = false) {
         });
 }
 
-for (const name of ['analyze', 'lb']) {
+for (const name of tabNames) {
     $(`tab-${name}-btn`).addEventListener('click', () => setTab(name));
     $(`tab-${name}-btn`).addEventListener('keydown', (event) => {
         if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
         event.preventDefault();
         const next =
             event.key === 'Home'
-                ? 'analyze'
+                ? tabNames[0]
                 : event.key === 'End'
-                  ? 'lb'
-                  : name === 'analyze'
-                    ? 'lb'
-                    : 'analyze';
+                  ? tabNames.at(-1)
+                  : tabNames[
+                        (tabNames.indexOf(name) +
+                            (event.key === 'ArrowRight' ? 1 : -1) +
+                            tabNames.length) %
+                            tabNames.length
+                    ];
         setTab(next, true);
     });
 }
@@ -190,6 +195,7 @@ function formatDate(date) {
 }
 
 function renderDashboard() {
+    H.setHistory(globalData);
     let filters = I.getFilters();
     stats = A.analyze(globalData, filters);
     if (I.updateYears(stats)) {
@@ -213,7 +219,7 @@ function renderDashboard() {
         const nextDay = new Date(`${stats.historyLastDate}T00:00:00Z`);
         nextDay.setUTCDate(nextDay.getUTCDate() + 1);
         const suggested = nextDay.toISOString().slice(0, 10);
-        if (suggested <= $('lb-date').max) $('lb-date').value = suggested;
+        if (suggested <= $('lb-date').max) $('lb-date').value = A.formatInputDate(suggested);
     }
     renderArtistsChart();
     const streakList = $('global-streaks-list');
@@ -657,7 +663,7 @@ async function fetchScrobbler(integrate) {
     const source = $('scrobbler-source').value;
     const service = scrobblerNames[source];
     const apiKey = $('scrobbler-api-key').value.trim();
-    const startDate = $('lb-date').value;
+    const startDate = A.parseInputDate($('lb-date').value);
     if (
         (source !== 'maloja' && !username) ||
         !A.validDate(startDate) ||

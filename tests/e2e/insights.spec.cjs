@@ -94,16 +94,16 @@ test('period and metric filters update totals, rankings, discoveries and graphs 
 test('custom dates are inclusive and invalid or empty ranges are recoverable', async ({ page }) => {
     await upload(page);
     await page.locator('#period-select').selectOption('custom');
-    await page.locator('#filter-start').fill('2026-01-01');
-    await page.locator('#filter-end').fill('2026-01-01');
+    await page.locator('#filter-start').fill('01/01/2026');
+    await page.locator('#filter-end').fill('01/01/2026');
     await page.getByRole('button', { name: 'Apply dates' }).click();
     await expect(page.locator('#total-tracks-stat')).toHaveText('2');
-    await page.locator('#filter-start').fill('2026-03-01');
+    await page.locator('#filter-start').fill('01/03/2026');
     await page.getByRole('button', { name: 'Apply dates' }).click();
     await expect(page.locator('#filter-message')).toContainText('start on or before the end');
     await expect(page.locator('#total-tracks-stat')).toHaveText('2');
-    await page.locator('#filter-start').fill('2026-02-01');
-    await page.locator('#filter-end').fill('2026-02-28');
+    await page.locator('#filter-start').fill('01/02/2026');
+    await page.locator('#filter-end').fill('28/02/2026');
     await page.getByRole('button', { name: 'Apply dates' }).click();
     await expect(page.locator('#filtered-empty')).toBeVisible();
     await expect(page.locator('#export-rankings-btn')).toBeDisabled();

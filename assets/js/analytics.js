@@ -13,6 +13,17 @@
         return Number.isFinite(date.getTime()) && date.toISOString().slice(0, 10) === value;
     }
 
+    function parseInputDate(value) {
+        if (typeof value !== 'string' || !/^\d{2}\/\d{2}\/\d{4}$/.test(value.trim())) return null;
+        const [day, month, year] = value.trim().split('/');
+        const iso = `${year}-${month}-${day}`;
+        return validDate(iso) ? iso : null;
+    }
+
+    function formatInputDate(value) {
+        return validDate(value) ? value.split('-').reverse().join('/') : '';
+    }
+
     function normalizeEntry(entry) {
         if (!entry || typeof entry !== 'object' || Array.isArray(entry)) return null;
         const artist = entry.master_metadata_album_artist_name ?? entry.artistName;
@@ -447,6 +458,8 @@
     }
     return {
         validDate,
+        parseInputDate,
+        formatInputDate,
         normalizeEntry,
         mergeEntries,
         getAllStreaks,

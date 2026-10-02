@@ -45,13 +45,10 @@ window.HistoryInsights = (() => {
         const period = $('period-select').value;
         const metric = $('ranking-metric').value;
         if (period === 'custom') {
-            if (
-                !A.validDate($('filter-start').value) ||
-                !A.validDate($('filter-end').value) ||
-                $('filter-start').value > $('filter-end').value
-            )
-                return { ...currentFilters, metric };
-            return { metric, startDate: $('filter-start').value, endDate: $('filter-end').value };
+            const startDate = A.parseInputDate($('filter-start').value);
+            const endDate = A.parseInputDate($('filter-end').value);
+            if (!startDate || !endDate || startDate > endDate) return { ...currentFilters, metric };
+            return { metric, startDate, endDate };
         }
         if (/^\d{4}$/.test(period))
             return { metric, startDate: `${period}-01-01`, endDate: `${period}-12-31` };
@@ -83,9 +80,9 @@ window.HistoryInsights = (() => {
             $('period-select').value = values.includes(selected) ? selected : 'all';
         }
         if (!$('filter-start').value && stats.historyFirstDate)
-            $('filter-start').value = stats.historyFirstDate;
+            $('filter-start').value = A.formatInputDate(stats.historyFirstDate);
         if (!$('filter-end').value && stats.historyLastDate)
-            $('filter-end').value = stats.historyLastDate;
+            $('filter-end').value = A.formatInputDate(stats.historyLastDate);
         return selected !== $('period-select').value;
     }
 
@@ -93,8 +90,8 @@ window.HistoryInsights = (() => {
         const custom = $('period-select').value === 'custom';
         $('custom-dates').classList.toggle('hidden', !custom);
         if (custom) {
-            const startDate = $('filter-start').value;
-            const endDate = $('filter-end').value;
+            const startDate = A.parseInputDate($('filter-start').value);
+            const endDate = A.parseInputDate($('filter-end').value);
             if (!A.validDate(startDate) || !A.validDate(endDate) || startDate > endDate) {
                 $('filter-message').textContent =
                     'Choose valid start and end dates, with the start on or before the end.';
@@ -123,8 +120,10 @@ window.HistoryInsights = (() => {
             $('period-select').value = 'all';
             $('ranking-metric').value = 'count';
             if (currentStats) {
-                $('filter-start').value = currentStats.historyFirstDate || '';
-                $('filter-end').value = currentStats.historyLastDate || '';
+                $('filter-start').value = A.formatInputDate(currentStats.historyFirstDate);
+                $('filter-end').value = A.formatInputDate(currentStats.historyLastDate);
+                $('filter-start').dispatchEvent(new Event('input'));
+                $('filter-end').dispatchEvent(new Event('input'));
             }
             applyFilters();
         });
@@ -148,8 +147,8 @@ window.HistoryInsights = (() => {
         });
     }
 
-    function fact(label, value, detail, key) {
-        const card = node('article', 'fact-card');
+    function fact(label, value, detail, key, className = 'fact-card') {
+        const card = node('article', className);
         card.dataset.fact = key;
         card.append(
             node('span', 'stat-label', label),
@@ -173,8 +172,8 @@ window.HistoryInsights = (() => {
             return item.artist ? `${item.artist} · ${totals}` : totals;
         };
         $('top-listening').replaceChildren(
-            fact(label('artist'), artist?.name || '—', detail(artist), 'top-artist'),
-            fact(label('song'), song?.track || '—', detail(song), 'top-song'),
+            fact(label('artist'), artist?.name || '—', detail(artist), 'top-artist', 'stat-card'),
+            fact(label('song'), song?.track || '—', detail(song), 'top-song', 'stat-card'),
             fact(
                 label('album'),
                 album?.album || (stats.totalPlays ? 'Not recorded' : '—'),
@@ -184,6 +183,7 @@ window.HistoryInsights = (() => {
                       ? 'Album names are missing from these files'
                       : detail(null),
                 'top-album',
+                'stat-card',
             ),
         );
     }

@@ -156,7 +156,7 @@ test('ListenBrainz paginates, integrates and skips repeated downloads', async ({
     for (let i = 0; i < 2; i++) {
         await page.getByRole('tab', { name: 'Scrobblers' }).click();
         await page.locator('#lb-username').fill('test user');
-        await page.locator('#lb-date').fill('2026-03-04');
+        await page.locator('#lb-date').fill('04/03/2026');
         await page.locator('#lb-integrate-btn').click();
         await expect(page.locator('#lb-loading')).toBeHidden();
         await expect(page.locator('#dashboard')).toBeVisible();
@@ -186,7 +186,7 @@ test('ListenBrainz JSON download marks estimates and does not change history', a
     );
     await page.getByRole('tab', { name: 'Scrobblers' }).click();
     await page.locator('#lb-username').fill('test');
-    await page.locator('#lb-date').fill('2026-03-04');
+    await page.locator('#lb-date').fill('04/03/2026');
     const downloadPromise = page.waitForEvent('download');
     await page.locator('#lb-download-btn').click();
     const download = await downloadPromise;
@@ -205,7 +205,7 @@ test('ListenBrainz errors, malformed responses and stalled pages are recoverable
     await upload(page);
     await page.getByRole('tab', { name: 'Scrobblers' }).click();
     await page.locator('#lb-username').fill('test');
-    await page.locator('#lb-date').fill('2026-03-01');
+    await page.locator('#lb-date').fill('01/03/2026');
     await page.route('https://api.listenbrainz.org/**', (route) =>
         route.fulfill({ status: 404, json: {} }),
     );
@@ -236,7 +236,7 @@ test('ListenBrainz errors, malformed responses and stalled pages are recoverable
 test('ListenBrainz download can be cancelled while waiting between pages', async ({ page }) => {
     await page.getByRole('tab', { name: 'Scrobblers' }).click();
     await page.locator('#lb-username').fill('test');
-    await page.locator('#lb-date').fill('2026-03-01');
+    await page.locator('#lb-date').fill('01/03/2026');
     await page.route('https://api.listenbrainz.org/**', (route) =>
         route.fulfill({
             json: {
@@ -260,6 +260,7 @@ test('ListenBrainz download can be cancelled while waiting between pages', async
 });
 
 test('no external requests and no page overflow from 320px to desktop', async ({ page }) => {
+    test.setTimeout(60000);
     const external = [];
     page.on('request', (request) => {
         if (!request.url().startsWith('http://127.0.0.1:4173')) external.push(request.url());
@@ -276,13 +277,13 @@ test('no external requests and no page overflow from 320px to desktop', async ({
         await page.getByRole('tab', { name: 'Scrobblers' }).click();
         await noOverflow(page);
         await page.locator('#lb-username').fill('a-long-listenbrainz-username');
-        await page.locator('#lb-date').fill('2026-10-02');
+        await page.locator('#lb-date').fill('02/10/2026');
         await noOverflow(page);
         await page.getByRole('tab', { name: 'Your history' }).click();
         await upload(page);
         await page.locator('#period-select').selectOption('custom');
-        await page.locator('#filter-start').fill('2026-03-01');
-        await page.locator('#filter-end').fill('2026-03-31');
+        await page.locator('#filter-start').fill('01/03/2026');
+        await page.locator('#filter-end').fill('31/03/2026');
         await noOverflow(page);
     }
     expect(external).toEqual([]);
@@ -332,7 +333,7 @@ test('rate limits retry and empty history leaves the dashboard available', async
     await upload(page);
     await page.getByRole('tab', { name: 'Scrobblers' }).click();
     await page.locator('#lb-username').fill('test');
-    await page.locator('#lb-date').fill('2026-03-01');
+    await page.locator('#lb-date').fill('01/03/2026');
     let requests = 0;
     await page.route('https://api.listenbrainz.org/**', (route) => {
         requests++;

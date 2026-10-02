@@ -24,12 +24,14 @@
             type="font/otf"
             crossorigin
         />
-        <link rel="stylesheet" href="assets/css/style.css?v=7" />
+        <link rel="stylesheet" href="assets/css/style.css?v=8" />
         <script defer src="assets/vendor/jszip.min.js"></script>
         <script defer src="assets/vendor/chart.umd.min.js"></script>
-        <script defer src="assets/js/analytics.js?v=5"></script>
-        <script defer src="assets/js/insights.js?v=6"></script>
-        <script defer src="assets/js/app.js?v=7"></script>
+        <script defer src="assets/js/analytics.js?v=6"></script>
+        <script defer src="assets/js/date-fields.js?v=1"></script>
+        <script defer src="assets/js/insights.js?v=7"></script>
+        <script defer src="assets/js/history-explorer.js?v=1"></script>
+        <script defer src="assets/js/app.js?v=8"></script>
     </head>
     <body>
         <a class="skip-link" href="#main">Skip to content</a>
@@ -79,6 +81,19 @@
                                     >headphones</span
                                 >
                                 Scrobblers
+                            </button>
+                            <button
+                                id="tab-explore-btn"
+                                class="tab"
+                                role="tab"
+                                aria-selected="false"
+                                aria-controls="view-explore"
+                                tabindex="-1"
+                            >
+                                <span class="material-icons-outlined icon" aria-hidden="true"
+                                    >search</span
+                                >
+                                Search history
                             </button>
                         </div>
                     </div>
@@ -170,11 +185,29 @@
                                 <div id="custom-dates" class="custom-dates hidden">
                                     <div class="field">
                                         <label for="filter-start">From (UTC)</label
-                                        ><input id="filter-start" type="date" />
+                                        ><input
+                                            id="filter-start"
+                                            class="date-input"
+                                            type="text"
+                                            inputmode="numeric"
+                                            placeholder="gg/mm/yyyy"
+                                            pattern="[0-9]{2}/[0-9]{2}/[0-9]{4}"
+                                            maxlength="10"
+                                            autocomplete="off"
+                                        />
                                     </div>
                                     <div class="field">
                                         <label for="filter-end">To (UTC, inclusive)</label
-                                        ><input id="filter-end" type="date" />
+                                        ><input
+                                            id="filter-end"
+                                            class="date-input"
+                                            type="text"
+                                            inputmode="numeric"
+                                            placeholder="gg/mm/yyyy"
+                                            pattern="[0-9]{2}/[0-9]{2}/[0-9]{4}"
+                                            maxlength="10"
+                                            autocomplete="off"
+                                        />
                                     </div>
                                     <button class="button button-primary" type="submit">
                                         Apply dates
@@ -530,6 +563,121 @@
                         </div>
                     </section>
                     <section
+                        id="view-explore"
+                        class="panel insight-panel hidden"
+                        role="tabpanel"
+                        aria-labelledby="tab-explore-btn"
+                    >
+                        <div class="section-heading"><h2>Search your listening history</h2></div>
+                        <p class="section-description muted">
+                            Find an artist, album or song to see every matching play in your loaded
+                            files. This view uses your complete history, regardless of dashboard
+                            filters. Dates and times use UTC.
+                        </p>
+                        <form id="history-search-form" class="history-search-form" role="search">
+                            <div class="field">
+                                <label for="history-search-type">Search for</label>
+                                <select id="history-search-type">
+                                    <option value="artist">Artist</option>
+                                    <option value="album">Album</option>
+                                    <option value="song">Song</option>
+                                </select>
+                            </div>
+                            <div class="field history-query-field">
+                                <label for="history-search-input">Name</label>
+                                <input
+                                    id="history-search-input"
+                                    type="text"
+                                    placeholder="Start typing a name…"
+                                    role="combobox"
+                                    aria-autocomplete="list"
+                                    aria-expanded="false"
+                                    aria-controls="history-suggestions"
+                                    autocomplete="off"
+                                />
+                                <ul
+                                    id="history-suggestions"
+                                    class="history-suggestions hidden"
+                                    role="listbox"
+                                    aria-label="Matching artists, albums or songs"
+                                ></ul>
+                            </div>
+                            <button
+                                type="submit"
+                                id="history-search-btn"
+                                class="button button-primary"
+                            >
+                                Search
+                            </button>
+                        </form>
+                        <p
+                            id="history-search-message"
+                            class="muted form-help"
+                            role="status"
+                            aria-live="polite"
+                        >
+                            Upload your listening history in Your history to search your plays.
+                        </p>
+                        <section
+                            id="history-results"
+                            class="history-results hidden"
+                            aria-labelledby="history-result-title"
+                        >
+                            <div class="section-heading">
+                                <div>
+                                    <h3 id="history-result-title"></h3>
+                                    <p id="history-result-artist" class="muted"></p>
+                                </div>
+                            </div>
+                            <p id="history-result-summary" class="section-description muted"></p>
+                            <div
+                                class="table-scroll history-table-wrapper"
+                                role="region"
+                                aria-label="Detailed listening history"
+                                tabindex="0"
+                            >
+                                <table class="history-table">
+                                    <thead>
+                                        <tr>
+                                            <th scope="col">Date (UTC)</th>
+                                            <th scope="col">Time (UTC)</th>
+                                            <th scope="col">Song</th>
+                                            <th scope="col">Artist</th>
+                                            <th scope="col">Album</th>
+                                            <th scope="col">Played</th>
+                                            <th scope="col">Platform</th>
+                                            <th scope="col">Source</th>
+                                            <th scope="col">Details</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="history-plays"></tbody>
+                                </table>
+                            </div>
+                            <div class="history-pagination">
+                                <button
+                                    id="history-prev"
+                                    type="button"
+                                    class="button button-secondary"
+                                >
+                                    Previous
+                                </button>
+                                <p
+                                    id="history-page-summary"
+                                    class="muted"
+                                    role="status"
+                                    aria-live="polite"
+                                ></p>
+                                <button
+                                    id="history-next"
+                                    type="button"
+                                    class="button button-secondary"
+                                >
+                                    Next
+                                </button>
+                            </div>
+                        </section>
+                    </section>
+                    <section
                         id="view-lb"
                         class="panel lb-panel hidden"
                         role="tabpanel"
@@ -589,7 +737,17 @@
                                 <div class="field">
                                     <label for="lb-date"
                                         >Start date <span class="muted">(UTC)</span></label
-                                    ><input id="lb-date" type="date" required />
+                                    ><input
+                                        id="lb-date"
+                                        class="date-input"
+                                        type="text"
+                                        inputmode="numeric"
+                                        placeholder="gg/mm/yyyy"
+                                        pattern="[0-9]{2}/[0-9]{2}/[0-9]{4}"
+                                        maxlength="10"
+                                        autocomplete="off"
+                                        required
+                                    />
                                 </div>
                             </div>
                             <p id="scrobbler-help" class="form-help muted">

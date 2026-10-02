@@ -458,6 +458,7 @@ footer {
     gap: 16px;
 }
 .stat-card {
+    min-width: 0;
     display: flex;
     flex-direction: column;
     background: var(--surface-raised);
@@ -487,6 +488,7 @@ footer {
 .stat-caption {
     color: var(--muted);
     font-size: 0.7rem;
+    overflow-wrap: anywhere;
 }
 .insights-grid {
     display: grid;
@@ -681,6 +683,101 @@ tbody tr:hover {
     padding-top: 24px;
     border-top: 1px solid var(--line);
 }
+.history-search-form {
+    display: grid;
+    grid-template-columns: 160px minmax(0, 1fr) auto;
+    align-items: end;
+    gap: 16px;
+}
+.history-query-field {
+    position: relative;
+}
+.history-suggestions {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    z-index: 3;
+    max-height: 360px;
+    overflow-y: auto;
+    background: var(--surface-raised);
+    border: 1px solid var(--outline);
+    border-radius: 4px;
+    padding: 6px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+}
+.history-suggestion {
+    display: flex;
+    flex-direction: column;
+    padding: 10px 12px;
+    min-height: 48px;
+    overflow-wrap: anywhere;
+    cursor: pointer;
+    font-size: 0.85rem;
+}
+.history-suggestion span {
+    font-size: 0.75rem;
+}
+.history-suggestion:hover,
+.history-suggestion[aria-selected='true'] {
+    background: var(--primary-container);
+    border-radius: 4px;
+}
+.history-results {
+    margin-top: 28px;
+}
+.history-results .section-heading {
+    margin-bottom: 12px;
+}
+.history-results h3,
+.history-results p {
+    overflow-wrap: anywhere;
+}
+.history-table-wrapper {
+    border: 1px solid var(--line);
+    border-radius: 8px;
+}
+.history-table {
+    min-width: 1150px;
+}
+.history-table th,
+.history-table td {
+    vertical-align: top;
+}
+.history-table td {
+    min-width: 110px;
+    max-width: 240px;
+    overflow-wrap: anywhere;
+}
+.history-table td:first-child,
+.history-table td:nth-child(2) {
+    white-space: nowrap;
+}
+.history-table summary {
+    cursor: pointer;
+    color: var(--primary);
+}
+.history-metadata {
+    margin: 12px 0 0;
+    font-size: 0.7rem;
+}
+.history-metadata dt {
+    color: var(--muted);
+}
+.history-metadata dd {
+    margin: 0 0 8px;
+}
+.history-pagination {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 20px;
+}
+.history-pagination p {
+    font-size: 0.75rem;
+    text-align: center;
+}
 .artist-results > p {
     font-size: 0.8rem;
     margin-top: 8px;
@@ -768,6 +865,35 @@ tbody tr:hover {
 }
 .field input {
     width: 100%;
+}
+.field .date-input {
+    padding-right: 56px;
+}
+.field .date-native {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    width: 48px;
+    padding: 0;
+    opacity: 0;
+    pointer-events: none;
+}
+.date-calendar {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    width: 48px;
+    height: 56px;
+    display: grid;
+    place-items: center;
+    border: 0;
+    border-radius: 4px;
+    background: transparent;
+    color: var(--muted);
+}
+.date-calendar:hover {
+    color: var(--primary);
+    background: var(--state-hover);
 }
 .field select {
     width: 100%;
@@ -869,6 +995,18 @@ tbody tr:hover {
         flex: 1;
         padding: 10px 8px;
         font-size: 0.8rem;
+        flex-direction: column;
+        gap: 4px;
+    }
+    .history-search-form {
+        grid-template-columns: 1fr;
+    }
+    .history-pagination {
+        flex-wrap: wrap;
+    }
+    .history-pagination p {
+        order: -1;
+        flex-basis: 100%;
     }
     .upload-panel {
         padding: 32px 18px 26px;

@@ -8,6 +8,15 @@ const play = (artist, track, ts = '2026-03-01T12:00:00Z', ms = 60000) => ({
     ms_played: ms,
 });
 
+test('date inputs use day/month/year and reject impossible or American dates', () => {
+    assert.equal(A.parseInputDate('03/04/2026'), '2026-04-03');
+    assert.equal(A.parseInputDate('29/02/2024'), '2024-02-29');
+    for (const value of ['29/02/2026', '31/04/2026', '12/31/2026', '2026-03-04', '', null])
+        assert.equal(A.parseInputDate(value), null);
+    assert.equal(A.formatInputDate('2026-10-03'), '03/10/2026');
+    assert.equal(A.formatInputDate(null), '');
+});
+
 test('malformed records and nonnumeric durations do not poison counts', () => {
     const result = A.analyze([
         null,

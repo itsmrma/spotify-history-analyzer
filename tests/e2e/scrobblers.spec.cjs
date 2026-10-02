@@ -17,7 +17,7 @@ const mlj = (day) => ({
 async function setup(page, source) {
     await page.getByRole('tab', { name: 'Scrobblers' }).click();
     await page.locator('#scrobbler-source').selectOption(source);
-    await page.locator('#lb-date').fill('2026-03-04');
+    await page.locator('#lb-date').fill('04/03/2026');
     if (source === 'lastfm') {
         await page.locator('#lb-username').fill('test');
         await page.locator('#scrobbler-api-key').fill('test-key');

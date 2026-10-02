@@ -14,6 +14,7 @@ window.HistoryInsights = (() => {
         'Sunday',
     ];
     let currentStats = null;
+    let platformsExpanded = false;
     let currentFilters = {};
     let changeView = () => {};
     let openArtist = () => {};
@@ -108,6 +109,10 @@ window.HistoryInsights = (() => {
     function initialize(onChange, onArtist) {
         changeView = onChange;
         openArtist = onArtist;
+        $('platforms-toggle').addEventListener('click', () => {
+            platformsExpanded = !platformsExpanded;
+            updatePlatformsVisibility();
+        });
         $('analysis-filters').addEventListener('submit', (event) => {
             event.preventDefault();
             applyFilters();
@@ -623,6 +628,7 @@ window.HistoryInsights = (() => {
             ),
         );
         const known = stats.platforms.some(([name]) => name !== 'Not recorded');
+        $('platforms-toggle').classList.add('hidden');
         $('platforms-list').replaceChildren();
         if (!known) {
             $('platforms-list').append(
@@ -652,6 +658,20 @@ window.HistoryInsights = (() => {
             item.append(line, bar);
             $('platforms-list').append(item);
         }
+        updatePlatformsVisibility();
+    }
+
+    function updatePlatformsVisibility() {
+        const items = $('platforms-list').querySelectorAll('.platform-item');
+        items.forEach((item, index) => {
+            item.hidden = !platformsExpanded && index >= 5;
+        });
+        const toggle = $('platforms-toggle');
+        toggle.classList.toggle('hidden', items.length <= 5);
+        toggle.setAttribute('aria-expanded', String(platformsExpanded));
+        toggle.textContent = platformsExpanded
+            ? 'Show fewer devices & platforms'
+            : `Show all ${number(items.length)} devices & platforms`;
     }
 
     function render(stats, filters) {

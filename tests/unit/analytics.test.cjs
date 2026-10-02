@@ -99,3 +99,58 @@ test('large histories can be merged without argument stack overflow', () => {
     assert.equal(result.entries.length, 150000);
     assert.equal(A.analyze(result.entries).totalPlays, 150000);
 });
+
+test('Last.fm imports completed scrobbles with albums and estimated durations', () => {
+    const track = {
+        name: ' T ',
+        artist: { '#text': ' A ' },
+        album: { '#text': ' Album ' },
+        date: { uts: '1772366400' },
+    };
+    const entry = A.convertLastFM(track);
+    assert.equal(entry.source, 'lastfm');
+    assert.equal(entry.ms_played, 180000);
+    assert.equal(entry.duration_estimated, true);
+    assert.equal(entry.master_metadata_album_album_name, 'Album');
+    assert.equal(A.convertLastFM({ ...track, '@attr': { nowplaying: 'true' } }), null);
+    assert.equal(A.convertLastFM({ ...track, date: { uts: 'invalid' } }), null);
+    assert.equal(A.convertLastFM({ ...track, artist: {} }), null);
+    assert.equal(
+        A.convertLastFM({ ...track, artist: { name: 'Extended' } })
+            .master_metadata_album_artist_name,
+        'Extended',
+    );
+});
+
+test('Maloja imports artists and measured listening duration, estimates missing values', () => {
+    const scrobble = {
+        time: 1772366400,
+        track: { artists: ['A', 'B'], title: 'T', album: { albumtitle: 'Album' }, length: 300 },
+        duration: 95,
+    };
+    const entry = A.convertMaloja(scrobble);
+    assert.equal(entry.source, 'maloja');
+    assert.equal(entry.master_metadata_album_artist_name, 'A, B');
+    assert.equal(entry.master_metadata_album_album_name, 'Album');
+    assert.equal(entry.ms_played, 95000);
+    assert.equal(entry.duration_estimated, false);
+    assert.equal(A.convertMaloja({ ...scrobble, duration: undefined }).duration_estimated, true);
+    assert.equal(A.convertMaloja({ ...scrobble, track: { artists: [null], title: 'T' } }), null);
+    assert.equal(A.normalizeEntry(A.convertMaloja({ ...scrobble, duration: 12 })), null);
+});
+
+test('native scrobbler JSON envelopes and arrays import alongside Spotify history', () => {
+    const lb = { listened_at: 1772366400, track_metadata: { artist_name: 'A', track_name: 'T' } };
+    const fm = { name: 'T', artist: { '#text': 'A' }, date: { uts: '1772366400' } };
+    const mlj = { time: 1772366400, track: { artists: ['A'], title: 'T' } };
+    for (const data of [
+        { payload: { listens: [lb] } },
+        { recenttracks: { track: [fm] } },
+        { list: [mlj] },
+        [lb, fm, mlj, play('A', 'T')],
+    ]) {
+        assert.ok(A.analyze(A.historyEntries(data)).totalPlays > 0);
+    }
+    assert.throws(() => A.historyEntries({ unexpected: [] }));
+    assert.throws(() => A.historyEntries(null));
+});

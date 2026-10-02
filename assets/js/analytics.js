@@ -79,7 +79,7 @@
                 : null;
             if (key && seen.has(key)) {
                 duplicates++;
-                // Keep measured Spotify time over an estimated ListenBrainz duration.
+                // Keep measured Spotify time over an estimated scrobbler duration.
                 const index = seen.get(key);
                 if (entries[index].duration_estimated === true && !entry.estimated)
                     entries[index] = raw;
@@ -384,7 +384,60 @@
             ms_played: duration,
             duration_estimated: estimated,
             source: 'listenbrainz',
+            master_metadata_album_album_name:
+                typeof metadata.release_name === 'string'
+                    ? metadata.release_name.trim()
+                    : undefined,
         };
+    }
+
+    function convertLastFM(item) {
+        if (item?.['@attr']?.nowplaying === 'true') return null;
+        const entry = convertListen({
+            listened_at: Number(item?.date?.uts),
+            track_metadata: {
+                artist_name: item?.artist?.['#text'] ?? item?.artist?.name ?? item?.artist,
+                track_name: item?.name,
+                release_name: item?.album?.['#text'],
+            },
+        });
+        if (entry) entry.source = 'lastfm';
+        return entry;
+    }
+
+    function convertMaloja(item) {
+        const artists = item?.track?.artists;
+        if (
+            !Array.isArray(artists) ||
+            !artists.length ||
+            artists.some((artist) => typeof artist !== 'string' || !artist.trim())
+        )
+            return null;
+        const entry = convertListen({
+            listened_at: item?.time,
+            track_metadata: {
+                artist_name: artists.join(', '),
+                track_name: item?.track?.title,
+                release_name: item?.track?.album?.albumtitle ?? item?.track?.album,
+                additional_info: { duration: item?.duration },
+            },
+        });
+        if (entry) entry.source = 'maloja';
+        return entry;
+    }
+
+    function historyEntries(data) {
+        const list = Array.isArray(data)
+            ? data
+            : (data?.payload?.listens ?? data?.recenttracks?.track ?? data?.list);
+        if (!Array.isArray(list))
+            throw new Error('Expected a listening-history array or scrobbler JSON export');
+        return list.map((item) => {
+            if (item?.track_metadata) return convertListen(item);
+            if (item?.date?.uts || item?.['@attr']?.nowplaying) return convertLastFM(item);
+            if (item?.track && typeof item.time === 'number') return convertMaloja(item);
+            return item;
+        });
     }
 
     function formatTime(ms) {
@@ -399,6 +452,9 @@
         getAllStreaks,
         analyze,
         convertListen,
+        convertLastFM,
+        convertMaloja,
+        historyEntries,
         formatTime,
         monthlyTimeline,
         rankingCSV,

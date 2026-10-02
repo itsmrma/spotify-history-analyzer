@@ -2,7 +2,7 @@
     "name": "spotify-history-analyzer",
     "version": "1.0.0",
     "private": true,
-    "description": "Private, browser-based Spotify and ListenBrainz history analysis",
+    "description": "Private, browser-based Spotify and scrobbler history analysis",
     "scripts": {
         "test": "node --test tests/unit/*.test.cjs",
         "test:e2e": "playwright test",

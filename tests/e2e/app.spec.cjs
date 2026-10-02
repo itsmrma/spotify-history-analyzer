@@ -63,7 +63,7 @@ test('import, switch tabs, search, add files and reimport without losing results
     await expect(page.locator('#total-tracks-stat')).toHaveText('4');
     await expect(page.locator('#total-time-stat')).toHaveText('4m');
     await expect(page.locator('#global-streaks-list')).toContainText('3 days');
-    await page.getByRole('tab', { name: 'ListenBrainz' }).click();
+    await page.getByRole('tab', { name: 'Scrobblers' }).click();
     await expect(page.locator('#dashboard')).toBeHidden();
     await page.getByRole('tab', { name: 'Your history' }).click();
     await expect(page.locator('#dashboard')).toBeVisible();
@@ -154,7 +154,7 @@ test('ListenBrainz paginates, integrates and skips repeated downloads', async ({
         await route.fulfill({ json: { payload: { listens } } });
     });
     for (let i = 0; i < 2; i++) {
-        await page.getByRole('tab', { name: 'ListenBrainz' }).click();
+        await page.getByRole('tab', { name: 'Scrobblers' }).click();
         await page.locator('#lb-username').fill('test user');
         await page.locator('#lb-date').fill('2026-03-04');
         await page.locator('#lb-integrate-btn').click();
@@ -184,7 +184,7 @@ test('ListenBrainz JSON download marks estimates and does not change history', a
             },
         }),
     );
-    await page.getByRole('tab', { name: 'ListenBrainz' }).click();
+    await page.getByRole('tab', { name: 'Scrobblers' }).click();
     await page.locator('#lb-username').fill('test');
     await page.locator('#lb-date').fill('2026-03-04');
     const downloadPromise = page.waitForEvent('download');
@@ -203,7 +203,7 @@ test('ListenBrainz errors, malformed responses and stalled pages are recoverable
     page,
 }) => {
     await upload(page);
-    await page.getByRole('tab', { name: 'ListenBrainz' }).click();
+    await page.getByRole('tab', { name: 'Scrobblers' }).click();
     await page.locator('#lb-username').fill('test');
     await page.locator('#lb-date').fill('2026-03-01');
     await page.route('https://api.listenbrainz.org/**', (route) =>
@@ -234,7 +234,7 @@ test('ListenBrainz errors, malformed responses and stalled pages are recoverable
 });
 
 test('ListenBrainz download can be cancelled while waiting between pages', async ({ page }) => {
-    await page.getByRole('tab', { name: 'ListenBrainz' }).click();
+    await page.getByRole('tab', { name: 'Scrobblers' }).click();
     await page.locator('#lb-username').fill('test');
     await page.locator('#lb-date').fill('2026-03-01');
     await page.route('https://api.listenbrainz.org/**', (route) =>
@@ -273,7 +273,7 @@ test('no external requests and no page overflow from 320px to desktop', async ({
             await page.evaluate(() => document.fonts.check('24px "Material Icons Outlined"')),
         ).toBe(true);
         await noOverflow(page);
-        await page.getByRole('tab', { name: 'ListenBrainz' }).click();
+        await page.getByRole('tab', { name: 'Scrobblers' }).click();
         await noOverflow(page);
         await page.locator('#lb-username').fill('a-long-listenbrainz-username');
         await page.locator('#lb-date').fill('2026-10-02');
@@ -317,7 +317,7 @@ test('main screens pass automated WCAG accessibility checks', async ({ page }) =
         expect(results.violations).toEqual([]);
     };
     await audit();
-    await page.getByRole('tab', { name: 'ListenBrainz' }).click();
+    await page.getByRole('tab', { name: 'Scrobblers' }).click();
     await audit();
     await page.screenshot({
         path: `test-results/${test.info().project.name}-listenbrainz.png`,
@@ -330,7 +330,7 @@ test('main screens pass automated WCAG accessibility checks', async ({ page }) =
 
 test('rate limits retry and empty history leaves the dashboard available', async ({ page }) => {
     await upload(page);
-    await page.getByRole('tab', { name: 'ListenBrainz' }).click();
+    await page.getByRole('tab', { name: 'Scrobblers' }).click();
     await page.locator('#lb-username').fill('test');
     await page.locator('#lb-date').fill('2026-03-01');
     let requests = 0;

@@ -54,6 +54,7 @@ function updateBusyControls() {
     const busy = importing || lbController !== null;
     for (const id of ['choose-files-btn', 'add-files-btn', 'lb-integrate-btn', 'lb-download-btn'])
         $(id).disabled = busy;
+    $('scrobbler-source').disabled = busy;
     $('export-rankings-btn').disabled = busy || !stats?.totalPlays;
     $('file-upload').disabled = busy;
 }
@@ -96,8 +97,7 @@ async function handleFiles(fileList) {
 
     async function readJSON(text, name) {
         try {
-            const data = JSON.parse(text.replace(/^\uFEFF/, ''));
-            if (!Array.isArray(data)) throw new Error('Expected a listening-history array');
+            const data = A.historyEntries(JSON.parse(text.replace(/^\uFEFF/, '')));
             // Append without spreading: large exports can exceed the argument limit.
             for (const entry of data) incoming.push(entry);
             parsedFiles++;
@@ -446,9 +446,40 @@ $('artist-search-input').addEventListener('input', () => {
 $('lb-date').max = new Date().toISOString().slice(0, 10);
 $('lb-form').addEventListener('submit', (event) => {
     event.preventDefault();
-    fetchListenBrainz(event.submitter !== $('lb-download-btn'));
+    fetchScrobbler(event.submitter !== $('lb-download-btn'));
 });
 $('lb-cancel-btn').addEventListener('click', () => lbController?.abort());
+
+const scrobblerNames = { listenbrainz: 'ListenBrainz', lastfm: 'Last.fm', maloja: 'Maloja' };
+$('scrobbler-source').addEventListener('change', () => {
+    const source = $('scrobbler-source').value;
+    const maloja = source === 'maloja';
+    $('lb-username').parentElement.classList.toggle('hidden', maloja);
+    $('lb-username').disabled = maloja;
+    document.querySelector('label[for="lb-username"]').textContent =
+        `${scrobblerNames[source]} username`;
+    $('scrobbler-key-field').classList.toggle('hidden', source !== 'lastfm');
+    $('scrobbler-api-key').disabled = source !== 'lastfm';
+    $('scrobbler-api-key').required = source === 'lastfm';
+    $('scrobbler-server-field').classList.toggle('hidden', !maloja);
+    $('scrobbler-server').disabled = !maloja;
+    $('scrobbler-server').required = maloja;
+    const help = $('scrobbler-help');
+    help.replaceChildren();
+    if (source === 'lastfm') {
+        help.append(
+            'Use your public Last.fm username and an API key. The key stays in this page session and is sent only to Last.fm. ',
+        );
+        const link = element('a', '', 'Get a Last.fm API key');
+        link.href = 'https://www.last.fm/api/account/create';
+        link.target = '_blank';
+        link.rel = 'noopener noreferrer';
+        help.append(link);
+    } else
+        help.textContent = maloja
+            ? 'Enter the base URL of your Maloja server. It must allow browser access (CORS); on an HTTPS page use an HTTPS server. You can also upload a native scrobbles JSON export in Your history.'
+            : 'Your ListenBrainz profile must be public.';
+});
 
 function pause(ms, signal) {
     return new Promise((resolve, reject) => {
@@ -468,7 +499,7 @@ function pause(ms, signal) {
     });
 }
 
-async function requestListens(url, signal) {
+async function requestJSON(url, signal, service) {
     for (let attempt = 0; attempt < 3; attempt++) {
         // Timeout includes receiving and parsing the response body.
         const requestSignal = AbortSignal.any([signal, AbortSignal.timeout(30000)]);
@@ -482,64 +513,199 @@ async function requestListens(url, signal) {
                 Number.isFinite(retry) && retry > 0
                     ? Math.min(retry, 30) * 1000
                     : 2000 * (attempt + 1);
-            $('lb-status').textContent = 'ListenBrainz is busy. Retrying shortly…';
+            $('lb-status').textContent = `${service} is busy. Retrying shortly…`;
             await pause(delay, signal);
             continue;
         }
         if (response.status === 404)
-            throw new Error('This ListenBrainz user was not found. Check the username');
+            throw new Error(`${service} profile or endpoint was not found. Check your details`);
         if (!response.ok)
-            throw new Error(
-                `ListenBrainz returned HTTP ${response.status}. Please try again later`,
-            );
+            throw new Error(`${service} returned HTTP ${response.status}. Please try again later`);
         const data = await response.json();
-        if (!Array.isArray(data.payload?.listens))
-            throw new Error('ListenBrainz returned an unexpected response');
-        return data.payload.listens;
+        if (Number(data?.error) === 29 && attempt < 2) {
+            $('lb-status').textContent = `${service} is busy. Retrying shortly…`;
+            await pause(2000 * (attempt + 1), signal);
+            continue;
+        }
+        if (data?.error || ['error', 'failure'].includes(data?.status))
+            throw new Error(
+                `${service}: ${data.message || data.error?.desc || data.desc || 'request failed'}`,
+            );
+        return data;
     }
 }
 
-async function fetchListenBrainz(integrate) {
+async function downloadListenBrainz(username, targetTs, signal) {
+    const incoming = [];
+    let maxTs = null;
+    while (true) {
+        const url = new URL(
+            `https://api.listenbrainz.org/1/user/${encodeURIComponent(username)}/listens`,
+        );
+        url.searchParams.set('count', '1000');
+        if (maxTs !== null) url.searchParams.set('max_ts', maxTs);
+        const data = await requestJSON(url.href, signal, 'ListenBrainz');
+        const listens = data?.payload?.listens;
+        if (!Array.isArray(listens))
+            throw new Error('ListenBrainz returned an unexpected response');
+        if (!listens.length) break;
+        let oldest = Infinity;
+        for (const item of listens) {
+            if (!Number.isSafeInteger(item?.listened_at) || item.listened_at <= 0) continue;
+            oldest = Math.min(oldest, item.listened_at);
+            if (item.listened_at < targetTs) continue;
+            const entry = A.convertListen(item);
+            if (entry) incoming.push(entry);
+        }
+        if (!Number.isFinite(oldest) || (maxTs !== null && oldest >= maxTs))
+            throw new Error('ListenBrainz pagination did not advance. Please try again');
+        $('lb-status').textContent = `Downloaded ${incoming.length.toLocaleString()} listens…`;
+        if (oldest <= targetTs) break;
+        maxTs = oldest;
+        await pause(1000, signal);
+    }
+    return incoming;
+}
+
+async function downloadLastFM(username, apiKey, targetTs, signal) {
+    const incoming = [];
+    // Freeze the end of the range so new scrobbles cannot shift page boundaries.
+    const endTs = Math.floor(Date.now() / 1000);
+    const seenPages = new Set();
+    for (let page = 1; ; page++) {
+        const url = new URL('https://ws.audioscrobbler.com/2.0/');
+        url.search = new URLSearchParams({
+            method: 'user.getrecenttracks',
+            user: username,
+            api_key: apiKey,
+            format: 'json',
+            limit: '200',
+            page: String(page),
+            from: String(targetTs - 1),
+            to: String(endTs),
+        });
+        const data = await requestJSON(url.href, signal, 'Last.fm');
+        const tracks = data?.recenttracks?.track;
+        const totalPages = Number(data?.recenttracks?.['@attr']?.totalPages);
+        if (!Array.isArray(tracks) || !Number.isSafeInteger(totalPages) || totalPages < 0)
+            throw new Error('Last.fm returned an unexpected response');
+        const completed = tracks.filter((track) => track?.['@attr']?.nowplaying !== 'true');
+        if (completed.length) {
+            const signature = JSON.stringify(completed);
+            if (seenPages.has(signature))
+                throw new Error('Last.fm pagination did not advance. Please try again');
+            seenPages.add(signature);
+        }
+        for (const track of completed) {
+            const entry = A.convertLastFM(track);
+            if (entry && Number(track.date.uts) >= targetTs && Number(track.date.uts) <= endTs)
+                incoming.push(entry);
+        }
+        $('lb-status').textContent = `Downloaded ${incoming.length.toLocaleString()} listens…`;
+        if (page >= totalPages) break;
+        if (!completed.length)
+            throw new Error('Last.fm returned an incomplete history. Please try again');
+        await pause(1000, signal);
+    }
+    return incoming;
+}
+
+async function downloadMaloja(server, targetTs, signal) {
+    const incoming = [];
+    const seenPages = new Set();
+    const endTs = Math.floor(Date.now() / 1000);
+    // Maloja interprets dates in the server's timezone. Fetch bordering days,
+    // then apply the requested UTC range to each returned timestamp.
+    const since = new Date((targetTs - 86400) * 1000)
+        .toISOString()
+        .slice(0, 10)
+        .replaceAll('-', '/');
+    const until = new Date((endTs + 86400) * 1000).toISOString().slice(0, 10).replaceAll('-', '/');
+    for (let page = 0; ; page++) {
+        const url = new URL(`${server.href.replace(/\/$/, '')}/apis/mlj_1/scrobbles`);
+        url.search = new URLSearchParams({
+            from: since,
+            until,
+            perpage: '1000',
+            page: String(page),
+        });
+        const data = await requestJSON(url.href, signal, 'Maloja');
+        if (!Array.isArray(data?.list) || !data.pagination || Number(data.pagination.page) !== page)
+            throw new Error('Maloja returned an unexpected response');
+        if (data.list.length) {
+            const signature = JSON.stringify(data.list);
+            if (seenPages.has(signature))
+                throw new Error('Maloja pagination did not advance. Please try again');
+            seenPages.add(signature);
+        }
+        for (const item of data.list) {
+            const entry = A.convertMaloja(item);
+            if (entry && item.time >= targetTs && item.time <= endTs) incoming.push(entry);
+        }
+        $('lb-status').textContent = `Downloaded ${incoming.length.toLocaleString()} listens…`;
+        if (!data.pagination.next_page) break;
+        if (!data.list.length)
+            throw new Error('Maloja returned an incomplete history. Please try again');
+        await pause(1000, signal);
+    }
+    return incoming;
+}
+
+async function fetchScrobbler(integrate) {
     if (lbController || importing) return;
     const username = $('lb-username').value.trim();
+    const source = $('scrobbler-source').value;
+    const service = scrobblerNames[source];
+    const apiKey = $('scrobbler-api-key').value.trim();
     const startDate = $('lb-date').value;
-    if (!username || !A.validDate(startDate) || startDate > $('lb-date').max) {
+    if (
+        (source !== 'maloja' && !username) ||
+        !A.validDate(startDate) ||
+        startDate > $('lb-date').max
+    ) {
         showMessage('Enter a username and a valid start date on or before today.', 'error');
         return;
+    }
+    if (source === 'lastfm' && !apiKey) {
+        showMessage('Enter your Last.fm API key.', 'error');
+        return;
+    }
+    let server;
+    if (source === 'maloja') {
+        try {
+            server = new URL($('scrobbler-server').value.trim());
+            if (
+                !['https:', 'http:'].includes(server.protocol) ||
+                server.username ||
+                server.password ||
+                server.search ||
+                server.hash
+            )
+                throw new Error('Invalid URL');
+            if (location.protocol === 'https:' && server.protocol !== 'https:')
+                throw new Error('HTTPS required');
+        } catch (_) {
+            showMessage(
+                'Enter a valid Maloja base URL, using HTTPS when this page uses HTTPS.',
+                'error',
+            );
+            return;
+        }
     }
     const targetTs = Date.parse(`${startDate}T00:00:00Z`) / 1000;
     lbController = new AbortController();
     const signal = lbController.signal;
     updateBusyControls();
     $('lb-loading').classList.remove('hidden');
-    $('lb-status').textContent = 'Contacting ListenBrainz…';
+    $('lb-status').textContent = `Contacting ${service}…`;
     $('app-message').classList.add('hidden');
-    const incoming = [];
-    let maxTs = null;
     try {
-        while (true) {
-            const url = new URL(
-                `https://api.listenbrainz.org/1/user/${encodeURIComponent(username)}/listens`,
-            );
-            url.searchParams.set('count', '1000');
-            if (maxTs !== null) url.searchParams.set('max_ts', maxTs);
-            const listens = await requestListens(url.href, signal);
-            if (!listens.length) break;
-            let oldest = Infinity;
-            for (const item of listens) {
-                if (!Number.isSafeInteger(item?.listened_at) || item.listened_at <= 0) continue;
-                oldest = Math.min(oldest, item.listened_at);
-                if (item.listened_at < targetTs) continue;
-                const entry = A.convertListen(item);
-                if (entry) incoming.push(entry);
-            }
-            if (!Number.isFinite(oldest) || (maxTs !== null && oldest >= maxTs))
-                throw new Error('ListenBrainz pagination did not advance. Please try again');
-            $('lb-status').textContent = `Downloaded ${incoming.length.toLocaleString()} listens…`;
-            if (oldest <= targetTs) break;
-            maxTs = oldest; // The API documents max_ts as exclusive.
-            await pause(1000, signal);
-        }
+        const incoming =
+            source === 'listenbrainz'
+                ? await downloadListenBrainz(username, targetTs, signal)
+                : source === 'lastfm'
+                  ? await downloadLastFM(username, apiKey, targetTs, signal)
+                  : await downloadMaloja(server, targetTs, signal);
         signal.throwIfAborted();
         if (!incoming.length) {
             showMessage('No listens were found on or after this date.', 'warning');
@@ -556,7 +722,7 @@ async function fetchListenBrainz(integrate) {
             setTab('analyze');
             renderDashboard();
             showMessage(
-                `${(globalData.length - previousCount).toLocaleString()} plays added from ListenBrainz.${merged.duplicates ? ` ${merged.duplicates.toLocaleString()} duplicate plays ignored.` : ''}`,
+                `${(globalData.length - previousCount).toLocaleString()} plays added from ${service}.${merged.duplicates ? ` ${merged.duplicates.toLocaleString()} duplicate plays ignored.` : ''}`,
             );
         } else {
             const blob = new Blob([JSON.stringify(incoming, null, 2)], {
@@ -565,7 +731,8 @@ async function fetchListenBrainz(integrate) {
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
-            link.download = `Streaming_History_ListenBrainz_${username.replace(/[^a-zA-Z0-9_-]/g, '_')}_${startDate}.json`;
+            const profile = source === 'maloja' ? server.hostname : username;
+            link.download = `Streaming_History_${service.replace('.', '')}_${profile.replace(/[^a-zA-Z0-9_-]/g, '_')}_${startDate}.json`;
             document.body.append(link);
             link.click();
             link.remove();
@@ -578,7 +745,12 @@ async function fetchListenBrainz(integrate) {
         if (signal.aborted)
             showMessage('Download cancelled. Your existing history is still available.', 'warning');
         else if (error.name === 'TimeoutError')
-            showMessage('ListenBrainz took too long to respond. Please try again.', 'error');
+            showMessage(`${service} took too long to respond. Please try again.`, 'error');
+        else if (source === 'maloja' && error instanceof TypeError)
+            showMessage(
+                'Could not connect to Maloja. Check the server URL and its browser access (CORS) settings, or upload a scrobbles JSON export. Your existing history is still available.',
+                'error',
+            );
         else
             showMessage(
                 `Could not download listens: ${error.message}. Your existing history is still available.`,

@@ -82,7 +82,7 @@ test('period and metric filters update totals, rankings, discoveries and graphs 
     await page.locator('#ranking-metric').selectOption('ms');
     await expect(page.locator('#top-songs-table tr').first()).toContainText('Jóga');
     await expect(page.locator('#top-albums-list li').first()).toContainText('Homogenic');
-    await page.getByRole('tab', { name: 'ListenBrainz' }).click();
+    await page.getByRole('tab', { name: 'Scrobblers' }).click();
     await page.getByRole('tab', { name: 'Your history' }).click();
     await expect(page.locator('#period-select')).toHaveValue('2026');
     await page.locator('#reset-filters-btn').click();
@@ -216,4 +216,40 @@ test('expanded dashboard remains responsive and accessible after filters change'
         await noOverflow(page);
         await page.locator('#reset-filters-btn').click();
     }
+});
+
+test('long platform lists collapse by default and keep the habits card compact', async ({
+    page,
+}) => {
+    await upload(
+        page,
+        Array.from({ length: 22 }, (_, index) =>
+            play(
+                'A',
+                `Track ${index}`,
+                index < 3 ? '2025-12-01T12:00:00Z' : '2026-03-01T12:00:00Z',
+                60000,
+                { platform: `Device ${index}` },
+            ),
+        ),
+    );
+    const toggle = page.locator('#platforms-toggle');
+    await expect(page.locator('.platform-item:visible')).toHaveCount(5);
+    await expect(toggle).toHaveText('Show all 22 devices & platforms');
+    await expect(toggle).toHaveAttribute('aria-expanded', 'false');
+    const habits = page.locator('#listening-habits').locator('..');
+    const height = (await habits.boundingBox()).height;
+    await toggle.focus();
+    await toggle.press('Enter');
+    await expect(page.locator('.platform-item:visible')).toHaveCount(22);
+    await expect(toggle).toHaveAttribute('aria-expanded', 'true');
+    expect((await habits.boundingBox()).height).toBe(height);
+    await page.locator('#ranking-metric').selectOption('ms');
+    await expect(page.locator('.platform-item:visible')).toHaveCount(22);
+    await toggle.press('Space');
+    await expect(page.locator('.platform-item:visible')).toHaveCount(5);
+    await page.locator('#period-select').selectOption('2025');
+    await expect(toggle).toBeHidden();
+    await expect(page.locator('.platform-item:visible')).toHaveCount(3);
+    await noOverflow(page);
 });

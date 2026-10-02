@@ -769,6 +769,15 @@ tbody tr:hover {
 .field input {
     width: 100%;
 }
+.field select {
+    width: 100%;
+}
+.platforms-toggle {
+    margin-top: 20px;
+}
+.habits-grid {
+    align-items: start;
+}
 .form-help {
     font-size: 0.75rem;
     margin: 16px 0 24px;

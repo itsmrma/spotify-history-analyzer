@@ -6,7 +6,7 @@
         <meta name="theme-color" content="#141218" />
         <meta
             name="description"
-            content="A personal project for viewing Spotify and ListenBrainz listening stats."
+            content="A personal project for viewing Spotify listening stats and importing scrobbler history."
         />
         <title>Music History Analyzer</title>
         <link rel="icon" href="assets/icons/favicon.svg" type="image/svg+xml" />
@@ -47,8 +47,8 @@
                 <section class="hero" aria-labelledby="page-title">
                     <h1 id="page-title">Listening history</h1>
                     <p class="hero-description">
-                        A small personal project for checking Spotify and ListenBrainz listening
-                        stats.
+                        A small personal project for checking Spotify listening stats and importing
+                        history from ListenBrainz, Last.fm and Maloja.
                     </p>
                 </section>
                 <div class="workspace">
@@ -78,7 +78,7 @@
                                 <span class="material-icons-outlined icon" aria-hidden="true"
                                     >headphones</span
                                 >
-                                ListenBrainz
+                                Scrobblers
                             </button>
                         </div>
                     </div>
@@ -99,7 +99,8 @@
                             <h2>Drop your listening history here</h2>
                             <p class="muted upload-description">
                                 Add your Spotify ZIP archive or JSON files.<br />You can include
-                                ListenBrainz JSON files in the same upload.
+                                JSON exports from ListenBrainz, Last.fm or Maloja in the same
+                                upload.
                             </p>
                             <button id="choose-files-btn" class="button button-primary">
                                 <span class="material-icons-outlined icon" aria-hidden="true"
@@ -403,7 +404,7 @@
                                 </div>
                                 <div id="year-recaps" class="year-recaps"></div>
                             </section>
-                            <div class="insights-grid">
+                            <div class="insights-grid habits-grid">
                                 <section class="panel insight-panel">
                                     <div class="section-heading">
                                         <div>
@@ -423,6 +424,15 @@
                                         shown separately.
                                     </p>
                                     <ol id="platforms-list" class="platform-list"></ol>
+                                    <button
+                                        id="platforms-toggle"
+                                        class="button button-secondary platforms-toggle hidden"
+                                        type="button"
+                                        aria-expanded="false"
+                                        aria-controls="platforms-list"
+                                    >
+                                        Show all devices &amp; platforms
+                                    </button>
                                 </section>
                             </div>
                             <section id="top-songs-section" class="panel songs-panel">
@@ -526,14 +536,22 @@
                                     >headphones</span
                                 ></span
                             >
-                            <h2>Import from ListenBrainz</h2>
+                            <h2>Import from scrobblers</h2>
                             <p class="muted">
-                                Get recent listens from your public ListenBrainz profile. Add them
+                                Get missing listens from ListenBrainz, Last.fm or Maloja. Add them
                                 to your dashboard or save a Spotify-compatible JSON file.
                             </p>
                         </div>
                         <form id="lb-form">
                             <div class="form-grid">
+                                <div class="field">
+                                    <label for="scrobbler-source">Scrobbler</label>
+                                    <select id="scrobbler-source">
+                                        <option value="listenbrainz">ListenBrainz</option>
+                                        <option value="lastfm">Last.fm</option>
+                                        <option value="maloja">Maloja</option>
+                                    </select>
+                                </div>
                                 <div class="field">
                                     <label for="lb-username">ListenBrainz username</label
                                     ><input
@@ -545,15 +563,38 @@
                                         maxlength="100"
                                     />
                                 </div>
+                                <div id="scrobbler-key-field" class="field hidden">
+                                    <label for="scrobbler-api-key">Last.fm API key</label>
+                                    <input
+                                        id="scrobbler-api-key"
+                                        type="password"
+                                        autocomplete="off"
+                                        disabled
+                                    />
+                                </div>
+                                <div id="scrobbler-server-field" class="field hidden">
+                                    <label for="scrobbler-server">Maloja server URL</label>
+                                    <input
+                                        id="scrobbler-server"
+                                        type="url"
+                                        placeholder="https://maloja.example.com"
+                                        disabled
+                                    />
+                                </div>
                                 <div class="field">
                                     <label for="lb-date"
                                         >Start date <span class="muted">(UTC)</span></label
                                     ><input id="lb-date" type="date" required />
                                 </div>
                             </div>
+                            <p id="scrobbler-help" class="form-help muted">
+                                Your ListenBrainz profile must be public.
+                            </p>
                             <p class="form-help muted">
                                 Choose the first day missing from your Spotify export. When duration
                                 is unavailable, listening time is estimated at 3 minutes per play.
+                                Import only dates already tracked by your scrobbler. Overlapping
+                                plays with different timestamps cannot be matched automatically.
                             </p>
                             <div class="form-actions">
                                 <button

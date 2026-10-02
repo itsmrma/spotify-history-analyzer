@@ -19,6 +19,7 @@ function showMessage(text, kind = 'success') {
 }
 
 function setTab(name, focus = false) {
+    document.querySelector('.app-shell').classList.toggle('is-exploring', name === 'explore');
     for (const tab of tabNames) {
         const selected = name === tab;
         const button = $(`tab-${tab}-btn`);
@@ -28,6 +29,7 @@ function setTab(name, focus = false) {
         $(`view-${tab}`).classList.toggle('hidden', !selected);
         if (selected && focus) button.focus();
     }
+    window.MobileNavigation.updateSelected();
     if (name === 'analyze')
         requestAnimationFrame(() => {
             if (artistsChart) artistsChart.resize();
@@ -36,9 +38,16 @@ function setTab(name, focus = false) {
 }
 
 for (const name of tabNames) {
-    $(`tab-${name}-btn`).addEventListener('click', () => setTab(name));
+    $(`tab-${name}-btn`).addEventListener('click', () => {
+        setTab(name);
+        window.MobileNavigation.close();
+    });
     $(`tab-${name}-btn`).addEventListener('keydown', (event) => {
-        if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
+        const arrows =
+            $('tabs-nav').getAttribute('aria-orientation') === 'vertical'
+                ? ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight']
+                : ['ArrowLeft', 'ArrowRight'];
+        if (![...arrows, 'Home', 'End'].includes(event.key)) return;
         event.preventDefault();
         const next =
             event.key === 'Home'
@@ -47,7 +56,7 @@ for (const name of tabNames) {
                   ? tabNames.at(-1)
                   : tabNames[
                         (tabNames.indexOf(name) +
-                            (event.key === 'ArrowRight' ? 1 : -1) +
+                            (['ArrowRight', 'ArrowDown'].includes(event.key) ? 1 : -1) +
                             tabNames.length) %
                             tabNames.length
                     ];

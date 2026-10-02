@@ -13,11 +13,11 @@ A personal project for viewing Spotify listening stats and adding listens from L
 
 Only music plays lasting at least 30 seconds count. Podcasts, short plays and malformed records are ignored. Dates and streaks use UTC. Date input fields always use `gg/mm/yyyy` (day/month/year), with a calendar shortcut. Known ListenBrainz and Maloja durations are used when available; missing durations are estimated at three minutes and marked `duration_estimated` in downloaded files. Choose a start date after your Spotify export to avoid overlapping history: Spotify and scrobblers may timestamp the same listen differently, so overlapping plays with different timestamps are not automatically matched.
 
-Your history, filters and search results stay available when switching tabs. Invalid files and failed or cancelled downloads preserve the existing dashboard. Your data is held in memory for the current page session; refreshing clears it.
+Your history, filters and search results stay available when switching tabs. Mobile navigation uses an animated side drawer, opened with the menu button and closed after choosing a tab, tapping outside or pressing Escape. Animations respect reduced-motion preferences. All dropdowns use Material menus with keyboard and touch support. Invalid files and failed or cancelled downloads preserve the existing dashboard. Your data is held in memory for the current page session; refreshing clears it.
 
 ## Analysis features
 
-- **History search:** search artists, albums and songs with suggestions after 500 ms. Select a result to view every matching play across the complete loaded history, newest first, in pages of 100. Rows show day/month/year dates, UTC time, duration, platform and source, with expandable shuffle/offline, country and playback details when recorded. Dashboard filters do not limit this search.
+- **History search:** choose artists, albums or songs from a Material menu, with suggestions after 500 ms. Select a result to view every matching play across the complete loaded history, newest first, in pages of 100. Rows show day/month/year dates, UTC time, duration, platform and source, with expandable shuffle/offline, country and playback details when recorded. The search panel uses 80% of the desktop viewport; on narrow screens each play stacks its labeled fields vertically. Dashboard filters do not limit this search.
 - **Personal records:** unique songs, active days, average time per active day, busiest day, longest consecutive-day listening streak across any artist and repeat-play share.
 - **Listening rhythm:** monthly trends with empty months included, busiest month, favourite weekday and peak hour, using UTC timestamps.
 - **Interactive calendar:** year selector, daily intensity, per-day song details, leap-year support and arrow-key navigation. Empty cells describe the imported files; they do not prove that you did not listen on that date.
@@ -53,7 +53,7 @@ npm run test:e2e
 npm run format:check
 ```
 
-Regression tests cover validation, duplicate handling, large histories, streaks, date filters, timeline gaps, metadata coverage, ranking metrics and CSV safety. Browser tests exercise imports, search, calendar interaction, exports, filters, empty states and scrobbler integration, downloads and error recovery. Checks cover desktop and mobile layouts in Chromium and mobile WebKit, widths from 320 to 1440 pixels, containment of empty and filled inputs in their fields, keyboard navigation and automated accessibility audits. Scrobbler tests use mocked API responses so they are deterministic and do not download anyone's personal history. GitHub Actions runs the checks on pushes and pull requests.
+Regression tests cover validation, duplicate handling, large histories, streaks, date filters, timeline gaps, metadata coverage, ranking metrics and CSV safety. Browser tests exercise imports, search, calendar interaction, exports, filters, empty states and scrobbler integration, downloads and error recovery. Checks cover desktop and mobile layouts in Chromium and mobile WebKit, widths from 320 to 1920 pixels, containment of empty and filled inputs in their fields, keyboard navigation and automated accessibility audits. Scrobbler tests use mocked API responses so they are deterministic and do not download anyone's personal history. GitHub Actions runs the checks on pushes and pull requests.
 
 ## Project structure
 
@@ -67,6 +67,8 @@ assets/
   js/insights.js            Filters, charts, calendar and CSV export
   js/date-fields.js         Day/month/year input and native calendar shortcuts
   js/history-explorer.js    Suggestions and detailed full-history search
+  js/material-selects.js    Material dropdown menus
+  js/mobile-navigation.js  Animated mobile navigation drawer
   js/app.js                 Imports, navigation, rankings and scrobblers
   vendor/                   Pinned libraries and their licenses
 scripts/

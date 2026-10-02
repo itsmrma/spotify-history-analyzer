@@ -1,3 +1,4 @@
+const { openNavigation, switchTab, selectDropdown } = require('./navigation.cjs');
 const { test, expect } = require('@playwright/test');
 const fs = require('node:fs');
 const AxeBuilder = require('@axe-core/playwright').default;
@@ -66,7 +67,7 @@ test('period and metric filters update totals, rankings, discoveries and graphs 
 }) => {
     await upload(page);
     await expect(page.locator('#total-tracks-stat')).toHaveText('7');
-    await page.locator('#period-select').selectOption('2026');
+    await selectDropdown(page, 'period-select', '2026');
     await expect(page.locator('#total-tracks-stat')).toHaveText('4');
     await expect(page.locator('#total-artists-stat')).toHaveText('2');
     await expect(page.locator('#filter-message')).toContainText(
@@ -79,11 +80,11 @@ test('period and metric filters update totals, rankings, discoveries and graphs 
         .locator('#timelineChart')
         .evaluate((canvas) => Chart.getChart(canvas).data.labels.length);
     expect(months).toBe(12);
-    await page.locator('#ranking-metric').selectOption('ms');
+    await selectDropdown(page, 'ranking-metric', 'ms');
     await expect(page.locator('#top-songs-table tr').first()).toContainText('Jóga');
     await expect(page.locator('#top-albums-list li').first()).toContainText('Homogenic');
-    await page.getByRole('tab', { name: 'Scrobblers' }).click();
-    await page.getByRole('tab', { name: 'Your history' }).click();
+    await switchTab(page, 'Scrobblers');
+    await switchTab(page, 'Your history');
     await expect(page.locator('#period-select')).toHaveValue('2026');
     await page.locator('#reset-filters-btn').click();
     await expect(page.locator('#total-tracks-stat')).toHaveText('7');
@@ -93,7 +94,7 @@ test('period and metric filters update totals, rankings, discoveries and graphs 
 
 test('custom dates are inclusive and invalid or empty ranges are recoverable', async ({ page }) => {
     await upload(page);
-    await page.locator('#period-select').selectOption('custom');
+    await selectDropdown(page, 'period-select', 'custom');
     await page.locator('#filter-start').fill('01/01/2026');
     await page.locator('#filter-end').fill('01/01/2026');
     await page.getByRole('button', { name: 'Apply dates' }).click();
@@ -115,14 +116,14 @@ test('custom dates are inclusive and invalid or empty ranges are recoverable', a
 
 test('calendar covers leap years, opens daily songs and supports arrow keys', async ({ page }) => {
     await upload(page);
-    await page.locator('#calendar-year').selectOption('2024');
+    await selectDropdown(page, 'calendar-year', '2024');
     await expect(page.locator('.calendar-day')).toHaveCount(366);
     const leapDay = page.locator('.calendar-day[data-date="2024-02-29"]');
     await leapDay.click();
     await expect(page.locator('#calendar-day-detail')).toContainText('Everything');
     await leapDay.press('ArrowDown');
     await expect(page.locator('.calendar-day[data-date="2024-03-01"]')).toBeFocused();
-    await page.locator('#calendar-year').selectOption('2026');
+    await selectDropdown(page, 'calendar-year', '2026');
     await expect(page.locator('.calendar-day')).toHaveCount(365);
     await page.locator('.calendar-day[data-date="2026-01-01"]').click();
     await expect(page.locator('#calendar-day-detail')).toContainText('2 plays');
@@ -163,8 +164,8 @@ test('CSV export includes every song in the filtered ranking and escapes formula
         ),
     );
     await upload(page, data);
-    await page.locator('#songs-limit-select').selectOption('25');
-    await page.locator('#period-select').selectOption('2026');
+    await selectDropdown(page, 'songs-limit-select', '25');
+    await selectDropdown(page, 'period-select', '2026');
     const downloading = page.waitForEvent('download');
     await page.locator('#export-rankings-btn').click();
     const file = await downloading;
@@ -210,9 +211,9 @@ test('expanded dashboard remains responsive and accessible after filters change'
     });
     for (const width of [320, 375, 768, 1440]) {
         await page.setViewportSize({ width, height: 900 });
-        await page.locator('#period-select').selectOption('2026');
+        await selectDropdown(page, 'period-select', '2026');
         await noOverflow(page);
-        await page.locator('#period-select').selectOption('custom');
+        await selectDropdown(page, 'period-select', 'custom');
         await noOverflow(page);
         await page.locator('#reset-filters-btn').click();
     }
@@ -244,11 +245,11 @@ test('long platform lists collapse by default and keep the habits card compact',
     await expect(page.locator('.platform-item:visible')).toHaveCount(22);
     await expect(toggle).toHaveAttribute('aria-expanded', 'true');
     expect((await habits.boundingBox()).height).toBe(height);
-    await page.locator('#ranking-metric').selectOption('ms');
+    await selectDropdown(page, 'ranking-metric', 'ms');
     await expect(page.locator('.platform-item:visible')).toHaveCount(22);
     await toggle.press('Space');
     await expect(page.locator('.platform-item:visible')).toHaveCount(5);
-    await page.locator('#period-select').selectOption('2025');
+    await selectDropdown(page, 'period-select', '2025');
     await expect(toggle).toBeHidden();
     await expect(page.locator('.platform-item:visible')).toHaveCount(3);
     await noOverflow(page);

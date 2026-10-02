@@ -1,3 +1,4 @@
+const { openNavigation, switchTab, selectDropdown } = require('./navigation.cjs');
 const { test, expect } = require('@playwright/test');
 const fs = require('node:fs');
 const AxeBuilder = require('@axe-core/playwright').default;
@@ -15,8 +16,8 @@ const mlj = (day) => ({
 });
 
 async function setup(page, source) {
-    await page.getByRole('tab', { name: 'Scrobblers' }).click();
-    await page.locator('#scrobbler-source').selectOption(source);
+    await switchTab(page, 'Scrobblers');
+    await selectDropdown(page, 'scrobbler-source', source);
     await page.locator('#lb-date').fill('04/03/2026');
     if (source === 'lastfm') {
         await page.locator('#lb-username').fill('test');
@@ -67,7 +68,7 @@ for (const source of ['lastfm', 'maloja']) {
             });
         });
         for (let i = 0; i < 2; i++) {
-            if (i) await page.getByRole('tab', { name: 'Scrobblers' }).click();
+            if (i) await switchTab(page, 'Scrobblers');
             await page.locator('#lb-integrate-btn').click();
             await expect(page.locator('#total-tracks-stat')).toHaveText('2');
             await expect(page.locator('#app-message')).toContainText(
@@ -91,14 +92,14 @@ for (const source of ['lastfm', 'maloja']) {
         expect(data[0].source).toBe(source);
         expect(data[0].duration_estimated).toBe(source === 'lastfm');
         await expect(page.locator('#dashboard')).toBeHidden();
-        await page.getByRole('tab', { name: 'Your history' }).click();
+        await switchTab(page, 'Your history');
         await page.locator('#file-upload').setInputFiles({
             name: 'scrobbles.json',
             mimeType: 'application/json',
             buffer: Buffer.from(JSON.stringify(data)),
         });
         await expect(page.locator('#total-tracks-stat')).toHaveText('1');
-        await page.getByRole('tab', { name: 'Scrobblers' }).click();
+        await switchTab(page, 'Scrobblers');
         await page.unroute(endpoint);
         await page.route(endpoint, (route) =>
             route.fulfill({
@@ -113,7 +114,7 @@ for (const source of ['lastfm', 'maloja']) {
             source === 'lastfm' ? 'Invalid API key' : 'Unavailable',
         );
         await expect(page.locator('#lb-integrate-btn')).toBeEnabled();
-        await page.getByRole('tab', { name: 'Your history' }).click();
+        await switchTab(page, 'Your history');
         await expect(page.locator('#total-tracks-stat')).toHaveText('1');
     });
 

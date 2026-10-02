@@ -1,3 +1,4 @@
+const { openNavigation, switchTab, selectDropdown } = require('./navigation.cjs');
 const { test, expect } = require('@playwright/test');
 const AxeBuilder = require('@axe-core/playwright').default;
 const play = (artist, track, ts, album, extra = {}) => ({
@@ -30,8 +31,9 @@ async function upload(page, data = fixture) {
     await expect(page.locator('#loading-section')).toBeHidden();
 }
 async function search(page, type, query) {
-    await page.getByRole('tab', { name: 'Search history' }).click();
-    await page.locator('#history-search-type').selectOption(type);
+    await switchTab(page, 'Search history');
+    await page.locator('#history-search-type').click();
+    await page.locator(`#history-type-${type}`).click();
     await page.locator('#history-search-input').fill(query);
     await page.locator('#history-search-btn').click();
 }
@@ -40,12 +42,58 @@ test.beforeEach(async ({ page }) => {
     await page.emulateMedia({ reducedMotion: 'reduce' });
 });
 
+test('Material type menu supports pointer, keyboard selection and dismissal', async ({ page }) => {
+    await upload(page);
+    await switchTab(page, 'Search history');
+    const trigger = page.locator('#history-search-type');
+    const menu = page.locator('#history-types');
+    await trigger.click();
+    await expect(menu).toBeVisible();
+    await expect(trigger).toHaveAttribute('aria-expanded', 'true');
+    await expect(menu.getByRole('option', { name: 'Artist', exact: true })).toHaveAttribute(
+        'aria-selected',
+        'true',
+    );
+    const audit = await new AxeBuilder({ page })
+        .withTags(['wcag2a', 'wcag2aa', 'wcag21aa'])
+        .analyze();
+    expect(audit.violations).toEqual([]);
+    await trigger.press('End');
+    await trigger.press('Enter');
+    await expect(trigger).toContainText('Song');
+    await expect(menu).toBeHidden();
+    await trigger.press('ArrowDown');
+    await trigger.press('Home');
+    await trigger.press('ArrowDown');
+    await trigger.press(' ');
+    await expect(trigger).toContainText('Album');
+    await trigger.click();
+    await trigger.press('Home');
+    await trigger.press('Escape');
+    await expect(trigger).toContainText('Album');
+    await expect(menu).toBeHidden();
+    await trigger.click();
+    await page.getByRole('heading', { name: 'Search your listening history' }).click();
+    await expect(menu).toBeHidden();
+    await trigger.focus();
+    await trigger.press('Enter');
+    await trigger.press('Tab');
+    await expect(menu).toBeHidden();
+    await expect(page.locator('#history-search-input')).toBeFocused();
+    await trigger.click();
+    await menu.getByRole('option', { name: 'Artist', exact: true }).click();
+    await expect(trigger).toContainText('Artist');
+    await page.locator('#history-search-input').fill('Aurora');
+    await page.locator('#history-search-btn').click();
+    await expect(page.locator('#history-plays tr')).toHaveCount(4);
+});
+
 test('suggestions wait 500ms after the last edit and keyboard selection searches every loaded date', async ({
     page,
 }) => {
     await upload(page);
-    await page.locator('#period-select').selectOption('2026');
-    await page.getByRole('tab', { name: 'Search history' }).click();
+    await selectDropdown(page, 'period-select', '2026');
+    await switchTab(page, 'Search history');
     await page.clock.install({ time: new Date('2026-10-03T12:00:00Z') });
     await page.clock.pauseAt(new Date('2026-10-03T12:00:01Z'));
     await page.locator('#history-search-input').fill('Au');
@@ -114,9 +162,9 @@ test('pagination reaches the full history and added files refresh the selected r
     await expect(page.locator('#history-next')).toBeDisabled();
     await page.locator('#history-prev').click();
     await expect(page.locator('#history-plays tr')).toHaveCount(100);
-    await page.getByRole('tab', { name: 'Your history' }).click();
+    await switchTab(page, 'Your history');
     await upload(page, [play('Artist', 'Newest', '2026-05-01T12:00:00Z', 'Album')]);
-    await page.getByRole('tab', { name: 'Search history' }).click();
+    await switchTab(page, 'Search history');
     await expect(page.locator('#history-result-summary')).toContainText('206 plays');
     await expect(page.locator('#history-plays tr').first()).toContainText('Newest');
 });
@@ -125,7 +173,7 @@ test('day/month/year inputs filter April 3 and synchronize calendar selections',
     page,
 }) => {
     await upload(page);
-    await page.locator('#period-select').selectOption('custom');
+    await selectDropdown(page, 'period-select', 'custom');
     await expect(page.locator('#filter-start')).toHaveValue('31/12/2025');
     await page.locator('#filter-start').fill('03042026');
     await expect(page.locator('#filter-start')).toHaveValue('03/04/2026');
@@ -144,7 +192,7 @@ test('day/month/year inputs filter April 3 and synchronize calendar selections',
     expect(await page.locator('#filter-start').evaluate((input) => input.validity.valid)).toBe(
         true,
     );
-    await page.getByRole('tab', { name: 'Scrobblers' }).click();
+    await switchTab(page, 'Scrobblers');
     await page.locator('#lb-date').locator('..').locator('.date-native').fill('2026-04-03');
     await expect(page.locator('#lb-date')).toHaveValue('03/04/2026');
     await page.locator('#lb-username').fill('test');
@@ -158,9 +206,9 @@ test('day/month/year inputs filter April 3 and synchronize calendar selections',
 test('search empty states, results and long names remain accessible on narrow screens', async ({
     page,
 }) => {
-    await page.getByRole('tab', { name: 'Search history' }).click();
+    await switchTab(page, 'Search history');
     await expect(page.locator('#history-search-message')).toContainText('Upload');
-    await page.getByRole('tab', { name: 'Your history' }).click();
+    await switchTab(page, 'Your history');
     await upload(page, [
         play(
             '<script>long_artist_name_with_no_spaces_'.repeat(3),
@@ -170,11 +218,32 @@ test('search empty states, results and long names remain accessible on narrow sc
         ),
     ]);
     await search(page, 'album', 'Album');
-    for (const width of [320, 375, 768, 1440]) {
+    for (const width of [320, 375, 600, 768, 900, 901, 1024, 1199, 1200, 1440, 1920]) {
         await page.setViewportSize({ width, height: 1000 });
         expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
             true,
         );
+        expect(
+            await page
+                .locator('.history-table-wrapper')
+                .evaluate((wrapper) => wrapper.scrollWidth <= wrapper.clientWidth + 1),
+        ).toBe(true);
+        await page.locator('#history-search-type').click();
+        const menu = await page.locator('#history-types').boundingBox();
+        expect(menu.x).toBeGreaterThanOrEqual(0);
+        expect(menu.x + menu.width).toBeLessThanOrEqual(width);
+        await page.locator('#history-type-album').click();
+        if (width >= 1200) {
+            const panel = await page.locator('#view-explore').boundingBox();
+            expect(panel.width / width).toBeCloseTo(0.8, 2);
+        }
+        if (width <= 900) {
+            const cells = page.locator('#history-plays tr').first().locator('td');
+            await expect(cells).toHaveCount(9);
+            expect(
+                await cells.last().evaluate((cell) => getComputedStyle(cell, '::before').content),
+            ).toBe('"Details"');
+        }
     }
     const audit = await new AxeBuilder({ page })
         .withTags(['wcag2a', 'wcag2aa', 'wcag21aa'])

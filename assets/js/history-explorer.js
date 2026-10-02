@@ -13,6 +13,20 @@ window.HistoryExplorer = (() => {
     let page = 0;
     let timer = null;
     let hasData = false;
+    let searchType = 'artist';
+    let typeActive = 0;
+    const typeOptions = Array.from($('history-types').children);
+    const columnLabels = [
+        'Date (UTC)',
+        'Time (UTC)',
+        'Song',
+        'Artist',
+        'Album',
+        'Played',
+        'Platform',
+        'Source',
+        'Details',
+    ];
     const searchText = (value) =>
         value
             .normalize('NFKD')
@@ -144,11 +158,16 @@ window.HistoryExplorer = (() => {
                 `${duration(record.ms)}${record.estimated ? ' (estimated)' : ''}`,
                 record.platform || 'Not recorded',
                 source,
-            ])
-                row.append(node('td', value));
+            ]) {
+                const cell = node('td');
+                cell.append(node('span', value));
+                row.append(cell);
+            }
             const cell = node('td');
             cell.append(extraDetails(record.raw, record));
             row.append(cell);
+            for (const [index, cell] of Array.from(row.children).entries())
+                cell.dataset.label = columnLabels[index];
             fragment.append(row);
         }
         $('history-plays').replaceChildren(fragment);
@@ -215,12 +234,12 @@ window.HistoryExplorer = (() => {
             if (record.album) add('album', record.album, record.artist, record);
         }
         updateType();
-        const previous = previousKey && indexes[$('history-search-type').value].get(previousKey);
+        const previous = previousKey && indexes[searchType].get(previousKey);
         if (previous) choose(previous);
     }
 
     function updateType() {
-        suggestions = [...indexes[$('history-search-type').value].values()].sort(
+        suggestions = [...indexes[searchType].values()].sort(
             (a, b) =>
                 b.records.length - a.records.length ||
                 a.label.localeCompare(b.label) ||
@@ -231,7 +250,63 @@ window.HistoryExplorer = (() => {
 
     $('history-search-input').addEventListener('input', queueSearch);
     $('history-search-input').addEventListener('blur', closeSuggestions);
-    $('history-search-type').addEventListener('change', updateType);
+    function closeTypes() {
+        $('history-types').classList.add('hidden');
+        $('history-search-type').setAttribute('aria-expanded', 'false');
+        $('history-search-type').removeAttribute('aria-activedescendant');
+    }
+    function highlightType(index) {
+        typeActive = (index + typeOptions.length) % typeOptions.length;
+        for (const [position, option] of typeOptions.entries())
+            option.classList.toggle('is-active', position === typeActive);
+        $('history-search-type').setAttribute('aria-activedescendant', typeOptions[typeActive].id);
+    }
+    function openTypes() {
+        closeSuggestions();
+        $('history-types').classList.remove('hidden');
+        $('history-search-type').setAttribute('aria-expanded', 'true');
+        highlightType(typeOptions.findIndex((option) => option.dataset.value === searchType));
+    }
+    function chooseType(option) {
+        const changed = searchType !== option.dataset.value;
+        searchType = option.dataset.value;
+        $('history-type-value').textContent = option.textContent;
+        for (const item of typeOptions) item.setAttribute('aria-selected', String(item === option));
+        closeTypes();
+        if (changed) updateType();
+    }
+    for (const option of typeOptions) {
+        option.addEventListener('mousedown', (event) => event.preventDefault());
+        option.addEventListener('click', () => chooseType(option));
+    }
+    $('history-search-type').addEventListener('click', () => {
+        if ($('history-search-type').getAttribute('aria-expanded') === 'true') closeTypes();
+        else openTypes();
+    });
+    $('history-search-type').addEventListener('blur', closeTypes);
+    document.addEventListener('pointerdown', (event) => {
+        if (!event.target.closest('.history-type-field')) closeTypes();
+    });
+    $('history-search-type').addEventListener('keydown', (event) => {
+        const expanded = $('history-search-type').getAttribute('aria-expanded') === 'true';
+        if (['ArrowDown', 'ArrowUp', 'Home', 'End', 'Enter', ' '].includes(event.key)) {
+            event.preventDefault();
+            if (!expanded) openTypes();
+            else if (event.key === 'Enter' || event.key === ' ')
+                chooseType(typeOptions[typeActive]);
+            else
+                highlightType(
+                    event.key === 'Home'
+                        ? 0
+                        : event.key === 'End'
+                          ? typeOptions.length - 1
+                          : typeActive + (event.key === 'ArrowDown' ? 1 : -1),
+                );
+        } else if (event.key === 'Escape') {
+            event.preventDefault();
+            closeTypes();
+        }
+    });
     $('history-search-input').addEventListener('keydown', (event) => {
         if (event.key === 'Escape') {
             clearTimeout(timer);

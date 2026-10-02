@@ -1,3 +1,4 @@
+const { openNavigation, switchTab, selectDropdown } = require('./navigation.cjs');
 const { test, expect } = require('@playwright/test');
 const JSZip = require('jszip');
 const AxeBuilder = require('@axe-core/playwright').default;
@@ -29,7 +30,7 @@ async function noOverflow(page) {
     ).toBe(true);
     // A control can overflow its own card without widening the whole page.
     const overflowingFields = await page
-        .locator('input:visible, select:visible')
+        .locator('input:visible, .history-type-trigger:visible')
         .evaluateAll((controls) =>
             controls
                 .filter((control) => {
@@ -63,9 +64,9 @@ test('import, switch tabs, search, add files and reimport without losing results
     await expect(page.locator('#total-tracks-stat')).toHaveText('4');
     await expect(page.locator('#total-time-stat')).toHaveText('4m');
     await expect(page.locator('#global-streaks-list')).toContainText('3 days');
-    await page.getByRole('tab', { name: 'Scrobblers' }).click();
+    await switchTab(page, 'Scrobblers');
     await expect(page.locator('#dashboard')).toBeHidden();
-    await page.getByRole('tab', { name: 'Your history' }).click();
+    await switchTab(page, 'Your history');
     await expect(page.locator('#dashboard')).toBeVisible();
     await page.locator('#artist-search-input').fill('aur');
     await page.locator('#artist-search-input').press('Enter');
@@ -154,7 +155,7 @@ test('ListenBrainz paginates, integrates and skips repeated downloads', async ({
         await route.fulfill({ json: { payload: { listens } } });
     });
     for (let i = 0; i < 2; i++) {
-        await page.getByRole('tab', { name: 'Scrobblers' }).click();
+        await switchTab(page, 'Scrobblers');
         await page.locator('#lb-username').fill('test user');
         await page.locator('#lb-date').fill('04/03/2026');
         await page.locator('#lb-integrate-btn').click();
@@ -184,7 +185,7 @@ test('ListenBrainz JSON download marks estimates and does not change history', a
             },
         }),
     );
-    await page.getByRole('tab', { name: 'Scrobblers' }).click();
+    await switchTab(page, 'Scrobblers');
     await page.locator('#lb-username').fill('test');
     await page.locator('#lb-date').fill('04/03/2026');
     const downloadPromise = page.waitForEvent('download');
@@ -195,7 +196,7 @@ test('ListenBrainz JSON download marks estimates and does not change history', a
     );
     const data = JSON.parse(require('node:fs').readFileSync(await download.path(), 'utf8'));
     expect(data[0].duration_estimated).toBe(true);
-    await page.getByRole('tab', { name: 'Your history' }).click();
+    await switchTab(page, 'Your history');
     await expect(page.locator('#total-tracks-stat')).toHaveText('4');
 });
 
@@ -203,7 +204,7 @@ test('ListenBrainz errors, malformed responses and stalled pages are recoverable
     page,
 }) => {
     await upload(page);
-    await page.getByRole('tab', { name: 'Scrobblers' }).click();
+    await switchTab(page, 'Scrobblers');
     await page.locator('#lb-username').fill('test');
     await page.locator('#lb-date').fill('01/03/2026');
     await page.route('https://api.listenbrainz.org/**', (route) =>
@@ -229,12 +230,12 @@ test('ListenBrainz errors, malformed responses and stalled pages are recoverable
     );
     await page.locator('#lb-integrate-btn').click();
     await expect(page.locator('#app-message')).toContainText('pagination did not advance');
-    await page.getByRole('tab', { name: 'Your history' }).click();
+    await switchTab(page, 'Your history');
     await expect(page.locator('#total-tracks-stat')).toHaveText('4');
 });
 
 test('ListenBrainz download can be cancelled while waiting between pages', async ({ page }) => {
-    await page.getByRole('tab', { name: 'Scrobblers' }).click();
+    await switchTab(page, 'Scrobblers');
     await page.locator('#lb-username').fill('test');
     await page.locator('#lb-date').fill('01/03/2026');
     await page.route('https://api.listenbrainz.org/**', (route) =>
@@ -274,14 +275,14 @@ test('no external requests and no page overflow from 320px to desktop', async ({
             await page.evaluate(() => document.fonts.check('24px "Material Icons Outlined"')),
         ).toBe(true);
         await noOverflow(page);
-        await page.getByRole('tab', { name: 'Scrobblers' }).click();
+        await switchTab(page, 'Scrobblers');
         await noOverflow(page);
         await page.locator('#lb-username').fill('a-long-listenbrainz-username');
         await page.locator('#lb-date').fill('02/10/2026');
         await noOverflow(page);
-        await page.getByRole('tab', { name: 'Your history' }).click();
+        await switchTab(page, 'Your history');
         await upload(page);
-        await page.locator('#period-select').selectOption('custom');
+        await selectDropdown(page, 'period-select', 'custom');
         await page.locator('#filter-start').fill('01/03/2026');
         await page.locator('#filter-end').fill('31/03/2026');
         await noOverflow(page);
@@ -290,12 +291,14 @@ test('no external requests and no page overflow from 320px to desktop', async ({
 });
 
 test('tabs support keyboard navigation and empty streaks have an explanation', async ({ page }) => {
+    await openNavigation(page);
     await page.locator('#tab-analyze-btn').focus();
     await page.keyboard.press('ArrowRight');
     await expect(page.locator('#tab-lb-btn')).toBeFocused();
     await expect(page.locator('#tab-lb-btn')).toHaveAttribute('aria-selected', 'true');
     await page.keyboard.press('Home');
     await expect(page.locator('#tab-analyze-btn')).toBeFocused();
+    if (await page.locator('#mobile-nav-toggle').isVisible()) await page.keyboard.press('Escape');
     await upload(page, [play('A', 'T', 1)]);
     await expect(page.locator('#global-streaks-list')).toContainText('No consecutive-day streaks');
     await page.screenshot({
@@ -318,20 +321,20 @@ test('main screens pass automated WCAG accessibility checks', async ({ page }) =
         expect(results.violations).toEqual([]);
     };
     await audit();
-    await page.getByRole('tab', { name: 'Scrobblers' }).click();
+    await switchTab(page, 'Scrobblers');
     await audit();
     await page.screenshot({
         path: `test-results/${test.info().project.name}-listenbrainz.png`,
         fullPage: true,
     });
-    await page.getByRole('tab', { name: 'Your history' }).click();
+    await switchTab(page, 'Your history');
     await upload(page);
     await audit();
 });
 
 test('rate limits retry and empty history leaves the dashboard available', async ({ page }) => {
     await upload(page);
-    await page.getByRole('tab', { name: 'Scrobblers' }).click();
+    await switchTab(page, 'Scrobblers');
     await page.locator('#lb-username').fill('test');
     await page.locator('#lb-date').fill('01/03/2026');
     let requests = 0;
@@ -345,7 +348,7 @@ test('rate limits retry and empty history leaves the dashboard available', async
     await expect(page.locator('#app-message')).toContainText('No listens');
     expect(requests).toBe(2);
     await expect(page.locator('#lb-integrate-btn')).toBeEnabled();
-    await page.getByRole('tab', { name: 'Your history' }).click();
+    await switchTab(page, 'Your history');
     await expect(page.locator('#total-tracks-stat')).toHaveText('4');
 });
 
@@ -359,8 +362,8 @@ test('drag and drop imports history and rankings respect the selected limit', as
     await page.locator('#upload-section').dispatchEvent('drop', { dataTransfer: transfer });
     await expect(page.locator('#total-tracks-stat')).toHaveText('70');
     await expect(page.locator('#top-songs-table tr')).toHaveCount(70);
-    await page.locator('#songs-limit-select').selectOption('25');
+    await selectDropdown(page, 'songs-limit-select', '25');
     await expect(page.locator('#top-songs-table tr')).toHaveCount(25);
-    await page.locator('#songs-limit-select').selectOption('50');
+    await selectDropdown(page, 'songs-limit-select', '50');
     await expect(page.locator('#top-songs-table tr')).toHaveCount(50);
 });

@@ -24,14 +24,16 @@
             type="font/otf"
             crossorigin
         />
-        <link rel="stylesheet" href="assets/css/style.css?v=8" />
+        <link rel="stylesheet" href="assets/css/style.css?v=9" />
         <script defer src="assets/vendor/jszip.min.js"></script>
         <script defer src="assets/vendor/chart.umd.min.js"></script>
         <script defer src="assets/js/analytics.js?v=6"></script>
         <script defer src="assets/js/date-fields.js?v=1"></script>
+        <script defer src="assets/js/material-selects.js?v=1"></script>
         <script defer src="assets/js/insights.js?v=7"></script>
-        <script defer src="assets/js/history-explorer.js?v=1"></script>
-        <script defer src="assets/js/app.js?v=8"></script>
+        <script defer src="assets/js/history-explorer.js?v=2"></script>
+        <script defer src="assets/js/mobile-navigation.js?v=1"></script>
+        <script defer src="assets/js/app.js?v=9"></script>
     </head>
     <body>
         <a class="skip-link" href="#main">Skip to content</a>
@@ -44,6 +46,16 @@
                         ></span
                     ><span>Music History<span class="brand-subtitle">ANALYZER</span></span></a
                 >
+                <button
+                    id="mobile-nav-toggle"
+                    type="button"
+                    class="mobile-nav-toggle"
+                    aria-label="Open navigation"
+                    aria-controls="mobile-nav-drawer"
+                    aria-expanded="false"
+                >
+                    <span class="material-icons-outlined icon" aria-hidden="true">menu</span>
+                </button>
             </header>
             <main id="main">
                 <section class="hero" aria-labelledby="page-title">
@@ -54,7 +66,8 @@
                     </p>
                 </section>
                 <div class="workspace">
-                    <div class="workspace-bar">
+                    <div id="desktop-nav-host" class="workspace-bar">
+                        <p id="mobile-current-tab" class="mobile-current-tab">Your history</p>
                         <div id="tabs-nav" class="tabs" role="tablist" aria-label="Data source">
                             <button
                                 id="tab-analyze-btn"
@@ -575,13 +588,56 @@
                             filters. Dates and times use UTC.
                         </p>
                         <form id="history-search-form" class="history-search-form" role="search">
-                            <div class="field">
-                                <label for="history-search-type">Search for</label>
-                                <select id="history-search-type">
-                                    <option value="artist">Artist</option>
-                                    <option value="album">Album</option>
-                                    <option value="song">Song</option>
-                                </select>
+                            <div class="field history-type-field">
+                                <label id="history-type-label" for="history-search-type"
+                                    >Search for</label
+                                >
+                                <button
+                                    id="history-search-type"
+                                    type="button"
+                                    class="history-type-trigger"
+                                    role="combobox"
+                                    aria-haspopup="listbox"
+                                    aria-expanded="false"
+                                    aria-controls="history-types"
+                                    aria-labelledby="history-type-label history-type-value"
+                                >
+                                    <span id="history-type-value">Artist</span>
+                                    <span class="material-icons-outlined icon" aria-hidden="true"
+                                        >arrow_drop_down</span
+                                    >
+                                </button>
+                                <ul
+                                    id="history-types"
+                                    class="history-type-menu hidden"
+                                    role="listbox"
+                                    aria-label="Search for"
+                                >
+                                    <li
+                                        id="history-type-artist"
+                                        role="option"
+                                        aria-selected="true"
+                                        data-value="artist"
+                                    >
+                                        Artist
+                                    </li>
+                                    <li
+                                        id="history-type-album"
+                                        role="option"
+                                        aria-selected="false"
+                                        data-value="album"
+                                    >
+                                        Album
+                                    </li>
+                                    <li
+                                        id="history-type-song"
+                                        role="option"
+                                        aria-selected="false"
+                                        data-value="song"
+                                    >
+                                        Song
+                                    </li>
+                                </ul>
                             </div>
                             <div class="field history-query-field">
                                 <label for="history-search-input">Name</label>
@@ -637,6 +693,17 @@
                                 tabindex="0"
                             >
                                 <table class="history-table">
+                                    <colgroup>
+                                        <col class="history-col-date" />
+                                        <col class="history-col-time" />
+                                        <col />
+                                        <col />
+                                        <col />
+                                        <col class="history-col-played" />
+                                        <col class="history-col-platform" />
+                                        <col class="history-col-source" />
+                                        <col class="history-col-details" />
+                                    </colgroup>
                                     <thead>
                                         <tr>
                                             <th scope="col">Date (UTC)</th>
@@ -808,6 +875,29 @@
                 >
             </footer>
         </div>
+        <div id="mobile-nav-backdrop" class="mobile-nav-backdrop" aria-hidden="true"></div>
+        <aside
+            id="mobile-nav-drawer"
+            class="mobile-nav-drawer"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="mobile-nav-title"
+            aria-hidden="true"
+            inert
+        >
+            <div class="mobile-nav-heading">
+                <h2 id="mobile-nav-title">Music History</h2>
+                <button
+                    id="mobile-nav-close"
+                    type="button"
+                    class="mobile-nav-toggle"
+                    aria-label="Close navigation"
+                >
+                    <span class="material-icons-outlined icon" aria-hidden="true">close</span>
+                </button>
+            </div>
+            <div id="mobile-nav-host"></div>
+        </aside>
         <noscript
             ><p class="message">
                 Enable JavaScript to analyze your listening history locally.

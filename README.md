@@ -28,7 +28,7 @@ Date filters exclude records without valid timestamps. Without a date filter, th
 
 ## Privacy and dependencies
 
-Uploaded files are processed locally and are never sent to a server. Fonts and icons are local, and the app makes no third-party requests until you explicitly download ListenBrainz history. That action sends your username and requested timestamps to the public ListenBrainz API.
+Uploaded files are processed locally and are never sent to a server. The interface follows Material Design 3 with locally served Inter and Google Material Icons Outlined (licenses in `assets/fonts/`). Fonts and icons are local, and the app makes no third-party requests until you explicitly download ListenBrainz history. That action sends your username and requested timestamps to the public ListenBrainz API.
 
 The app is a static site with no build step. JSZip 3.10.1 and Chart.js 4.5.1 are checked into `assets/vendor/` with their licenses, so the site does not rely on a runtime CDN. To refresh these assets after changing the locked dependencies, run `npm run vendor` and commit the updated files.
 
@@ -47,12 +47,12 @@ Open `http://127.0.0.1:4173`. The static files can also be hosted directly on Gi
 
 ```sh
 npm test
-npx playwright install chromium
+npx playwright install chromium webkit
 npm run test:e2e
 npm run format:check
 ```
 
-Regression tests cover validation, duplicate handling, large histories, streaks, date filters, timeline gaps, metadata coverage, ranking metrics and CSV safety. Browser tests exercise imports, search, calendar interaction, exports, filters, empty states and ListenBrainz integration, downloads and error recovery. Checks cover desktop and mobile layouts, widths from 320 to 1440 pixels, keyboard navigation and automated accessibility audits. ListenBrainz tests use mocked API responses so they are deterministic and do not download anyone's personal history. GitHub Actions runs the checks on pushes and pull requests.
+Regression tests cover validation, duplicate handling, large histories, streaks, date filters, timeline gaps, metadata coverage, ranking metrics and CSV safety. Browser tests exercise imports, search, calendar interaction, exports, filters, empty states and ListenBrainz integration, downloads and error recovery. Checks cover desktop and mobile layouts in Chromium and mobile WebKit, widths from 320 to 1440 pixels, containment of empty and filled inputs in their fields, keyboard navigation and automated accessibility audits. ListenBrainz tests use mocked API responses so they are deterministic and do not download anyone's personal history. GitHub Actions runs the checks on pushes and pull requests.
 
 ## Project structure
 
@@ -61,6 +61,7 @@ index.html                  Static entry point for GitHub Pages
 assets/
   css/style.css             Shared visual style and responsive layouts
   icons/favicon.svg         Local app icon
+  fonts/                    Inter, Material Icons and their licenses
   js/analytics.js           DOM-free validation and analysis
   js/insights.js            Filters, charts, calendar and CSV export
   js/app.js                 Imports, navigation, rankings and ListenBrainz

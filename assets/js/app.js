@@ -3,6 +3,7 @@
 const A = window.HistoryAnalytics;
 const I = window.HistoryInsights;
 const $ = (id) => document.getElementById(id);
+if (window.Chart) Chart.defaults.font.family = 'Inter, system-ui, sans-serif';
 let globalData = [];
 let stats = null;
 let artistsChart = null;
@@ -311,7 +312,7 @@ function renderArtistsChart() {
                     data: top.map((artist) =>
                         I.getFilters().metric === 'ms' ? artist.ms / 3600000 : artist.count,
                     ),
-                    backgroundColor: top.map((_, index) => (index === 0 ? '#a8e5cb' : '#b9a7ee')),
+                    backgroundColor: top.map((_, index) => (index === 0 ? '#b4d9c2' : '#d0bcff')),
                     borderRadius: 5,
                     maxBarThickness: 18,
                 },
@@ -329,15 +330,15 @@ function renderArtistsChart() {
                 : { duration: 400 },
             plugins: {
                 legend: { display: false },
-                tooltip: { backgroundColor: '#303447', padding: 12 },
+                tooltip: { backgroundColor: '#49454f', padding: 12 },
             },
             scales: {
                 x: {
                     beginAtZero: true,
-                    grid: { color: '#303447' },
+                    grid: { color: '#49454f' },
                     border: { display: false },
                     ticks: {
-                        color: '#a7abc0',
+                        color: '#cac4d0',
                         precision: I.getFilters().metric === 'ms' ? 1 : 0,
                         font: { size: 10 },
                     },
@@ -346,7 +347,7 @@ function renderArtistsChart() {
                     grid: { display: false },
                     border: { display: false },
                     ticks: {
-                        color: '#d7d6e2',
+                        color: '#e6e0e9',
                         font: { size: 11 },
                         callback: function (value) {
                             const label = this.getLabelForValue(value);

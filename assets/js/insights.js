@@ -233,9 +233,9 @@ window.HistoryInsights = (() => {
                     {
                         label: units === 'hours' ? 'Hours' : 'Plays',
                         data: values,
-                        borderColor: '#c7b8ff',
+                        borderColor: '#d0bcff',
                         backgroundColor:
-                            options.type === 'line' ? 'rgba(199,184,255,.1)' : '#a8e5cb',
+                            options.type === 'line' ? 'rgba(208,188,255,.1)' : '#b4d9c2',
                         fill: options.type === 'line',
                         tension: 0.25,
                         pointRadius: labels.length > 36 ? 0 : 3,
@@ -252,14 +252,14 @@ window.HistoryInsights = (() => {
                     : { duration: 250 },
                 plugins: {
                     legend: { display: false },
-                    tooltip: { backgroundColor: '#303447', padding: 12 },
+                    tooltip: { backgroundColor: '#49454f', padding: 12 },
                 },
                 scales: {
                     x: {
                         grid: { display: false },
                         border: { display: false },
                         ticks: {
-                            color: '#a7abc0',
+                            color: '#cac4d0',
                             maxTicksLimit: options.maxTicks || 12,
                             maxRotation: 0,
                             font: { size: 10 },
@@ -267,10 +267,10 @@ window.HistoryInsights = (() => {
                     },
                     y: {
                         beginAtZero: true,
-                        grid: { color: '#303447' },
+                        grid: { color: '#49454f' },
                         border: { display: false },
                         ticks: {
-                            color: '#a7abc0',
+                            color: '#cac4d0',
                             precision: units === 'hours' ? 1 : 0,
                             font: { size: 10 },
                         },

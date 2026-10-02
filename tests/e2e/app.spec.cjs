@@ -27,6 +27,26 @@ async function noOverflow(page) {
     expect(
         await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth),
     ).toBe(true);
+    // A control can overflow its own card without widening the whole page.
+    const overflowingFields = await page
+        .locator('input:visible, select:visible')
+        .evaluateAll((controls) =>
+            controls
+                .filter((control) => {
+                    const container = control.closest('.field, .search-field, .limit-label');
+                    if (!container) return true;
+                    const field = control.getBoundingClientRect();
+                    const parent = container.getBoundingClientRect();
+                    return (
+                        field.left < parent.left - 1 ||
+                        field.right > parent.right + 1 ||
+                        field.top < parent.top - 1 ||
+                        field.bottom > parent.bottom + 1
+                    );
+                })
+                .map((control) => control.id),
+        );
+    expect(overflowingFields).toEqual([]);
 }
 test.beforeEach(async ({ page }) => {
     const errors = [];
@@ -244,14 +264,25 @@ test('no external requests and no page overflow from 320px to desktop', async ({
     page.on('request', (request) => {
         if (!request.url().startsWith('http://127.0.0.1:4173')) external.push(request.url());
     });
-    for (const width of [320, 375, 768, 1024, 1440]) {
+    for (const width of [320, 360, 375, 390, 600, 601, 768, 1024, 1440]) {
         await page.setViewportSize({ width, height: 900 });
         await page.reload();
+        await page.evaluate(() => document.fonts.ready);
+        expect(await page.evaluate(() => document.fonts.check('16px Inter'))).toBe(true);
+        expect(
+            await page.evaluate(() => document.fonts.check('24px "Material Icons Outlined"')),
+        ).toBe(true);
         await noOverflow(page);
         await page.getByRole('tab', { name: 'ListenBrainz' }).click();
         await noOverflow(page);
+        await page.locator('#lb-username').fill('a-long-listenbrainz-username');
+        await page.locator('#lb-date').fill('2026-10-02');
+        await noOverflow(page);
         await page.getByRole('tab', { name: 'Your history' }).click();
         await upload(page);
+        await page.locator('#period-select').selectOption('custom');
+        await page.locator('#filter-start').fill('2026-03-01');
+        await page.locator('#filter-end').fill('2026-03-31');
         await noOverflow(page);
     }
     expect(external).toEqual([]);

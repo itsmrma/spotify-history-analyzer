@@ -188,14 +188,6 @@ ol {
 .muted {
     color: var(--muted);
 }
-.eyebrow {
-    text-transform: uppercase;
-    font-size: 0.7rem;
-    letter-spacing: 0.08em;
-    font-weight: 650;
-    color: var(--primary);
-    margin-bottom: 10px;
-}
 .app-shell {
     max-width: 1160px;
     margin: auto;
@@ -238,37 +230,15 @@ ol {
     letter-spacing: 0.2em;
     margin-top: 3px;
 }
-.privacy-badge {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 0.75rem;
-    color: var(--mint);
-    background: rgba(168, 229, 203, 0.06);
-    border: 1px solid rgba(168, 229, 203, 0.15);
-    border-radius: 30px;
-    padding: 6px 12px;
-}
-.privacy-badge .icon {
-    width: 18px;
-    height: 18px;
-    font-size: 18px;
-}
 .hero {
     text-align: center;
-    padding: 64px 12px 46px;
-}
-.hero .eyebrow {
-    margin-bottom: 16px;
+    padding: 40px 12px 32px;
 }
 .hero h1 {
-    font-size: clamp(3rem, 7vw, 5rem);
+    font-size: clamp(2rem, 5vw, 3rem);
     line-height: 1.05;
     letter-spacing: -0.035em;
     font-weight: 500;
-}
-.hero h1 span {
-    color: var(--primary);
 }
 .hero-description {
     color: var(--muted);
@@ -334,10 +304,6 @@ ol {
 }
 .tab .icon {
     font-size: 24px;
-}
-.workspace-note {
-    color: var(--muted);
-    font-size: 0.75rem;
 }
 .panel {
     background: var(--surface);
@@ -441,31 +407,8 @@ ol {
 .upload-panel .button {
     margin-top: 26px;
 }
-.upload-hint {
-    font-size: 0.7rem;
-    color: var(--muted);
-    margin-top: 16px;
-}
-.trust-note {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 12px;
-    margin: 32px auto 48px;
-    text-align: left;
-    color: var(--muted);
-    font-size: 0.75rem;
-}
-.trust-note > .icon {
-    color: var(--mint);
-    width: 24px;
-    height: 24px;
-}
-.trust-note span {
-    font-size: 0.7rem;
-    color: #9297ad;
-}
 footer {
+    margin-top: 32px;
     display: flex;
     justify-content: space-between;
     gap: 20px;
@@ -561,9 +504,6 @@ footer {
     justify-content: space-between;
     gap: 16px;
     margin-bottom: 24px;
-}
-.section-heading .eyebrow {
-    margin-bottom: 8px;
 }
 .section-icon {
     color: var(--primary);
@@ -888,26 +828,12 @@ tbody tr:hover {
         transform: rotate(360deg);
     }
 }
-@media (min-width: 700px) {
-    .hero h1 br {
-        display: none;
-    }
-    .hero h1 span {
-        display: inline;
-    }
-    .hero h1 span::before {
-        content: ' ';
-    }
-}
 @media (max-width: 900px) {
     .insights-grid {
         grid-template-columns: 1fr;
     }
     .chart-container {
         height: 340px;
-    }
-    .workspace-note {
-        display: none;
     }
 }
 @media (max-width: 600px) {
@@ -917,25 +843,12 @@ tbody tr:hover {
     .site-header {
         padding: 20px 0;
     }
-    .privacy-badge {
-        padding: 8px;
-        font-size: 0;
-        gap: 0;
-    }
-    .privacy-badge .icon {
-        width: 18px;
-        height: 18px;
-        font-size: 18px;
-    }
     .hero {
         padding: 42px 0 32px;
     }
     .hero-description {
         font-size: 0.9rem;
         margin-top: 18px;
-    }
-    .desktop-break {
-        display: none;
     }
     .workspace-bar {
         margin-bottom: 18px;
@@ -1006,9 +919,6 @@ tbody tr:hover {
     .chart-container {
         height: 320px;
     }
-    .section-heading .eyebrow {
-        font-size: 0.6rem;
-    }
     .songs-panel .section-heading {
         flex-wrap: wrap;
     }
@@ -1055,14 +965,6 @@ tbody tr:hover {
     }
     .form-actions {
         flex-direction: column;
-    }
-    .trust-note {
-        align-items: flex-start;
-        margin: 26px auto 32px;
-        font-size: 0.7rem;
-    }
-    .trust-note span {
-        font-size: 0.65rem;
     }
     footer {
         flex-direction: column;

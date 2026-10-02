@@ -203,7 +203,7 @@ function renderDashboard() {
     $('total-time-stat').textContent = A.formatTime(stats.totalMs);
     $('time-caption').textContent = stats.estimatedPlays
         ? `Includes ${stats.estimatedPlays.toLocaleString()} estimated durations`
-        : 'Time spent with your music';
+        : 'Total listening time';
     $('history-summary').textContent = stats.firstDate
         ? `${formatDate(stats.firstDate)} – ${formatDate(stats.lastDate)} · ${stats.sortedTracks.length.toLocaleString()} unique songs · UTC`
         : stats.totalPlays

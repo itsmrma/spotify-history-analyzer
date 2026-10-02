@@ -6,9 +6,9 @@
         <meta name="theme-color" content="#141218" />
         <meta
             name="description"
-            content="Turn your Spotify listening history into personal charts, favourite songs and artist streaks. Your files stay in your browser."
+            content="A personal project for viewing Spotify and ListenBrainz listening stats."
         />
-        <title>Music History Analyzer · Your listening, in focus</title>
+        <title>Music History Analyzer</title>
         <link rel="icon" href="assets/icons/favicon.svg" type="image/svg+xml" />
         <link
             rel="preload"
@@ -24,12 +24,12 @@
             type="font/otf"
             crossorigin
         />
-        <link rel="stylesheet" href="assets/css/style.css?v=6" />
+        <link rel="stylesheet" href="assets/css/style.css?v=7" />
         <script defer src="assets/vendor/jszip.min.js"></script>
         <script defer src="assets/vendor/chart.umd.min.js"></script>
         <script defer src="assets/js/analytics.js?v=5"></script>
         <script defer src="assets/js/insights.js?v=6"></script>
-        <script defer src="assets/js/app.js?v=6"></script>
+        <script defer src="assets/js/app.js?v=7"></script>
     </head>
     <body>
         <a class="skip-link" href="#main">Skip to content</a>
@@ -42,22 +42,13 @@
                         ></span
                     ><span>Music History<span class="brand-subtitle">ANALYZER</span></span></a
                 >
-                <span class="privacy-badge"
-                    ><span class="material-icons-outlined icon" aria-hidden="true"
-                        >verified_user</span
-                    >
-                    Your files stay private</span
-                >
             </header>
             <main id="main">
                 <section class="hero" aria-labelledby="page-title">
-                    <p class="eyebrow">A little closer to your music</p>
-                    <h1 id="page-title">Your listening,<br /><span>in focus.</span></h1>
+                    <h1 id="page-title">Listening history</h1>
                     <p class="hero-description">
-                        Rediscover your favourites, follow your listening streaks,<br
-                            class="desktop-break"
-                        />
-                        and see the story behind every play.
+                        A small personal project for checking Spotify and ListenBrainz listening
+                        stats.
                     </p>
                 </section>
                 <div class="workspace">
@@ -90,7 +81,6 @@
                                 ListenBrainz
                             </button>
                         </div>
-                        <span class="workspace-note">Your music. A fresh perspective.</span>
                     </div>
                     <div
                         id="app-message"
@@ -106,7 +96,6 @@
                                     >upload_file</span
                                 ><span class="file-tag">.zip / .json</span>
                             </div>
-                            <p class="eyebrow">Start with your story</p>
                             <h2>Drop your listening history here</h2>
                             <p class="muted upload-description">
                                 Add your Spotify ZIP archive or JSON files.<br />You can include
@@ -129,7 +118,6 @@
                                 hidden
                                 aria-label="Choose listening history files"
                             />
-                            <p class="upload-hint">ZIP & JSON supported · No account needed</p>
                         </div>
                         <div
                             id="loading-section"
@@ -139,12 +127,11 @@
                         >
                             <span class="loader" aria-hidden="true"></span>
                             <h2 id="loading-text">Reading your history…</h2>
-                            <p class="muted">Finding the music that makes you, you.</p>
+                            <p class="muted">This may take a moment for large files.</p>
                         </div>
                         <div id="dashboard" class="dashboard hidden">
                             <div class="dashboard-heading">
                                 <div>
-                                    <p class="eyebrow">Your personal soundtrack</p>
                                     <h2>Listening overview</h2>
                                     <p id="history-summary" class="muted"></p>
                                 </div>
@@ -220,13 +207,15 @@
                                 <article class="stat-card">
                                     <span class="stat-label">Unique artists</span
                                     ><strong id="total-artists-stat">0</strong
-                                    ><span class="stat-caption">The voices in your rotation</span>
+                                    ><span class="stat-caption"
+                                        >Different artists in the loaded data</span
+                                    >
                                 </article>
                                 <article class="stat-card">
                                     <span class="stat-label">Listening time</span
                                     ><strong id="total-time-stat">0m</strong
                                     ><span id="time-caption" class="stat-caption"
-                                        >Time spent with your music</span
+                                        >Total listening time</span
                                     >
                                 </article>
                             </div>
@@ -234,7 +223,6 @@
                             <section id="listening-rhythm" class="panel insight-panel">
                                 <div class="section-heading">
                                     <div>
-                                        <p class="eyebrow">Your music over time</p>
                                         <h3>Listening timeline</h3>
                                     </div>
                                     <span id="timeline-total" class="muted small-copy"></span>
@@ -256,8 +244,7 @@
                             <section class="panel insight-panel calendar-panel">
                                 <div class="section-heading">
                                     <div>
-                                        <p class="eyebrow">One day at a time</p>
-                                        <h3>Your listening calendar</h3>
+                                        <h3>Listening calendar</h3>
                                     </div>
                                     <label class="limit-label"
                                         >Year
@@ -268,7 +255,7 @@
                                     ></label>
                                 </div>
                                 <p class="section-description muted">
-                                    Tap a day for its soundtrack. Empty cells mean no plays in the
+                                    Select a day to see its songs. Empty cells mean no plays in the
                                     loaded data. Dates use UTC.
                                 </p>
                                 <div
@@ -312,8 +299,7 @@
                                 <section class="panel insight-panel">
                                     <div class="section-heading">
                                         <div>
-                                            <p class="eyebrow">Find your rhythm</p>
-                                            <h3>Favourite days of the week</h3>
+                                            <h3>Listening by weekday</h3>
                                         </div>
                                     </div>
                                     <p class="section-description muted">
@@ -331,8 +317,7 @@
                                 <section class="panel insight-panel">
                                     <div class="section-heading">
                                         <div>
-                                            <p class="eyebrow">Early bird or night owl?</p>
-                                            <h3>Your listening hours</h3>
+                                            <h3>Listening by hour</h3>
                                         </div>
                                     </div>
                                     <p class="section-description muted">
@@ -352,7 +337,6 @@
                                 <section class="panel insight-panel">
                                     <div class="section-heading">
                                         <div>
-                                            <p class="eyebrow">On repeat</p>
                                             <h3>Top 10 artists</h3>
                                         </div>
                                         <span
@@ -373,7 +357,6 @@
                                 <section class="panel insight-panel">
                                     <div class="section-heading">
                                         <div>
-                                            <p class="eyebrow">Day after day</p>
                                             <h3>Longest artist streaks</h3>
                                         </div>
                                         <span
@@ -392,8 +375,7 @@
                                 <section class="panel insight-panel">
                                     <div class="section-heading">
                                         <div>
-                                            <p class="eyebrow">More than a single</p>
-                                            <h3>Your top albums</h3>
+                                            <h3>Top albums</h3>
                                         </div>
                                     </div>
                                     <p id="album-coverage" class="section-description muted"></p>
@@ -402,7 +384,6 @@
                                 <section class="panel insight-panel">
                                     <div class="section-heading">
                                         <div>
-                                            <p class="eyebrow">Fresh in your rotation</p>
                                             <h3>Artist discoveries</h3>
                                         </div>
                                         <span id="discovery-count" class="count-badge"></span>
@@ -417,8 +398,7 @@
                             <section class="panel insight-panel">
                                 <div class="section-heading">
                                     <div>
-                                        <p class="eyebrow">The chapters of your soundtrack</p>
-                                        <h3>Your years in music</h3>
+                                        <h3>Yearly stats</h3>
                                     </div>
                                 </div>
                                 <div id="year-recaps" class="year-recaps"></div>
@@ -427,7 +407,6 @@
                                 <section class="panel insight-panel">
                                     <div class="section-heading">
                                         <div>
-                                            <p class="eyebrow">How you press play</p>
                                             <h3>Listening habits</h3>
                                         </div>
                                     </div>
@@ -436,8 +415,7 @@
                                 <section class="panel insight-panel">
                                     <div class="section-heading">
                                         <div>
-                                            <p class="eyebrow">Where the music happens</p>
-                                            <h3>Your devices & platforms</h3>
+                                            <h3>Devices & platforms</h3>
                                         </div>
                                     </div>
                                     <p class="section-description muted">
@@ -450,8 +428,7 @@
                             <section id="top-songs-section" class="panel songs-panel">
                                 <div class="section-heading">
                                     <div>
-                                        <p class="eyebrow">The favourites</p>
-                                        <h3>Your top songs</h3>
+                                        <h3>Top songs</h3>
                                     </div>
                                     <div class="songs-tools">
                                         <button
@@ -498,7 +475,6 @@
                             </section>
                             <section id="artist-explorer" class="panel search-panel">
                                 <div>
-                                    <p class="eyebrow">Dig a little deeper</p>
                                     <h3>Explore an artist</h3>
                                     <p class="muted">
                                         Find their most played songs and your longest streak.
@@ -550,8 +526,7 @@
                                     >headphones</span
                                 ></span
                             >
-                            <p class="eyebrow">Keep the story going</p>
-                            <h2>Connect the missing plays</h2>
+                            <h2>Import from ListenBrainz</h2>
                             <p class="muted">
                                 Get recent listens from your public ListenBrainz profile. Add them
                                 to your dashboard or save a Spotify-compatible JSON file.
@@ -620,21 +595,13 @@
                         </div>
                     </section>
                 </div>
-                <div class="trust-note">
-                    <span class="material-icons-outlined icon" aria-hidden="true"
-                        >verified_user</span
-                    >
-                    <p>
-                        Made for your music, with your privacy in mind.<br /><span
-                            >Your uploaded files are processed in this browser and never sent to a
-                            server.</span
-                        >
-                    </p>
-                </div>
             </main>
             <footer>
                 <span>Music History Analyzer</span
-                ><span>Independent project · Not affiliated with Spotify or ListenBrainz</span>
+                ><span
+                    >Personal project ·
+                    <a href="https://github.com/itsmrma/spotify-history-analyzer">GitHub</a></span
+                >
             </footer>
         </div>
         <noscript

@@ -1,6 +1,6 @@
 # Music History Analyzer
 
-A private, browser-based tool for exploring your Spotify listening history and filling recent gaps with ListenBrainz.
+A personal project for viewing Spotify listening stats and adding recent listens from ListenBrainz.
 
 **[Open the web app](https://itsmrma.github.io/spotify-history-analyzer/)**
 

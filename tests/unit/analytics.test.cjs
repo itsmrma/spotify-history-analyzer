@@ -140,6 +140,7 @@ test('Maloja imports artists and measured listening duration, estimates missing 
     const entry = A.convertMaloja(scrobble);
     assert.equal(entry.source, 'maloja');
     assert.equal(entry.master_metadata_album_artist_name, 'A, B');
+    assert.deepEqual(entry.artist_names, ['A', 'B']);
     assert.equal(entry.master_metadata_album_album_name, 'Album');
     assert.equal(entry.ms_played, 95000);
     assert.equal(entry.duration_estimated, false);

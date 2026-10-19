@@ -97,6 +97,79 @@ test('first recorded artist dates use the oldest UTC date and update when older 
     }
 });
 
+test('scrobbler collaborations retain individual first dates instead of creating new discoveries', () => {
+    const spotify = [
+        play('Artist A', 'One', '2024-05-01T12:00:00Z'),
+        play('Artist B', 'Two', '2025-01-01T12:00:00Z'),
+    ];
+    const joint = A.convertMaloja({
+        time: Date.parse('2026-10-18T12:00:00Z') / 1000,
+        track: { artists: ['Artist A', 'Artist B'], title: 'Together' },
+    });
+    for (const entry of [joint, { ...joint, artist_names: undefined }]) {
+        for (const data of [
+            [...spotify, entry],
+            [entry, ...spotify],
+        ]) {
+            const stats = A.analyze(data);
+            assert.deepEqual(stats.discoveries, [
+                { artist: 'Artist B', date: '2025-01-01' },
+                { artist: 'Artist A', date: '2024-05-01' },
+            ]);
+            assert.equal(stats.totalPlays, 3);
+            assert.equal(stats.sortedTracks.length, 3);
+            assert.deepEqual(A.analyze(data, { startDate: '2026-01-01' }).discoveries, []);
+        }
+    }
+});
+
+test('an earlier collaboration contributes to each artist even without solo plays in the period', () => {
+    const joint = A.convertMaloja({
+        time: Date.parse('2024-01-01T12:00:00Z') / 1000,
+        track: { artists: ['Artist A', 'Artist B'], title: 'Together' },
+    });
+    const stats = A.analyze([joint, play('Artist A', 'Solo', '2025-01-01T12:00:00Z')], {
+        startDate: '2024-01-01',
+        endDate: '2024-12-31',
+    });
+    assert.deepEqual(stats.discoveries, [
+        { artist: 'Artist A', date: '2024-01-01' },
+        { artist: 'Artist B', date: '2024-01-01' },
+    ]);
+});
+
+test('structured credits belong to their play without relabeling earlier solo plays', () => {
+    const stats = A.analyze([
+        play('Artist A', 'Solo', '2020-01-01T12:00:00Z'),
+        play('Artist A', 'With guest', '2024-01-01T12:00:00Z', 60000, {
+            source: 'listenbrainz',
+            artist_names: ['Artist A', 'Guest'],
+        }),
+    ]);
+    assert.equal(stats.firstSeen.get('Artist A'), '2020-01-01');
+    assert.equal(stats.firstSeen.get('Guest'), '2024-01-01');
+});
+
+test('literal commas and unknown artist credits are preserved', () => {
+    const entries = [
+        play('Artist A', 'Solo', '2024-01-01T12:00:00Z'),
+        play('Artist B', 'Solo', '2024-01-01T12:00:00Z'),
+        play('Artist A, Artist B', 'Band', '2025-01-01T12:00:00Z'),
+        { ...play('Unknown, Artist B', 'Together', '2026-01-01T12:00:00Z'), source: 'lastfm' },
+    ];
+    const credits = A.artistCredits(entries);
+    assert.deepEqual(credits.get('Artist A, Artist B'), ['Artist A, Artist B']);
+    assert.deepEqual(credits.get('Unknown, Artist B'), ['Unknown, Artist B']);
+    const structured = A.convertMaloja({
+        time: Date.parse('2026-01-02T12:00:00Z') / 1000,
+        track: { artists: ['Artist A, Artist B', 'Guest'], title: 'Together' },
+    });
+    assert.deepEqual(
+        A.artistCredits([...entries, structured]).get(structured.master_metadata_album_artist_name),
+        ['Artist A, Artist B', 'Guest'],
+    );
+});
+
 test('monthly timeline includes empty months and crosses the year boundary', () => {
     const stats = A.analyze([
         play('A', 'T', '2025-12-01T12:00:00Z'),

@@ -193,6 +193,7 @@ window.HistoryExplorer = (() => {
         if (history === entries) return;
         history = entries;
         const previousKey = selected?.key;
+        const credits = A.artistCredits(entries);
         for (const index of Object.values(indexes)) index.clear();
         const records = [];
         for (const raw of entries) {
@@ -230,6 +231,9 @@ window.HistoryExplorer = (() => {
         };
         for (const record of records) {
             add('artist', record.artist, null, record);
+            for (const member of record.artistNames || credits.get(record.artist) || []) {
+                if (member !== record.artist) add('artist', member, null, record);
+            }
             add('song', record.track, record.artist, record);
             if (record.album) add('album', record.album, record.artist, record);
         }

@@ -24,6 +24,14 @@
         return validDate(value) ? value.split('-').reverse().join('/') : '';
     }
 
+    function explicitArtists(entry) {
+        return Array.isArray(entry.artist_names) &&
+            entry.artist_names.length &&
+            entry.artist_names.every((artist) => typeof artist === 'string' && artist.trim())
+            ? [...new Set(entry.artist_names.map((artist) => artist.trim()))]
+            : null;
+    }
+
     function normalizeEntry(entry) {
         if (!entry || typeof entry !== 'object' || Array.isArray(entry)) return null;
         const artist = entry.master_metadata_album_artist_name ?? entry.artistName;
@@ -54,6 +62,7 @@
         }
         return {
             artist: artist.trim(),
+            artistNames: explicitArtists(entry),
             track: track.trim(),
             ms,
             date,
@@ -116,6 +125,39 @@
         return streaks;
     }
 
+    function artistCredits(entries) {
+        const names = new Set();
+        const spotifyNames = new Set();
+        const explicit = new Map();
+        for (const entry of entries) {
+            const value = entry?.master_metadata_album_artist_name ?? entry?.artistName;
+            if (typeof value !== 'string' || !value.trim()) continue;
+            const name = value.trim();
+            names.add(name);
+            if (!entry.source || entry.source === 'spotify') spotifyNames.add(name);
+            const members = explicitArtists(entry);
+            if (members) {
+                explicit.set(name, members);
+                for (const member of members) names.add(member);
+            }
+        }
+        return new Map(
+            [...names].map((name) => {
+                if (spotifyNames.has(name)) return [name, [name]];
+                if (explicit.has(name)) return [name, explicit.get(name)];
+                // Spotify's primary-artist label is an identity, including real commas.
+                // Older scrobbler imports flattened structured credits into one string.
+                const members = name.split(',').map((member) => member.trim());
+                return [
+                    name,
+                    members.length > 1 && members.every((member) => member && names.has(member))
+                        ? [...new Set(members)]
+                        : [name],
+                ];
+            }),
+        );
+    }
+
     function analyze(entries, options = {}) {
         const artists = new Map();
         const tracks = new Map();
@@ -124,6 +166,8 @@
         const months = new Map();
         const years = new Map();
         const firstSeen = new Map();
+        const credits = artistCredits(entries);
+        const periodArtists = new Set();
         const availableYears = new Set();
         const records = [];
         const weekdays = Array.from({ length: 7 }, () => ({ count: 0, ms: 0 }));
@@ -145,10 +189,13 @@
             const entry = normalizeEntry(raw);
             if (!entry) continue;
             const { artist, track, ms, date, estimated, album, platform } = entry;
+            const credited = entry.artistNames || credits.get(artist) || [artist];
             if (date) {
                 availableYears.add(date.slice(0, 4));
-                if (!firstSeen.has(artist) || date < firstSeen.get(artist))
-                    firstSeen.set(artist, date);
+                for (const name of credited) {
+                    if (!firstSeen.has(name) || date < firstSeen.get(name))
+                        firstSeen.set(name, date);
+                }
                 if (!historyFirstDate || date < historyFirstDate) historyFirstDate = date;
                 if (!historyLastDate || date > historyLastDate) historyLastDate = date;
             } else undatedPlays++;
@@ -160,6 +207,7 @@
             )
                 continue;
             records.push(entry);
+            for (const name of credited) periodArtists.add(name);
             totalPlays++;
             totalMs += ms;
             if (estimated) estimatedPlays++;
@@ -282,7 +330,7 @@
         const discoveries = [...firstSeen]
             .filter(
                 ([artist, date]) =>
-                    artists.has(artist) &&
+                    periodArtists.has(artist) &&
                     (!options.startDate || date >= options.startDate) &&
                     (!options.endDate || date <= options.endDate),
             )
@@ -391,6 +439,11 @@
         return {
             ts: date.toISOString().replace(/\.000Z$/, 'Z'),
             master_metadata_album_artist_name: metadata.artist_name.trim(),
+            ...(Array.isArray(additional.artist_names) &&
+            additional.artist_names.length &&
+            additional.artist_names.every((name) => typeof name === 'string' && name.trim())
+                ? { artist_names: [...new Set(additional.artist_names.map((name) => name.trim()))] }
+                : {}),
             master_metadata_track_name: metadata.track_name.trim(),
             ms_played: duration,
             duration_estimated: estimated,
@@ -433,7 +486,10 @@
                 additional_info: { duration: item?.duration },
             },
         });
-        if (entry) entry.source = 'maloja';
+        if (entry) {
+            entry.source = 'maloja';
+            entry.artist_names = [...new Set(artists.map((artist) => artist.trim()))];
+        }
         return entry;
     }
 
@@ -470,6 +526,7 @@
         historyEntries,
         formatTime,
         monthlyTimeline,
+        artistCredits,
         rankingCSV,
     };
 });

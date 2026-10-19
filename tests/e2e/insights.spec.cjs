@@ -165,6 +165,41 @@ test('album, habit, platform and yearly recap details use the imported metadata'
     await expect(page.locator('#history-result-summary')).toContainText('10m');
 });
 
+test('scrobbler collaborations keep original artist dates and search includes their joint plays', async ({
+    page,
+}) => {
+    await upload(page, [
+        play('Artist A', 'Solo A', '2024-05-01T12:00:00Z'),
+        play('Artist B', 'Solo B', '2025-01-01T12:00:00Z'),
+    ]);
+    await upload(page, [
+        {
+            time: Date.parse('2026-10-18T12:00:00Z') / 1000,
+            track: { artists: ['Artist A', 'Artist B'], title: 'Together' },
+        },
+        play('Artist A, Artist B', 'Legacy import', '2026-10-18T13:00:00Z', 60000, {
+            source: 'lastfm',
+        }),
+    ]);
+    await expect(page.locator('#total-tracks-stat')).toHaveText('4');
+    await expect(page.locator('#discovery-count')).toHaveText('2');
+    await expect(page.locator('#discoveries-list')).not.toContainText('Artist A, Artist B');
+    await expect(
+        page.locator('#discoveries-list li').filter({ hasText: 'Artist A' }),
+    ).toContainText('2024');
+    await expect(
+        page.locator('#discoveries-list li').filter({ hasText: 'Artist B' }),
+    ).toContainText('2025');
+    await selectDropdown(page, 'period-select', '2026');
+    await expect(page.locator('#discovery-count')).toHaveText('0');
+    await page.locator('#reset-filters-btn').click();
+    await page.locator('#discoveries-list button').filter({ hasText: 'Artist A' }).click();
+    await expect(page.locator('#history-result-title')).toHaveText('Artist A');
+    await expect(page.locator('#history-plays tr')).toHaveCount(3);
+    await expect(page.locator('#history-result-summary')).toContainText('3 plays');
+    await expect(page.locator('#history-plays')).toContainText('Artist A, Artist B');
+});
+
 test('CSV export includes every song in the filtered ranking and escapes formula-like names', async ({
     page,
 }) => {

@@ -2,6 +2,10 @@
 
 A personal project for viewing Spotify listening stats and adding listens from ListenBrainz, Last.fm and Maloja.
 
+[![Feature tour: import history, explore listening charts and calendar, search plays and add scrobbler history](docs/media/music-history-tour.gif)](docs/media/music-history-tour.mp4)
+
+24-second demo with synthetic listening history. [Video details and credits](docs/media/README.md).
+
 **[Open the web app](https://itsmrma.github.io/spotify-history-analyzer/)**
 
 ## Using the app

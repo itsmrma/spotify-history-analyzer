@@ -27,6 +27,7 @@ endsong*.json
 *.local
 .vscode/
 .idea/
+/.codex/
 
 # OS files and editor backups
 .DS_Store

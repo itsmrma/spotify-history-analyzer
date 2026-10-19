@@ -150,6 +150,28 @@ test('structured credits belong to their play without relabeling earlier solo pl
     assert.equal(stats.firstSeen.get('Guest'), '2024-01-01');
 });
 
+test('Spotify multiplication-sign credits share earlier first dates with known individual artists', () => {
+    const data = [
+        play('Artist A', 'Solo', '2020-01-01T12:00:00Z'),
+        play('Artist B', 'Later credit', '2025-01-01T12:00:00Z'),
+        play('Artist B×Artist A', 'Together', '2023-01-01T12:00:00Z'),
+        play('Artist B×Artist A', 'Short preview', '2022-01-01T12:00:00Z', 14000),
+        play('Artist B, Artist A', 'Scrobbler credit', '2026-01-01T12:00:00Z', 60000, {
+            source: 'lastfm',
+        }),
+    ];
+    for (const entries of [data, [...data].reverse()]) {
+        const stats = A.analyze(entries);
+        assert.equal(stats.firstSeen.get('Artist A'), '2020-01-01');
+        assert.equal(stats.firstSeen.get('Artist B'), '2023-01-01');
+        assert.equal(stats.discoveries.length, 2);
+        assert.equal(stats.totalPlays, 4);
+        assert.equal(stats.sortedTracks.length, 4);
+    }
+    const unknown = A.analyze([play('Unresolved×Name', 'Song', '2024-01-01T12:00:00Z')]);
+    assert.deepEqual(unknown.discoveries, [{ artist: 'Unresolved×Name', date: '2024-01-01' }]);
+});
+
 test('literal commas and unknown artist credits are preserved', () => {
     const entries = [
         play('Artist A', 'Solo', '2024-01-01T12:00:00Z'),

@@ -171,6 +171,7 @@ test('scrobbler collaborations keep original artist dates and search includes th
     await upload(page, [
         play('Artist A', 'Solo A', '2024-05-01T12:00:00Z'),
         play('Artist B', 'Solo B', '2025-01-01T12:00:00Z'),
+        play('Artist B×Artist A', 'Earlier collaboration', '2024-06-01T12:00:00Z'),
     ]);
     await upload(page, [
         {
@@ -181,7 +182,7 @@ test('scrobbler collaborations keep original artist dates and search includes th
             source: 'lastfm',
         }),
     ]);
-    await expect(page.locator('#total-tracks-stat')).toHaveText('4');
+    await expect(page.locator('#total-tracks-stat')).toHaveText('5');
     await expect(page.locator('#discovery-count')).toHaveText('2');
     await expect(page.locator('#discoveries-list')).not.toContainText('Artist A, Artist B');
     await expect(
@@ -189,14 +190,14 @@ test('scrobbler collaborations keep original artist dates and search includes th
     ).toContainText('2024');
     await expect(
         page.locator('#discoveries-list li').filter({ hasText: 'Artist B' }),
-    ).toContainText('2025');
+    ).toContainText('2024');
     await selectDropdown(page, 'period-select', '2026');
     await expect(page.locator('#discovery-count')).toHaveText('0');
     await page.locator('#reset-filters-btn').click();
     await page.locator('#discoveries-list button').filter({ hasText: 'Artist A' }).click();
     await expect(page.locator('#history-result-title')).toHaveText('Artist A');
-    await expect(page.locator('#history-plays tr')).toHaveCount(3);
-    await expect(page.locator('#history-result-summary')).toContainText('3 plays');
+    await expect(page.locator('#history-plays tr')).toHaveCount(4);
+    await expect(page.locator('#history-result-summary')).toContainText('4 plays');
     await expect(page.locator('#history-plays')).toContainText('Artist A, Artist B');
 });
 

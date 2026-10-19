@@ -143,6 +143,14 @@
         }
         return new Map(
             [...names].map((name) => {
+                // Spotify can credit the same collaboration as A×B, while scrobblers
+                // use A, B. Resolve × only when both individual names are known.
+                const collaboration = name.split('×').map((member) => member.trim());
+                if (
+                    collaboration.length > 1 &&
+                    collaboration.every((member) => member && names.has(member))
+                )
+                    return [name, [...new Set(collaboration)]];
                 if (spotifyNames.has(name)) return [name, [name]];
                 if (explicit.has(name)) return [name, explicit.get(name)];
                 // Spotify's primary-artist label is an identity, including real commas.

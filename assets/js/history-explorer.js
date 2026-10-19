@@ -124,25 +124,67 @@ window.HistoryExplorer = (() => {
             ['Incognito', raw.incognito_mode],
             ['Duration estimated', record.estimated ? true : null],
         ].filter(([, value]) => value !== null && value !== undefined && value !== '');
-        if (!values.length) return node('span', 'Not recorded', 'muted');
-        const details = node('details');
-        details.append(node('summary', 'More'));
+        if (!values.length) return null;
         const list = node('dl', undefined, 'history-metadata');
-        for (const [label, value] of values)
-            list.append(
+        for (const [label, value] of values) {
+            const item = node('div');
+            item.append(
                 node('dt', label),
                 node('dd', typeof value === 'boolean' ? (value ? 'Yes' : 'No') : String(value)),
             );
-        details.append(list);
-        return details;
+            list.append(item);
+        }
+        return list;
+    }
+
+    function detailsControl(record, row, index) {
+        const list = extraDetails(record.raw, record);
+        if (!list) return node('span', 'Not recorded', 'muted');
+        const detailsRow = node('tr', undefined, 'history-details-row');
+        const detailsCell = node('td');
+        detailsCell.colSpan = columnLabels.length;
+        const panel = node('div', undefined, 'history-details-panel');
+        panel.id = `history-play-details-${index}`;
+        panel.setAttribute('role', 'group');
+        panel.setAttribute('aria-label', `Playback details for ${record.track}`);
+        panel.append(node('h4', 'Playback details'), list);
+        detailsCell.append(panel);
+        detailsRow.append(detailsCell);
+
+        const button = node('button', undefined, 'history-details-toggle');
+        button.type = 'button';
+        const icon = node('span', 'expand_more', 'material-icons-outlined icon');
+        icon.setAttribute('aria-hidden', 'true');
+        const label = node('span', 'More');
+        button.append(icon, label);
+        button.setAttribute('aria-expanded', 'false');
+        button.setAttribute('aria-label', `Show playback details for ${record.track}`);
+        button.addEventListener('click', () => {
+            const open = button.getAttribute('aria-expanded') !== 'true';
+            button.setAttribute('aria-expanded', String(open));
+            button.setAttribute(
+                'aria-label',
+                `${open ? 'Hide' : 'Show'} playback details for ${record.track}`,
+            );
+            icon.textContent = open ? 'expand_less' : 'expand_more';
+            label.textContent = open ? 'Less' : 'More';
+            if (open) {
+                row.after(detailsRow);
+                button.setAttribute('aria-controls', panel.id);
+            } else {
+                detailsRow.remove();
+                button.removeAttribute('aria-controls');
+            }
+        });
+        return button;
     }
 
     function renderPage() {
         if (!selected) return;
         const start = page * pageSize;
         const fragment = document.createDocumentFragment();
-        for (const record of selected.records.slice(start, start + pageSize)) {
-            const row = node('tr');
+        for (const [offset, record] of selected.records.slice(start, start + pageSize).entries()) {
+            const row = node('tr', undefined, 'history-play-row');
             const sourceNames = {
                 listenbrainz: 'ListenBrainz',
                 lastfm: 'Last.fm',
@@ -163,8 +205,8 @@ window.HistoryExplorer = (() => {
                 cell.append(node('span', value));
                 row.append(cell);
             }
-            const cell = node('td');
-            cell.append(extraDetails(record.raw, record));
+            const cell = node('td', undefined, 'history-details-cell');
+            cell.append(detailsControl(record, row, start + offset));
             row.append(cell);
             for (const [index, cell] of Array.from(row.children).entries())
                 cell.dataset.label = columnLabels[index];

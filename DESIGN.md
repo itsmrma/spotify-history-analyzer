@@ -267,6 +267,12 @@ row can scroll horizontally instead of clipping controls or widening the page.
 The habits and platform panels share their row height while the platform list is
 collapsed. Expanded lists grow independently.
 
+History-search playback details expand into a separate row spanning the entire
+table. Group each metadata label and value in a compact horizontal grid; use two
+columns on mobile. Below 1100px, play rows become labeled stacked fields. Keep
+the disclosure button keyboard accessible and preserve its expanded state and
+focus. Table headings wrap at spaces, never through words such as Platform.
+
 ### Listening visualizations
 
 Chart colors read the active CSS palette and update in place on theme changes.

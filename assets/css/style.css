@@ -1157,10 +1157,10 @@ tbody tr:hover {
     width: 88px;
 }
 .history-col-platform {
-    width: 105px;
+    width: 124px;
 }
 .history-col-source {
-    width: 80px;
+    width: 92px;
 }
 .history-col-details {
     width: 100px;
@@ -1173,6 +1173,7 @@ tbody tr:hover {
 }
 .history-table th {
     white-space: normal;
+    overflow-wrap: normal;
 }
 .history-table td > * {
     min-width: 0;
@@ -1181,19 +1182,56 @@ tbody tr:hover {
 .history-table td:nth-child(2) {
     white-space: nowrap;
 }
-.history-table summary {
-    cursor: pointer;
+.history-table .history-details-cell {
+    padding-block: 4px;
+}
+.history-details-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-self: start;
+    gap: 4px;
+    min-height: 44px;
+    padding: 8px;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
     color: var(--primary);
 }
-.history-metadata {
-    margin: 12px 0 0;
+.history-details-toggle .icon {
+    font-size: 20px;
+}
+.history-details-toggle:hover {
+    background: var(--state-hover);
+}
+.history-table .history-details-row > td {
+    width: auto;
+    padding: 20px 24px 24px;
+    white-space: normal;
+    background: var(--surface-raised);
+    color: var(--text);
+}
+.history-details-panel h4 {
+    margin: 0 0 16px;
     font-size: 0.875rem;
+    font-weight: 600;
+}
+.history-metadata {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(128px, 1fr));
+    gap: 16px 24px;
+    margin: 0;
+    font-size: 0.875rem;
+}
+.history-metadata > div {
+    min-width: 0;
+    overflow-wrap: anywhere;
 }
 .history-metadata dt {
     color: var(--muted);
 }
 .history-metadata dd {
-    margin: 0 0 8px;
+    margin: 4px 0 0;
+    font-size: 1rem;
 }
 .history-pagination {
     display: flex;
@@ -1206,7 +1244,7 @@ tbody tr:hover {
     font-size: 0.875rem;
     text-align: center;
 }
-@media (max-width: 900px) {
+@media (max-width: 1100px) {
     .history-table colgroup {
         display: none;
     }
@@ -1247,6 +1285,22 @@ tbody tr:hover {
     .history-table td:first-child,
     .history-table td:nth-child(2) {
         white-space: normal;
+    }
+    .history-table .history-details-row {
+        padding: 0;
+    }
+    .history-table .history-details-row > td {
+        display: block;
+        padding: 20px 16px;
+    }
+    .history-table .history-details-row > td::before {
+        content: none;
+    }
+}
+@media (max-width: 600px) {
+    .history-metadata {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 16px;
     }
 }
 .form-grid {

@@ -114,8 +114,71 @@ test('suggestions wait 500ms after the last edit and keyboard selection searches
     await expect(page.locator('#history-plays')).toContainText('android');
     await expect(page.locator('#history-plays')).toContainText('1m 01s');
     await page.locator('#history-plays tr').nth(1).getByText('More', { exact: true }).click();
-    await expect(page.locator('#history-plays tr').nth(1)).toContainText('IT');
-    await expect(page.locator('#history-plays tr').nth(1)).toContainText('trackdone');
+    await expect(page.locator('.history-details-row')).toContainText('IT');
+    await expect(page.locator('.history-details-row')).toContainText('trackdone');
+});
+
+test('playback details span the results width and remain compact, accessible and independent', async ({
+    page,
+}) => {
+    await upload(page, [
+        play('thasup', 'oh 9od - feat. Nayt', '2026-07-23T17:49:02Z', '23 6451', {
+            conn_country: 'IT',
+            reason_start: 'trackdone',
+            reason_end: 'trackdone',
+            skipped: false,
+            incognito_mode: true,
+            platform: 'ios',
+        }),
+        play('thasup', 'Another song', '2026-07-22T10:00:00Z', 'Album'),
+    ]);
+    await search(page, 'artist', 'thasup');
+    const toggle = page.locator('.history-play-row').first().getByRole('button');
+    await toggle.focus();
+    await toggle.press('Enter');
+    const detail = page.locator('.history-details-row').first();
+    await expect(toggle).toHaveAttribute('aria-expanded', 'true');
+    await expect(toggle).toHaveAttribute('aria-controls', /history-play-details-/);
+    await expect(detail).toContainText('trackdone');
+    await expect(detail.locator('dt')).toHaveCount(7);
+    for (const width of [320, 390, 901, 1024, 1101, 1440, 1920]) {
+        await page.setViewportSize({ width, height: 1000 });
+        const table = await page.locator('.history-table').boundingBox();
+        const box = await detail.boundingBox();
+        expect(box.width).toBeCloseTo(table.width, 0);
+        expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
+            true,
+        );
+        const positions = await detail.locator('.history-metadata > div').evaluateAll((items) =>
+            items.map((item) => {
+                const box = item.getBoundingClientRect();
+                return { x: box.x, y: box.y, right: box.right };
+            }),
+        );
+        expect(positions[1].y).toBeCloseTo(positions[0].y, 0);
+        expect(positions[1].x).toBeGreaterThan(positions[0].x);
+        expect(positions.every((item) => item.right <= box.x + box.width)).toBe(true);
+        if (width > 1100) {
+            const row = await page.locator('.history-play-row').first().boundingBox();
+            expect(row.height).toBeLessThan(90);
+            expect(box.height).toBeLessThan(width >= 1440 ? 170 : 240);
+            for (const name of ['Platform', 'Source']) {
+                const header = page.getByRole('columnheader', { name, exact: true });
+                expect(await header.evaluate((el) => el.scrollWidth <= el.clientWidth)).toBe(true);
+            }
+        }
+    }
+    await page.locator('.history-play-row').nth(1).getByRole('button').click();
+    await expect(page.locator('.history-details-row')).toHaveCount(2);
+    await toggle.focus();
+    await toggle.press('Space');
+    await expect(toggle).toHaveAttribute('aria-expanded', 'false');
+    await expect(toggle).toBeFocused();
+    await expect(page.locator('.history-details-row')).toHaveCount(1);
+    const audit = await new AxeBuilder({ page })
+        .withTags(['wcag2a', 'wcag2aa', 'wcag21aa'])
+        .analyze();
+    expect(audit.violations).toEqual([]);
 });
 
 test('song and album suggestions distinguish artists with identical titles', async ({ page }) => {

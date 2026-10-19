@@ -291,8 +291,9 @@ ol {
 }
 .app-shell {
     width: 100%;
+    max-width: 1440px;
     margin: auto;
-    padding: 0 32px;
+    padding: 0 48px;
 }
 .site-header {
     display: flex;

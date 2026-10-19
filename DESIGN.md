@@ -198,7 +198,7 @@ stays above -0.04em. Hero prose is limited to 70ch and help copy to 65ch.
 
 ## Layout
 
-The standard shell uses the available viewport width with 32px horizontal padding,
+The standard shell is centered and capped at 1440px with 48px horizontal padding,
 reduced on small screens. Every tab shares this shell; switching tabs never changes its width.
 Initial tab surfaces share a 560px minimum height, 32px insets (20px on small
 screens), and a left-aligned title and description separated by 12px. Surfaces

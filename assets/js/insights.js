@@ -389,9 +389,7 @@ window.HistoryInsights = (() => {
     function renderCalendar() {
         if (!currentStats) return;
         const calendar = $('activity-calendar');
-        const months = $('calendar-months');
         calendar.replaceChildren();
-        months.replaceChildren();
         const year = $('calendar-year').value;
         if (!year) {
             $('calendar-day-detail').textContent =
@@ -401,13 +399,33 @@ window.HistoryInsights = (() => {
         const start = new Date(`${year}-01-01T00:00:00Z`);
         const end = new Date(`${String(Number(year) + 1).padStart(4, '0')}-01-01T00:00:00Z`);
         const count = Math.round((end - start) / 86400000);
-        const offset = (start.getUTCDay() + 6) % 7;
-        const weeks = Math.ceil((offset + count) / 7);
-        calendar.style.gridTemplateColumns = `repeat(${weeks}, var(--calendar-cell))`;
-        months.style.gridTemplateColumns = `repeat(${weeks}, var(--calendar-cell))`;
+        const monthGrids = Array.from({ length: 12 }, (_, monthIndex) => {
+            const monthStart = new Date(
+                `${year}-${String(monthIndex + 1).padStart(2, '0')}-01T00:00:00Z`,
+            );
+            const month = node('div', 'calendar-month');
+            const heading = node(
+                'h4',
+                'calendar-month-title',
+                new Intl.DateTimeFormat(undefined, { month: 'long', timeZone: 'UTC' }).format(
+                    monthStart,
+                ),
+            );
+            heading.id = `calendar-month-${year}-${monthIndex + 1}`;
+            const weekdays = node('div', 'calendar-weekdays');
+            weekdays.setAttribute('aria-hidden', 'true');
+            weekdays.append(...weekdayNames.map((name) => node('span', '', name[0])));
+            const grid = node('div', 'calendar-month-days');
+            grid.setAttribute('role', 'group');
+            grid.setAttribute('aria-labelledby', heading.id);
+            const offset = (monthStart.getUTCDay() + 6) % 7;
+            for (let i = 0; i < offset; i++) grid.append(node('span', 'calendar-spacer'));
+            month.append(heading, weekdays, grid);
+            calendar.append(month);
+            return grid;
+        });
         const yearDays = [...currentStats.days.values()].filter((day) => day.date.startsWith(year));
         const max = yearDays.reduce((best, day) => Math.max(best, day.count), 0);
-        for (let i = 0; i < offset; i++) calendar.append(node('span', 'calendar-spacer'));
         const buttons = [];
         let focusIndex = 0;
         for (let index = 0; index < count; index++) {
@@ -417,19 +435,7 @@ window.HistoryInsights = (() => {
             const outside =
                 (currentFilters.startDate && date < currentFilters.startDate) ||
                 (currentFilters.endDate && date > currentFilters.endDate);
-            if (dayDate.getUTCDate() === 1) {
-                const label = node(
-                    'span',
-                    '',
-                    new Intl.DateTimeFormat(undefined, { month: 'short', timeZone: 'UTC' }).format(
-                        dayDate,
-                    ),
-                );
-                label.style.gridColumn = `${Math.floor((offset + index) / 7) + 1} / span 3`;
-                label.style.gridRow = '1';
-                months.append(label);
-            }
-            const button = node('button', 'calendar-day');
+            const button = node('button', 'calendar-day', String(dayDate.getUTCDate()));
             button.type = 'button';
             button.dataset.date = date;
             button.dataset.level = outside
@@ -452,10 +458,10 @@ window.HistoryInsights = (() => {
             });
             button.addEventListener('keydown', (event) => {
                 const delta = {
-                    ArrowLeft: -7,
-                    ArrowRight: 7,
-                    ArrowUp: -1,
-                    ArrowDown: 1,
+                    ArrowLeft: -1,
+                    ArrowRight: 1,
+                    ArrowUp: -7,
+                    ArrowDown: 7,
                     Home: -index,
                     End: count - index - 1,
                 }[event.key];
@@ -468,8 +474,11 @@ window.HistoryInsights = (() => {
             });
             if (day) focusIndex = index;
             buttons.push(button);
-            calendar.append(button);
+            monthGrids[dayDate.getUTCMonth()].append(button);
         }
+        // Six rows keep adjacent months aligned, including leap years.
+        for (const grid of monthGrids)
+            while (grid.children.length < 42) grid.append(node('span', 'calendar-spacer'));
         if (buttons.length) buttons[focusIndex].tabIndex = 0;
         $('calendar-day-detail').replaceChildren(
             node(

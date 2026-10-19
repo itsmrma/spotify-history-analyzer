@@ -198,8 +198,8 @@ stays above -0.04em. Hero prose is limited to 70ch and help copy to 65ch.
 
 ## Layout
 
-The standard shell is capped at 1160px with 32px horizontal padding, reduced on
-small screens. Every tab shares this shell; switching tabs never changes its width.
+The standard shell uses the available viewport width with 32px horizontal padding,
+reduced on small screens. Every tab shares this shell; switching tabs never changes its width.
 Initial tab surfaces share a 560px minimum height, 32px insets (20px on small
 screens), and a left-aligned title and description separated by 12px. Surfaces
 grow naturally with results, optional fields or expanded help. Dashboard groups
@@ -208,9 +208,12 @@ Breakpoints at 900px and 600px progressively stack content. At 767px navigation
 moves into the existing side drawer; the theme toggle stays in the header.
 
 Keep the main overview visible. Put the six secondary personal records in an
-expandable group. The annual calendar scrolls inside its own labeled region:
-cells are 24px for precise pointers and 44px for coarse pointers. Keyboard arrow
-navigation remains available. Long track and artist names wrap within their field.
+expandable group. The annual calendar shows twelve plain month grids, reflowing
+from one to twelve columns with the panel's width, without horizontal scrolling.
+Day targets are at least 24px wide; touch rows are at least 44px tall. On narrow
+phones the seven columns share available space instead of forcing 44px widths.
+Arrow keys move by day horizontally and by week vertically, including across month
+boundaries. Long track and artist names wrap within their field.
 
 ## Elevation & Depth
 

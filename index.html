@@ -25,13 +25,13 @@
             type="font/otf"
             crossorigin
         />
-        <link rel="stylesheet" href="assets/css/style.css?v=12" />
+        <link rel="stylesheet" href="assets/css/style.css?v=13" />
         <script defer src="assets/vendor/jszip.min.js"></script>
         <script defer src="assets/vendor/chart.umd.min.js"></script>
         <script defer src="assets/js/analytics.js?v=8"></script>
         <script defer src="assets/js/date-fields.js?v=1"></script>
         <script defer src="assets/js/material-selects.js?v=1"></script>
-        <script defer src="assets/js/insights.js?v=9"></script>
+        <script defer src="assets/js/insights.js?v=10"></script>
         <script defer src="assets/js/history-explorer.js?v=4"></script>
         <script defer src="assets/js/mobile-navigation.js?v=1"></script>
         <script defer src="assets/js/app.js?v=12"></script>
@@ -374,30 +374,11 @@
                                     loaded data. Dates use UTC.
                                 </p>
                                 <div
-                                    class="calendar-scroll"
-                                    role="region"
-                                    aria-label="Listening activity calendar, scroll horizontally for the full year"
-                                    tabindex="0"
-                                >
-                                    <div
-                                        id="calendar-months"
-                                        class="calendar-months"
-                                        aria-hidden="true"
-                                    ></div>
-                                    <div class="calendar-body">
-                                        <div class="calendar-weekdays" aria-hidden="true">
-                                            <span>Mon</span><span></span><span>Wed</span
-                                            ><span></span><span>Fri</span><span></span
-                                            ><span>Sun</span>
-                                        </div>
-                                        <div
-                                            id="activity-calendar"
-                                            class="activity-calendar"
-                                            role="group"
-                                            aria-label="Daily listening activity"
-                                        ></div>
-                                    </div>
-                                </div>
+                                    id="activity-calendar"
+                                    class="activity-calendar"
+                                    role="group"
+                                    aria-label="Daily listening activity"
+                                ></div>
                                 <div class="calendar-legend">
                                     <span>Less</span><i data-level="0"></i><i data-level="1"></i
                                     ><i data-level="2"></i><i data-level="3"></i

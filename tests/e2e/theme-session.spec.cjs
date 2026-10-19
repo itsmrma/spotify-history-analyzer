@@ -111,6 +111,7 @@ for (const theme of ['light', 'dark']) {
         await page.screenshot({
             path: `test-results/${test.info().project.name}-${theme}-overview.png`,
             fullPage: true,
+            scale: 'css',
         });
         await switchTab(page, 'Scrobblers');
         await audit();

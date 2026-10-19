@@ -7,6 +7,7 @@ const tabNames = ['analyze', 'lb', 'explore'];
 const $ = (id) => document.getElementById(id);
 if (window.Chart) Chart.defaults.font.family = 'Inter, system-ui, sans-serif';
 let globalData = [];
+let previousData = null;
 let stats = null;
 let artistsChart = null;
 let importing = false;
@@ -71,7 +72,56 @@ function updateBusyControls() {
     $('scrobbler-source').disabled = busy;
     $('export-rankings-btn').disabled = busy || !stats?.totalPlays;
     $('file-upload').disabled = busy;
+    $('undo-history-btn').disabled = busy || previousData === null;
+    $('clear-history-btn').disabled = busy || !globalData.length;
+    $('history-actions').classList.toggle('hidden', !globalData.length && previousData === null);
 }
+
+function commitHistory(entries) {
+    const before = globalData;
+    globalData = entries;
+    try {
+        renderDashboard();
+        previousData = before;
+    } catch (error) {
+        globalData = before;
+        renderDashboard();
+        throw error;
+    }
+}
+
+function restoreHistoryView() {
+    if (!globalData.length) {
+        $('period-select').value = 'all';
+        $('ranking-metric').value = 'count';
+        $('custom-dates').classList.add('hidden');
+        for (const id of ['filter-start', 'filter-end']) {
+            $(id).value = '';
+            $(id).dispatchEvent(new Event('input'));
+        }
+    }
+    renderDashboard();
+    if (!globalData.length) stats = null;
+    $('dashboard').classList.toggle('hidden', !globalData.length);
+    $('upload-section').classList.toggle('hidden', Boolean(globalData.length));
+    updateBusyControls();
+    $(globalData.length ? 'add-files-btn' : 'choose-files-btn').focus({ preventScroll: true });
+}
+
+$('undo-history-btn').addEventListener('click', () => {
+    if (previousData === null || importing || lbController) return;
+    globalData = previousData;
+    previousData = null;
+    restoreHistoryView();
+    showMessage('Last history change undone.');
+});
+$('clear-history-btn').addEventListener('click', () => {
+    if (!globalData.length || importing || lbController) return;
+    previousData = globalData;
+    globalData = [];
+    restoreHistoryView();
+    showMessage('History cleared from this page. Use Undo last change to restore it.');
+});
 
 for (const id of ['choose-files-btn', 'add-files-btn'])
     $(id).addEventListener('click', () => $('file-upload').click());
@@ -99,6 +149,9 @@ async function handleFiles(fileList) {
     const files = Array.from(fileList);
     if (!files.length || importing || lbController) return;
     importing = true;
+    const restoreImportFocus = ['choose-files-btn', 'add-files-btn', 'file-upload'].includes(
+        document.activeElement.id,
+    );
     updateBusyControls();
     setTab('analyze');
     $('upload-section').classList.add('hidden');
@@ -159,8 +212,7 @@ async function handleFiles(fileList) {
             );
             return;
         }
-        globalData = merged.entries;
-        renderDashboard();
+        commitHistory(merged.entries);
         const details = [];
         if (merged.duplicates)
             details.push(`${merged.duplicates.toLocaleString()} duplicate plays ignored.`);
@@ -184,6 +236,8 @@ async function handleFiles(fileList) {
         $('dashboard').classList.toggle('hidden', !stats);
         $('upload-section').classList.toggle('hidden', Boolean(stats));
         updateBusyControls();
+        if (restoreImportFocus)
+            $(stats ? 'add-files-btn' : 'choose-files-btn').focus({ preventScroll: true });
     }
 }
 
@@ -251,7 +305,11 @@ function renderDashboard() {
     }
     if (!stats.streaks.length)
         streakList.append(
-            element('li', 'empty-state', 'No consecutive-day streaks yet. Keep the music going!'),
+            element(
+                'li',
+                'empty-state',
+                'No consecutive-day streaks in these files. Add more history or choose another period.',
+            ),
         );
     renderTopSongs();
     I.render(stats, filters);
@@ -327,7 +385,8 @@ function renderArtistsChart() {
                     data: top.map((artist) =>
                         I.getFilters().metric === 'ms' ? artist.ms / 3600000 : artist.count,
                     ),
-                    backgroundColor: top.map((_, index) => (index === 0 ? '#b4d9c2' : '#d0bcff')),
+                    backgroundColor: (context) =>
+                        window.AppTheme.colors()[context.dataIndex === 0 ? 'mint' : 'primary'],
                     borderRadius: 5,
                     maxBarThickness: 18,
                 },
@@ -345,25 +404,30 @@ function renderArtistsChart() {
                 : { duration: 400 },
             plugins: {
                 legend: { display: false },
-                tooltip: { backgroundColor: '#49454f', padding: 12 },
+                tooltip: {
+                    backgroundColor: () => window.AppTheme.colors()['tooltip-bg'],
+                    titleColor: () => window.AppTheme.colors()['tooltip-text'],
+                    bodyColor: () => window.AppTheme.colors()['tooltip-text'],
+                    padding: 12,
+                },
             },
             scales: {
                 x: {
                     beginAtZero: true,
-                    grid: { color: '#49454f' },
+                    grid: { color: () => window.AppTheme.colors().line },
                     border: { display: false },
                     ticks: {
-                        color: '#cac4d0',
+                        color: () => window.AppTheme.colors()['muted'],
                         precision: I.getFilters().metric === 'ms' ? 1 : 0,
-                        font: { size: 10 },
+                        font: { size: 14 },
                     },
                 },
                 y: {
                     grid: { display: false },
                     border: { display: false },
                     ticks: {
-                        color: '#e6e0e9',
-                        font: { size: 11 },
+                        color: () => window.AppTheme.colors()['text'],
+                        font: { size: 14 },
                         callback: function (value) {
                             const label = this.getLabelForValue(value);
                             return label.length > 22 ? `${label.slice(0, 21)}…` : label;
@@ -733,9 +797,8 @@ async function fetchScrobbler(integrate) {
                 showMessage('No music plays of at least 30 seconds were found.', 'warning');
                 return;
             }
-            globalData = merged.entries;
             setTab('analyze');
-            renderDashboard();
+            commitHistory(merged.entries);
             showMessage(
                 `${(globalData.length - previousCount).toLocaleString()} plays added from ${service}.${merged.duplicates ? ` ${merged.duplicates.toLocaleString()} duplicate plays ignored.` : ''}`,
             );

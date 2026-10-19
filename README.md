@@ -11,9 +11,13 @@ A personal project for viewing Spotify listening stats and adding listens from L
 3. Use **Add files** to combine additional exports. Exact duplicates with the same timestamp, artist and track are ignored. Records without valid timestamps remain countable but cannot be reliably deduplicated or used for streaks.
 4. Open **Scrobblers**, choose ListenBrainz, Last.fm or Maloja and the first missing day, then add listens to the dashboard or download a Spotify-compatible JSON file. ListenBrainz uses your public username; Last.fm also needs [your API key](https://www.last.fm/api/account/create); Maloja uses your server base URL and requires browser access (CORS). Use an HTTPS Maloja server when the app is hosted over HTTPS. You can also upload native JSON exports (ListenBrainz listens, Last.fm recent tracks or Maloja scrobbles) from **Your history**. These services can only fill dates they already recorded.
 
-Only music plays lasting at least 30 seconds count. Podcasts, short plays and malformed records are ignored. Dates and streaks use UTC. Date input fields always use `gg/mm/yyyy` (day/month/year), with a calendar shortcut. Known ListenBrainz and Maloja durations are used when available; missing durations are estimated at three minutes and marked `duration_estimated` in downloaded files. Choose a start date after your Spotify export to avoid overlapping history: Spotify and scrobblers may timestamp the same listen differently, so overlapping plays with different timestamps are not automatically matched.
+Only music plays lasting at least 30 seconds count. Podcasts, short plays and malformed records are ignored. Dates and streaks use UTC. Date input fields always use `dd/mm/yyyy` (day/month/year), with a calendar shortcut. Known ListenBrainz and Maloja durations are used when available; missing durations are estimated at three minutes and marked `duration_estimated` in downloaded files. Choose a start date after your Spotify export to avoid overlapping history: Spotify and scrobblers may timestamp the same listen differently, so overlapping plays with different timestamps are not automatically matched.
 
 Your history, filters and search results stay available when switching tabs. Mobile navigation uses an animated side drawer, opened with the menu button and closed after choosing a tab, tapping outside or pressing Escape. Animations respect reduced-motion preferences. All dropdowns use Material menus with keyboard and touch support. Invalid files and failed or cancelled downloads preserve the existing dashboard. Your data is held in memory for the current page session; refreshing clears it.
+
+The header theme toggle switches between light and dark. Initially the app follows your system preference; an explicit selection is saved locally. Switching theme updates existing charts without resetting your analysis. Only this display preference is persisted, never listening history or API keys. If browser storage is blocked, the toggle still works for the current session.
+
+Use **Undo last change** to reverse the latest successful import or scrobbler integration. **Clear history** starts an empty session and can itself be undone until the next history change. The header brand returns to the content without reloading. The upload panel includes Spotify export instructions and explains session privacy. Personal records are expandable; calendar days have larger pointer and touch targets.
 
 ## Analysis features
 
@@ -70,6 +74,7 @@ assets/
   js/material-selects.js    Material dropdown menus
   js/mobile-navigation.js  Animated mobile navigation drawer
   js/app.js                 Imports, navigation, rankings and scrobblers
+  js/theme.js               System-aware, persistent light/dark display preference
   vendor/                   Pinned libraries and their licenses
 scripts/
   serve.cjs                 Local development/test server
@@ -81,5 +86,7 @@ tests/
 ```
 
 The deprecated Python CLI scripts were removed: their features are covered by the web app. `.gitignore` excludes dependencies, generated reports, caches, logs, local configuration/secrets and personal listening archives or exported rankings. Store arbitrary personal JSON exports in `data/` or `exports/`, which are ignored; standard Spotify history filenames are also ignored. Code, tests, the package lockfile and runtime vendor assets remain versioned. The local server serves only the entry page and public assets.
+
+`PRODUCT.md` records the confirmed product context. `DESIGN.md` and `.impeccable/design.json` describe the implemented Material system and both palettes. The Impeccable review and verification evidence are recorded in `.impeccable/review.md`.
 
 This is an independent personal project and is not affiliated with Spotify, Last.fm, MetaBrainz/ListenBrainz or Maloja.

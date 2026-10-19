@@ -25,7 +25,7 @@
         const validate = () => {
             const iso = A.parseInputDate(input.value);
             let error = '';
-            if (input.value && !iso) error = 'Enter a valid date in gg/mm/yyyy format.';
+            if (input.value && !iso) error = 'Enter a valid date in dd/mm/yyyy format.';
             else if (iso && input.max && iso > input.max)
                 error = 'Choose a date on or before today.';
             input.setCustomValidity(error);

@@ -9,6 +9,7 @@
             content="A personal project for viewing Spotify listening stats and importing scrobbler history."
         />
         <title>Music History Analyzer</title>
+        <script src="assets/js/theme.js?v=1"></script>
         <link rel="icon" href="assets/icons/favicon.svg" type="image/svg+xml" />
         <link
             rel="preload"
@@ -24,38 +25,52 @@
             type="font/otf"
             crossorigin
         />
-        <link rel="stylesheet" href="assets/css/style.css?v=9" />
+        <link rel="stylesheet" href="assets/css/style.css?v=10" />
         <script defer src="assets/vendor/jszip.min.js"></script>
         <script defer src="assets/vendor/chart.umd.min.js"></script>
         <script defer src="assets/js/analytics.js?v=6"></script>
         <script defer src="assets/js/date-fields.js?v=1"></script>
         <script defer src="assets/js/material-selects.js?v=1"></script>
-        <script defer src="assets/js/insights.js?v=7"></script>
+        <script defer src="assets/js/insights.js?v=8"></script>
         <script defer src="assets/js/history-explorer.js?v=2"></script>
         <script defer src="assets/js/mobile-navigation.js?v=1"></script>
-        <script defer src="assets/js/app.js?v=9"></script>
+        <script defer src="assets/js/app.js?v=10"></script>
     </head>
     <body>
         <a class="skip-link" href="#main">Skip to content</a>
         <div class="app-shell">
             <header class="site-header">
-                <a class="brand" href="./" aria-label="Music History Analyzer home"
+                <a class="brand" href="#main" aria-label="Music History Analyzer home"
                     ><span class="brand-mark"
                         ><span class="material-icons-outlined icon" aria-hidden="true"
                             >graphic_eq</span
                         ></span
                     ><span>Music History<span class="brand-subtitle">ANALYZER</span></span></a
                 >
-                <button
-                    id="mobile-nav-toggle"
-                    type="button"
-                    class="mobile-nav-toggle"
-                    aria-label="Open navigation"
-                    aria-controls="mobile-nav-drawer"
-                    aria-expanded="false"
-                >
-                    <span class="material-icons-outlined icon" aria-hidden="true">menu</span>
-                </button>
+                <div class="header-actions">
+                    <button
+                        id="theme-toggle"
+                        class="theme-toggle"
+                        type="button"
+                        aria-label="Dark theme"
+                        aria-pressed="true"
+                    >
+                        <span class="material-icons-outlined icon" aria-hidden="true"
+                            >dark_mode</span
+                        >
+                        <span class="theme-label" aria-hidden="true">Dark</span>
+                    </button>
+                    <button
+                        id="mobile-nav-toggle"
+                        type="button"
+                        class="mobile-nav-toggle"
+                        aria-label="Open navigation"
+                        aria-controls="mobile-nav-drawer"
+                        aria-expanded="false"
+                    >
+                        <span class="material-icons-outlined icon" aria-hidden="true">menu</span>
+                    </button>
+                </div>
             </header>
             <main id="main">
                 <section class="hero" aria-labelledby="page-title">
@@ -118,6 +133,27 @@
                         aria-atomic="true"
                     ></div>
                     <section id="view-analyze" role="tabpanel" aria-labelledby="tab-analyze-btn">
+                        <div
+                            id="history-actions"
+                            class="history-actions hidden"
+                            aria-label="History session controls"
+                        >
+                            <button
+                                id="undo-history-btn"
+                                type="button"
+                                class="button button-secondary"
+                                disabled
+                            >
+                                Undo last change
+                            </button>
+                            <button
+                                id="clear-history-btn"
+                                type="button"
+                                class="button button-secondary"
+                            >
+                                Clear history
+                            </button>
+                        </div>
                         <div id="upload-section" class="upload-panel panel">
                             <div class="upload-art" aria-hidden="true">
                                 <span class="material-icons-outlined icon" aria-hidden="true"
@@ -139,6 +175,17 @@
                                     >arrow_forward</span
                                 >
                             </button>
+                            <p class="upload-help muted">
+                                Files stay in your browser. Refreshing clears your history.
+                            </p>
+                            <details class="upload-guide">
+                                <summary>Where do I get my Spotify history?</summary>
+                                <p>
+                                    In Spotify account privacy settings, request your Extended
+                                    Streaming History. When it is ready, import the ZIP here or
+                                    select the extracted JSON files.
+                                </p>
+                            </details>
                             <input
                                 type="file"
                                 id="file-upload"
@@ -203,7 +250,7 @@
                                             class="date-input"
                                             type="text"
                                             inputmode="numeric"
-                                            placeholder="gg/mm/yyyy"
+                                            placeholder="dd/mm/yyyy"
                                             pattern="[0-9]{2}/[0-9]{2}/[0-9]{4}"
                                             maxlength="10"
                                             autocomplete="off"
@@ -216,7 +263,7 @@
                                             class="date-input"
                                             type="text"
                                             inputmode="numeric"
-                                            placeholder="gg/mm/yyyy"
+                                            placeholder="dd/mm/yyyy"
                                             pattern="[0-9]{2}/[0-9]{2}/[0-9]{4}"
                                             maxlength="10"
                                             autocomplete="off"
@@ -271,7 +318,10 @@
                                 class="stats-grid"
                                 aria-label="Top artist, song and album"
                             ></section>
-                            <div id="listening-facts" class="facts-grid"></div>
+                            <details class="records-disclosure">
+                                <summary>Personal records and listening habits</summary>
+                                <div id="listening-facts" class="facts-grid"></div>
+                            </details>
                             <section id="listening-rhythm" class="panel insight-panel">
                                 <div class="section-heading">
                                     <div>
@@ -809,7 +859,7 @@
                                         class="date-input"
                                         type="text"
                                         inputmode="numeric"
-                                        placeholder="gg/mm/yyyy"
+                                        placeholder="dd/mm/yyyy"
                                         pattern="[0-9]{2}/[0-9]{2}/[0-9]{4}"
                                         maxlength="10"
                                         autocomplete="off"

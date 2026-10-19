@@ -1,0 +1,130 @@
+{
+    "schemaVersion": 2,
+    "generatedAt": "2026-10-19T15:55:08.408936+00:00",
+    "title": "Design System: Music History Analyzer",
+    "extensions": {
+        "shadows": [
+            {
+                "name": "menu",
+                "value": "0 8px 24px rgba(0, 0, 0, 0.3)",
+                "purpose": "Temporary menu elevation."
+            },
+            {
+                "name": "drawer",
+                "value": "8px 0 32px rgba(0, 0, 0, 0.3)",
+                "purpose": "Mobile navigation elevation."
+            }
+        ],
+        "motion": [
+            {
+                "name": "drawer",
+                "value": "240ms cubic-bezier(0.2, 0, 0, 1)",
+                "purpose": "Navigation drawer; removed for reduced motion."
+            }
+        ],
+        "breakpoints": [
+            {
+                "name": "600",
+                "value": "600px"
+            },
+            {
+                "name": "767",
+                "value": "767px"
+            },
+            {
+                "name": "900",
+                "value": "900px"
+            },
+            {
+                "name": "1200",
+                "value": "1200px"
+            }
+        ],
+        "typographyMeta": {
+            "icon": {
+                "displayName": "Material Icons Outlined",
+                "purpose": "Local icon font, not a text face; authored sizes 20, 24, 26, 32 and 40px."
+            },
+            "brand-caption": {
+                "displayName": "Brand caption",
+                "purpose": "12px wordmark descriptor; not used for functional metadata."
+            }
+        }
+    },
+    "components": [
+        {
+            "name": "Primary button",
+            "kind": "button",
+            "refersTo": "button-primary",
+            "description": "Main action with paired ink.",
+            "html": "<button class=\"ds-button ds-primary\">Choose files</button>",
+            "css": ".ds-button { display:inline-flex;align-items:center;min-height:48px;border:1px solid var(--outline);border-radius:100px;padding:12px 24px;font:600 .875rem Inter,system-ui,sans-serif;color:var(--primary);background:transparent;cursor:pointer; } .ds-button:hover { background:var(--state-hover); } .ds-button:focus-visible { outline:2px solid var(--primary);outline-offset:4px; } .ds-button:active { box-shadow:inset 0 0 0 100px var(--state-pressed); } .ds-primary { background:var(--primary);color:var(--primary-ink); } .ds-primary:hover { background:color-mix(in srgb,var(--primary),white 8%); }"
+        },
+        {
+            "name": "Secondary button",
+            "kind": "button",
+            "refersTo": "button-secondary",
+            "description": "Secondary session and export action.",
+            "html": "<button class=\"ds-button\">Undo last change</button>",
+            "css": ".ds-button { display:inline-flex;align-items:center;min-height:48px;border:1px solid var(--outline);border-radius:100px;padding:12px 24px;font:600 .875rem Inter,system-ui,sans-serif;color:var(--primary);background:transparent;cursor:pointer; } .ds-button:hover { background:var(--state-hover); } .ds-button:focus-visible { outline:2px solid var(--primary);outline-offset:4px; } .ds-button:active { box-shadow:inset 0 0 0 100px var(--state-pressed); }"
+        },
+        {
+            "name": "Outlined input",
+            "kind": "input",
+            "refersTo": "field",
+            "description": "Labeled outlined field.",
+            "html": "<label class=\"ds-field\">Artist<input placeholder=\"Search an artist\" /></label>",
+            "css": ".ds-field { display:grid;gap:8px;font: .875rem Inter,system-ui,sans-serif;color:var(--muted); } .ds-field input { min-height:56px;padding:14px 16px;border:1px solid var(--outline);border-radius:4px;color:var(--text);background:transparent;font:1rem Inter,system-ui,sans-serif; } .ds-field input:focus { outline:2px solid var(--primary);outline-offset:2px; }"
+        },
+        {
+            "name": "Navigation tab",
+            "kind": "nav",
+            "description": "Selected tab with underline.",
+            "html": "<button class=\"ds-tab\" aria-pressed=\"true\">Your history</button>",
+            "css": ".ds-tab { border:0;border-bottom:3px solid var(--primary);padding:16px 24px;min-height:56px;color:var(--primary);background:transparent;font:600 .875rem Inter,system-ui,sans-serif; } .ds-tab:hover { background:var(--state-hover); } .ds-tab:focus-visible { outline:2px solid var(--primary);outline-offset:4px; }"
+        },
+        {
+            "name": "Panel",
+            "kind": "card",
+            "refersTo": "panel",
+            "description": "Tonal outlined data surface.",
+            "html": "<article class=\"ds-panel\">Listening overview</article>",
+            "css": ".ds-panel { padding:26px;border:1px solid var(--line);border-radius:16px;background:var(--surface);color:var(--text);font:500 1.3rem Inter,system-ui,sans-serif; }"
+        },
+        {
+            "name": "Activity day",
+            "kind": "custom",
+            "description": "Keyboard and touch accessible listening activity.",
+            "html": "<button class=\"ds-day\" aria-label=\"1 March 2026, 4 plays\"></button>",
+            "css": ".ds-day { width:44px;height:44px;border:0;border-radius:3px;background:var(--calendar-3);cursor:pointer; } .ds-day:hover,.ds-day:focus-visible { outline:2px solid var(--primary);outline-offset:2px; }"
+        }
+    ],
+    "narrative": {
+        "northStar": "Taccuino d'ascolto",
+        "overview": "A calm, readable listening notebook. The owner confirmed this description and the\nexisting Material Design 3 identity. Preserve local Inter, lavender accents, tonal\nsurfaces and clear controls while helping people understand their own music data.",
+        "keyCharacteristics": [
+            "Quiet tonal depth, clear focus and restrained color.",
+            "Consistent controls for file import, analysis and history search.",
+            "Light and dark variants with the same hierarchy and behavior."
+        ],
+        "rules": [
+            {
+                "name": "The Paired Ink Rule",
+                "body": "Every colored control uses its corresponding foreground token. Canvas marks, ticks, grids, fills and tooltips must change with the theme.",
+                "section": "colors"
+            }
+        ],
+        "dos": [
+            "Do preserve the Material Design 3 identity and local font/icon delivery.",
+            "Do pair semantic colors with text labels and accessible states.",
+            "Do verify imports, errors, both themes and narrow layouts with real rendered output.",
+            "Do preserve data, filter state and calendar selection when switching theme or tabs."
+        ],
+        "donts": [
+            "Don't persist listening history or API keys with the theme preference.",
+            "Don't reset the session through the brand link or a failed import.",
+            "Don't hardcode canvas colors or use tiny text for essential supporting information.",
+            "Don't infer lifetime behavior from gaps or first appearances in imported files."
+        ]
+    }
+}

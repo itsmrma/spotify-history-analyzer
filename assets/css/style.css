@@ -30,6 +30,40 @@
     --radius: 16px;
     --state-hover: rgba(230, 224, 233, 0.08);
     --state-pressed: rgba(230, 224, 233, 0.12);
+    --divider: rgba(167, 171, 192, 0.12);
+    --mint-ink: #163e32;
+    --mint-container: #263a33;
+    --info-container: #303847;
+    --success-line: #51675c;
+    --success-bg: #1c3029;
+    --success-text: #c3eedb;
+    --error-bg: #38232d;
+    --error-line: #724857;
+    --error-text: #ffc2cb;
+    --warning-bg: #322d24;
+    --warning-line: #695c41;
+    --warning-text: #f5ddb3;
+    --scrollbar: #9384b0;
+    --row-hover: rgba(199, 184, 255, 0.035);
+    --loader-track: #423b56;
+    --scrobbler: #ffc28f;
+    --scrobbler-ink: #42230d;
+    --scrobbler-container: #5f3c22;
+    --on-scrobbler-container: #ffdcc2;
+    --scrobbler-mark: #3c2c22;
+    --scrobbler-hover: #ffd3ad;
+    --scrobbler-track: #65452f;
+    --calendar-empty: #303447;
+    --calendar-1: #38574d;
+    --calendar-2: #538c73;
+    --calendar-3: #75b595;
+    --calendar-4: #a8e5cb;
+    --calendar-outside: #242633;
+    --badge-bg: #2d2840;
+    --chart-fill: rgba(208, 188, 255, 0.1);
+    --tooltip-bg: #49454f;
+    --tooltip-text: #ffffff;
+    --calendar-cell: 24px;
     font-family:
         Inter,
         'Segoe UI',
@@ -37,6 +71,56 @@
         -apple-system,
         sans-serif;
     font-synthesis: none;
+}
+:root[data-theme='light'] {
+    color-scheme: light;
+    --bg: #fdf7ff;
+    --surface: #f7f2fa;
+    --surface-raised: #ece6f0;
+    --line: #cac4d0;
+    --text: #1d1b20;
+    --muted: #49454f;
+    --primary: #6750a4;
+    --primary-ink: #ffffff;
+    --mint: #28634c;
+    --outline: #79747e;
+    --primary-container: #eaddff;
+    --on-primary-container: #21005d;
+    --state-hover: rgba(29, 27, 32, 0.08);
+    --state-pressed: rgba(29, 27, 32, 0.12);
+    --divider: rgba(73, 69, 79, 0.2);
+    --mint-ink: #ffffff;
+    --mint-container: #ccebd9;
+    --info-container: #e0e5f2;
+    --success-line: #608773;
+    --success-bg: #d5eddf;
+    --success-text: #123c29;
+    --error-bg: #ffdadf;
+    --error-line: #a94c60;
+    --error-text: #7d1830;
+    --warning-bg: #ffedcf;
+    --warning-line: #92703b;
+    --warning-text: #61430f;
+    --scrollbar: #786993;
+    --row-hover: rgba(103, 80, 164, 0.06);
+    --loader-track: #ded4ed;
+    --scrobbler: #875021;
+    --scrobbler-ink: #ffffff;
+    --scrobbler-container: #ffdcc2;
+    --on-scrobbler-container: #311300;
+    --scrobbler-mark: #ffebdc;
+    --scrobbler-hover: #77431a;
+    --scrobbler-track: #e9c7aa;
+    --calendar-empty: #ded9e5;
+    --calendar-1: #c3e2d0;
+    --calendar-2: #83b99c;
+    --calendar-3: #438264;
+    --calendar-4: #1b5b3e;
+    --calendar-outside: #efeaf3;
+    --badge-bg: #eaddff;
+    --chart-fill: rgba(103, 80, 164, 0.12);
+    --tooltip-bg: #322f38;
+    --tooltip-text: #ffffff;
 }
 * {
     box-sizing: border-box;
@@ -46,6 +130,14 @@ body {
     background: var(--bg);
     color: var(--text);
     line-height: 1.6;
+    scrollbar-color: var(--scrollbar) var(--surface);
+}
+::selection {
+    color: var(--on-primary-container);
+    background: var(--primary-container);
+}
+input {
+    caret-color: var(--primary);
 }
 button,
 input,
@@ -62,7 +154,7 @@ button {
     cursor: pointer;
 }
 button:disabled {
-    cursor: wait;
+    cursor: not-allowed;
     opacity: 0.55;
 }
 a {
@@ -207,22 +299,62 @@ ol {
     align-items: center;
     justify-content: space-between;
     padding: 28px 0;
-    border-bottom: 1px solid rgba(167, 171, 192, 0.12);
+    border-bottom: 1px solid var(--divider);
     gap: 16px;
+}
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+}
+.theme-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-width: 48px;
+    min-height: 48px;
+    padding: 10px 14px;
+    border: 1px solid var(--outline);
+    border-radius: 100px;
+    color: var(--primary);
+    background: transparent;
+    font-size: 0.875rem;
+}
+.theme-toggle:hover {
+    background: var(--state-hover);
+}
+.theme-toggle:active {
+    background: var(--state-pressed);
+}
+@media (max-width: 600px) {
+    .theme-label {
+        display: none;
+    }
+    .theme-toggle {
+        padding: 10px;
+    }
 }
 .brand {
     display: flex;
+    min-width: 0;
     gap: 12px;
     align-items: center;
     line-height: 1.3;
     font-size: 0.95rem;
     font-weight: 650;
 }
+.brand > span:last-child {
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
 .brand-mark {
     display: grid;
     place-items: center;
     width: 42px;
     height: 42px;
+    flex-shrink: 0;
     background: var(--primary-container);
     color: var(--on-primary-container);
     border-radius: 12px;
@@ -235,7 +367,7 @@ ol {
 .brand-subtitle {
     display: block;
     color: var(--muted);
-    font-size: 0.6rem;
+    font-size: 0.75rem;
     letter-spacing: 0.2em;
     margin-top: 3px;
 }
@@ -254,6 +386,8 @@ ol {
     margin-top: 24px;
     font-size: 1rem;
     line-height: 1.8;
+    max-width: 70ch;
+    margin-inline: auto;
 }
 .workspace {
     min-width: 0;
@@ -467,10 +601,10 @@ ol {
     right: -3px;
     bottom: 0;
     background: var(--mint);
-    color: #163e32;
+    color: var(--mint-ink);
     padding: 3px 10px;
     border-radius: 7px;
-    font-size: 0.65rem;
+    font-size: 0.875rem;
     font-weight: 700;
     letter-spacing: 0.06em;
 }
@@ -525,35 +659,53 @@ ol {
 .upload-panel .button {
     margin-top: 26px;
 }
+.upload-help,
+.upload-guide {
+    margin-top: 18px;
+    font-size: 0.875rem;
+    max-width: 65ch;
+}
+.upload-guide summary {
+    color: var(--primary);
+    cursor: pointer;
+    min-height: 44px;
+    padding: 10px 0;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+.upload-guide p {
+    margin-top: 8px;
+    color: var(--muted);
+}
 footer {
     margin-top: 32px;
     display: flex;
     justify-content: space-between;
     gap: 20px;
     padding: 22px 0 30px;
-    border-top: 1px solid rgba(167, 171, 192, 0.12);
-    font-size: 0.65rem;
+    border-top: 1px solid var(--divider);
+    font-size: 0.875rem;
     color: var(--muted);
 }
 .message {
     padding: 14px 18px;
-    border: 1px solid #51675c;
+    border: 1px solid var(--success-line);
     border-radius: 12px;
-    background: #1c3029;
-    color: #c3eedb;
-    font-size: 0.85rem;
+    background: var(--success-bg);
+    color: var(--success-text);
+    font-size: 0.875rem;
     margin: 0 0 20px;
     overflow-wrap: anywhere;
 }
 .message[data-kind='error'] {
-    background: #38232d;
-    border-color: #724857;
-    color: #ffc2cb;
+    background: var(--error-bg);
+    border-color: var(--error-line);
+    color: var(--error-text);
 }
 .message[data-kind='warning'] {
-    background: #322d24;
-    border-color: #695c41;
-    color: #f5ddb3;
+    background: var(--warning-bg);
+    border-color: var(--warning-line);
+    color: var(--warning-text);
 }
 .dashboard {
     display: grid;
@@ -566,8 +718,25 @@ footer {
     gap: 20px;
     padding: 4px 0;
 }
+.history-actions {
+    display: flex;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+.records-disclosure > summary {
+    cursor: pointer;
+    padding: 12px 0;
+    min-height: 48px;
+    color: var(--primary);
+    font-weight: 600;
+}
+.records-disclosure[open] > summary {
+    margin-bottom: 12px;
+}
 .dashboard-heading .muted {
-    font-size: 0.8rem;
+    font-size: 0.875rem;
     margin-top: 8px;
 }
 .stats-grid {
@@ -586,14 +755,14 @@ footer {
 }
 .stat-label {
     text-transform: uppercase;
-    font-size: 0.65rem;
+    font-size: 0.875rem;
     font-weight: 650;
     letter-spacing: 0.12em;
     color: var(--muted);
 }
 .stat-card strong {
     font-size: clamp(1.8rem, 3.5vw, 2.5rem);
-    letter-spacing: -0.05em;
+    letter-spacing: -0.03em;
     line-height: 1.3;
     color: var(--primary);
     margin: 12px 0 8px;
@@ -605,7 +774,7 @@ footer {
 }
 .stat-caption {
     color: var(--muted);
-    font-size: 0.7rem;
+    font-size: 0.875rem;
     overflow-wrap: anywhere;
 }
 .insights-grid {
@@ -636,13 +805,13 @@ footer {
 .streak-symbol {
     display: grid;
     place-items: center;
-    background: #263a33;
+    background: var(--mint-container);
     color: var(--mint);
     font-size: 24px;
     padding: 0;
 }
 .section-description {
-    font-size: 0.75rem;
+    font-size: 0.875rem;
     margin-top: -10px;
     margin-bottom: 18px;
 }
@@ -650,6 +819,9 @@ footer {
     position: relative;
     height: 316px;
     min-width: 0;
+}
+canvas {
+    max-width: 100%;
 }
 .streak-list {
     display: grid;
@@ -669,10 +841,10 @@ footer {
     width: 28px;
     height: 28px;
     border-radius: 8px;
-    background: #303847;
+    background: var(--info-container);
     color: var(--mint);
     flex-shrink: 0;
-    font-size: 0.75rem;
+    font-size: 0.875rem;
     font-weight: 650;
 }
 .streak-info {
@@ -681,13 +853,13 @@ footer {
 }
 .streak-name {
     display: block;
-    font-size: 0.85rem;
+    font-size: 0.875rem;
     font-weight: 600;
     overflow-wrap: anywhere;
 }
 .streak-dates {
     display: block;
-    font-size: 0.65rem;
+    font-size: 0.875rem;
     color: var(--muted);
 }
 .streak-length {
@@ -698,43 +870,43 @@ footer {
 }
 .streak-length small {
     font-weight: 400;
-    font-size: 0.65rem;
+    font-size: 0.875rem;
 }
 .empty-state {
     padding: 36px 16px;
     text-align: center;
     color: var(--muted);
-    font-size: 0.85rem;
+    font-size: 0.875rem;
 }
 .limit-label {
     display: flex;
     align-items: center;
     gap: 8px;
     color: var(--muted);
-    font-size: 0.75rem;
+    font-size: 0.875rem;
     flex-shrink: 0;
 }
 .limit-label select {
     width: auto;
     min-height: 48px;
     padding: 8px 12px;
-    font-size: 0.75rem;
+    font-size: 0.875rem;
 }
 .table-scroll {
     overflow-x: auto;
     border: 1px solid var(--line);
     border-radius: 12px;
-    scrollbar-color: #60547d var(--surface);
+    scrollbar-color: var(--scrollbar) var(--surface);
     scrollbar-width: thin;
 }
 table {
     width: 100%;
     border-collapse: collapse;
     text-align: left;
-    font-size: 0.8rem;
+    font-size: 0.875rem;
 }
 th {
-    font-size: 0.65rem;
+    font-size: 0.875rem;
     letter-spacing: 0.08em;
     text-transform: uppercase;
     color: var(--muted);
@@ -776,11 +948,11 @@ td:first-child {
     font-weight: 650;
 }
 tbody tr:hover {
-    background: rgba(199, 184, 255, 0.035);
+    background: var(--row-hover);
 }
 .search-panel > .muted,
 .search-panel > div > .muted {
-    font-size: 0.85rem;
+    font-size: 0.875rem;
     margin-top: 10px;
 }
 .search-form {
@@ -890,7 +1062,7 @@ tbody tr:hover {
 .limit-label .material-select-trigger {
     min-height: 48px;
     padding: 8px 12px;
-    font-size: 0.75rem;
+    font-size: 0.875rem;
     gap: 8px;
 }
 .history-suggestions {
@@ -914,10 +1086,10 @@ tbody tr:hover {
     min-height: 48px;
     overflow-wrap: anywhere;
     cursor: pointer;
-    font-size: 0.85rem;
+    font-size: 0.875rem;
 }
 .history-suggestion span {
-    font-size: 0.75rem;
+    font-size: 0.875rem;
 }
 .history-suggestion:hover,
 .history-suggestion[aria-selected='true'] {
@@ -981,7 +1153,7 @@ tbody tr:hover {
 }
 .history-metadata {
     margin: 12px 0 0;
-    font-size: 0.7rem;
+    font-size: 0.875rem;
 }
 .history-metadata dt {
     color: var(--muted);
@@ -997,7 +1169,7 @@ tbody tr:hover {
     margin-top: 20px;
 }
 .history-pagination p {
-    font-size: 0.75rem;
+    font-size: 0.875rem;
     text-align: center;
 }
 @media (max-width: 900px) {
@@ -1044,7 +1216,7 @@ tbody tr:hover {
     }
 }
 .artist-results > p {
-    font-size: 0.8rem;
+    font-size: 0.875rem;
     margin-top: 8px;
 }
 .artist-songs {
@@ -1059,7 +1231,7 @@ tbody tr:hover {
     background: var(--surface-raised);
     padding: 12px 16px;
     border-radius: 10px;
-    font-size: 0.8rem;
+    font-size: 0.875rem;
 }
 .artist-song-name {
     min-width: 0;
@@ -1071,7 +1243,7 @@ tbody tr:hover {
 }
 #search-message {
     margin-top: 18px;
-    font-size: 0.85rem;
+    font-size: 0.875rem;
 }
 .lb-panel {
     padding: 40px;
@@ -1098,7 +1270,7 @@ tbody tr:hover {
     font-size: 32px;
 }
 .lb-intro > .muted {
-    font-size: 0.85rem;
+    font-size: 0.875rem;
     margin: 16px auto 0;
     max-width: 580px;
 }
@@ -1121,7 +1293,7 @@ tbody tr:hover {
     padding: 0 4px;
     background: var(--surface);
     color: var(--muted);
-    font-size: 0.75rem;
+    font-size: 0.875rem;
     line-height: 16px;
     font-weight: 500;
 }
@@ -1170,7 +1342,7 @@ tbody tr:hover {
     align-items: start;
 }
 .form-help {
-    font-size: 0.75rem;
+    font-size: 0.875rem;
     margin: 16px 0 24px;
 }
 .form-actions {
@@ -1187,7 +1359,7 @@ tbody tr:hover {
     align-items: center;
     gap: 16px;
     margin-top: 24px;
-    font-size: 0.8rem;
+    font-size: 0.875rem;
 }
 .loading-panel {
     display: flex;
@@ -1198,14 +1370,14 @@ tbody tr:hover {
     gap: 20px;
 }
 .loading-panel .muted {
-    font-size: 0.85rem;
+    font-size: 0.875rem;
 }
 .loader {
     display: block;
     flex-shrink: 0;
     width: 32px;
     height: 32px;
-    border: 3px solid #423b56;
+    border: 3px solid var(--loader-track);
     border-top-color: var(--primary);
     border-radius: 50%;
     animation: spin 0.8s linear infinite;
@@ -1259,7 +1431,7 @@ tbody tr:hover {
     .tab {
         flex: 1;
         padding: 10px 8px;
-        font-size: 0.8rem;
+        font-size: 0.875rem;
         flex-direction: column;
         gap: 4px;
     }
@@ -1277,7 +1449,7 @@ tbody tr:hover {
         padding: 32px 18px 26px;
     }
     .upload-description {
-        font-size: 0.8rem;
+        font-size: 0.875rem;
     }
     .upload-art {
         margin-bottom: 20px;
@@ -1346,7 +1518,7 @@ tbody tr:hover {
         height: 24px;
     }
     .streak-dates {
-        font-size: 0.6rem;
+        font-size: 0.875rem;
     }
     .streak-length {
         font-size: 0.9rem;
@@ -1381,7 +1553,7 @@ tbody tr:hover {
     footer {
         flex-direction: column;
         gap: 6px;
-        font-size: 0.6rem;
+        font-size: 0.875rem;
     }
     .artist-song {
         padding: 12px;
@@ -1390,27 +1562,27 @@ tbody tr:hover {
 }
 /* ListenBrainz keeps its own orange accent within the shared component system. */
 #tab-lb-btn.is-active {
-    color: #ffc28f;
+    color: var(--scrobbler);
 }
 .lb-panel {
-    --primary: #ffc28f;
-    --primary-ink: #42230d;
-    --primary-container: #5f3c22;
-    --on-primary-container: #ffdcc2;
+    --primary: var(--scrobbler);
+    --primary-ink: var(--scrobbler-ink);
+    --primary-container: var(--scrobbler-container);
+    --on-primary-container: var(--on-scrobbler-container);
 }
 .lb-mark {
-    background: #3c2c22;
-    color: #ffc28f;
+    background: var(--scrobbler-mark);
+    color: var(--scrobbler);
 }
 .lb-panel .button-primary:hover:not(:disabled) {
-    background: #ffd3ad;
+    background: var(--scrobbler-hover);
 }
 .lb-panel .loader {
-    border-color: #65452f;
-    border-top-color: #ffc28f;
+    border-color: var(--scrobbler-track);
+    border-top-color: var(--scrobbler);
 }
 .lb-panel :focus-visible {
-    outline-color: #ffc28f;
+    outline-color: var(--scrobbler);
 }
 .filter-panel {
     padding: 20px 24px;
@@ -1429,11 +1601,11 @@ tbody tr:hover {
     white-space: nowrap;
 }
 .filter-note {
-    font-size: 0.75rem;
+    font-size: 0.875rem;
     margin-top: 14px;
 }
 .filter-error {
-    color: #ffc2cb;
+    color: var(--error-text);
 }
 .custom-dates {
     display: grid;
@@ -1453,12 +1625,12 @@ tbody tr:hover {
 .analysis-links a {
     display: inline-flex;
     align-items: center;
-    min-height: 40px;
+    min-height: 44px;
     padding: 8px 14px;
     border: 1px solid var(--line);
     border-radius: 30px;
     color: var(--muted);
-    font-size: 0.75rem;
+    font-size: 0.875rem;
 }
 .analysis-links a:hover {
     color: var(--primary);
@@ -1487,14 +1659,14 @@ tbody tr:hover {
     overflow-wrap: anywhere;
 }
 .fact-card .stat-label {
-    font-size: 0.6rem;
+    font-size: 0.875rem;
     min-height: 20px;
 }
 .fact-card .stat-caption {
     line-height: 1.5;
 }
 .small-copy {
-    font-size: 0.75rem;
+    font-size: 0.875rem;
     text-align: right;
 }
 .trend-chart {
@@ -1513,14 +1685,14 @@ tbody tr:hover {
     gap: 8px 24px;
     margin-top: 20px;
     color: var(--muted);
-    font-size: 0.75rem;
+    font-size: 0.875rem;
 }
 .timeline-highlights span {
     padding-left: 12px;
     border-left: 2px solid var(--primary);
 }
 .chart-fallback {
-    font-size: 0.8rem;
+    font-size: 0.875rem;
     color: var(--muted);
     max-height: 260px;
     overflow: auto;
@@ -1528,14 +1700,14 @@ tbody tr:hover {
 .calendar-scroll {
     overflow-x: auto;
     scrollbar-width: thin;
-    scrollbar-color: #60547d var(--surface);
+    scrollbar-color: var(--scrollbar) var(--surface);
     padding: 6px;
     margin: 0 -6px;
 }
 .calendar-months {
     display: grid;
     gap: 3px;
-    font-size: 0.6rem;
+    font-size: 0.875rem;
     color: var(--muted);
     margin-left: 37px;
     margin-bottom: 8px;
@@ -1551,48 +1723,48 @@ tbody tr:hover {
 }
 .calendar-weekdays {
     display: grid;
-    grid-template-rows: repeat(7, 13px);
+    grid-template-rows: repeat(7, var(--calendar-cell));
     gap: 3px;
     flex-shrink: 0;
     width: 29px;
-    font-size: 0.55rem;
+    font-size: 0.875rem;
     color: var(--muted);
-    line-height: 13px;
+    line-height: var(--calendar-cell);
 }
 .activity-calendar {
     display: grid;
     grid-auto-flow: column;
-    grid-template-rows: repeat(7, 13px);
+    grid-template-rows: repeat(7, var(--calendar-cell));
     gap: 3px;
     width: max-content;
 }
 .calendar-day {
-    width: 13px;
-    height: 13px;
+    width: var(--calendar-cell);
+    height: var(--calendar-cell);
     min-height: 0;
     border: 0;
     padding: 0;
     border-radius: 3px;
-    background: #303447;
+    background: var(--calendar-empty);
 }
 .calendar-day[data-level='1'],
 .calendar-legend i[data-level='1'] {
-    background: #38574d;
+    background: var(--calendar-1);
 }
 .calendar-day[data-level='2'],
 .calendar-legend i[data-level='2'] {
-    background: #538c73;
+    background: var(--calendar-2);
 }
 .calendar-day[data-level='3'],
 .calendar-legend i[data-level='3'] {
-    background: #75b595;
+    background: var(--calendar-3);
 }
 .calendar-day[data-level='4'],
 .calendar-legend i[data-level='4'] {
-    background: #a8e5cb;
+    background: var(--calendar-4);
 }
 .calendar-day[data-level='outside'] {
-    background: #242633;
+    background: var(--calendar-outside);
 }
 .calendar-day:hover,
 .calendar-day.is-selected {
@@ -1604,7 +1776,7 @@ tbody tr:hover {
     align-items: center;
     justify-content: flex-end;
     margin-top: 16px;
-    font-size: 0.6rem;
+    font-size: 0.875rem;
     color: var(--muted);
 }
 .calendar-legend i {
@@ -1612,7 +1784,7 @@ tbody tr:hover {
     width: 13px;
     height: 13px;
     border-radius: 3px;
-    background: #303447;
+    background: var(--calendar-empty);
 }
 .calendar-legend span {
     margin: 0 4px;
@@ -1622,14 +1794,14 @@ tbody tr:hover {
     margin-top: 18px;
     padding-top: 18px;
     min-height: 68px;
-    font-size: 0.8rem;
+    font-size: 0.875rem;
     overflow-wrap: anywhere;
 }
 .day-detail strong {
     color: var(--mint);
 }
 .day-detail p {
-    font-size: 0.75rem;
+    font-size: 0.875rem;
     margin-top: 6px;
 }
 .day-songs {
@@ -1637,7 +1809,7 @@ tbody tr:hover {
     gap: 6px;
     margin-top: 12px;
     color: var(--muted);
-    font-size: 0.75rem;
+    font-size: 0.875rem;
 }
 .ranked-list {
     display: grid;
@@ -1650,7 +1822,7 @@ tbody tr:hover {
     padding: 12px 0;
     border-bottom: 1px solid var(--line);
     min-width: 0;
-    font-size: 0.8rem;
+    font-size: 0.875rem;
 }
 .ranked-item:last-child {
     border-bottom: 0;
@@ -1665,22 +1837,22 @@ tbody tr:hover {
     overflow-wrap: anywhere;
 }
 .ranked-info span {
-    font-size: 0.7rem;
+    font-size: 0.875rem;
     margin-top: 4px;
 }
 .ranked-value {
     color: var(--primary);
-    font-size: 0.75rem;
+    font-size: 0.875rem;
     flex-shrink: 0;
     white-space: nowrap;
 }
 .count-badge {
     display: inline-flex;
     padding: 4px 10px;
-    background: #2d2840;
+    background: var(--badge-bg);
     color: var(--primary);
     border-radius: 8px;
-    font-size: 0.75rem;
+    font-size: 0.875rem;
 }
 .discovery-link {
     flex: 1;
@@ -1690,14 +1862,14 @@ tbody tr:hover {
     color: var(--text);
     text-align: left;
     padding: 0;
-    font-size: 0.8rem;
+    font-size: 0.875rem;
     overflow-wrap: anywhere;
 }
 .discovery-link:hover {
     color: var(--primary);
 }
 .discovery-date {
-    font-size: 0.65rem;
+    font-size: 0.875rem;
     flex-shrink: 0;
 }
 .year-recaps {
@@ -1710,26 +1882,26 @@ tbody tr:hover {
     border-radius: 14px;
     background: var(--surface-raised);
     min-width: 0;
-    font-size: 0.8rem;
+    font-size: 0.875rem;
 }
 .year-card p {
     overflow-wrap: anywhere;
     margin-top: 8px;
 }
 .year-card .muted {
-    font-size: 0.7rem;
+    font-size: 0.875rem;
 }
 .year-number {
     font-size: 1.75rem;
     color: var(--primary);
     line-height: 1.2;
-    letter-spacing: -0.05em;
+    letter-spacing: -0.03em;
 }
 .year-link {
     border: 0;
     background: transparent;
     color: var(--mint);
-    font-size: 0.75rem;
+    font-size: 0.875rem;
     text-align: left;
     padding: 12px 0 0;
     margin-top: 6px;
@@ -1742,7 +1914,7 @@ tbody tr:hover {
     display: grid;
     grid-template-columns: minmax(80px, 1fr) minmax(0, 1.4fr);
     gap: 4px 16px;
-    font-size: 0.75rem;
+    font-size: 0.875rem;
     min-width: 0;
 }
 .habit-item > span {
@@ -1754,7 +1926,7 @@ tbody tr:hover {
 }
 .habit-item small {
     grid-column: 2;
-    font-size: 0.65rem;
+    font-size: 0.875rem;
     overflow-wrap: anywhere;
 }
 .platform-list {
@@ -1765,7 +1937,7 @@ tbody tr:hover {
     display: flex;
     justify-content: space-between;
     gap: 12px;
-    font-size: 0.7rem;
+    font-size: 0.875rem;
 }
 .platform-label > span:first-child {
     min-width: 0;
@@ -1795,7 +1967,7 @@ tbody tr:hover {
     gap: 12px;
 }
 .songs-tools .button {
-    font-size: 0.75rem;
+    font-size: 0.875rem;
     padding: 8px 12px;
 }
 .artist-picker {
@@ -1806,10 +1978,10 @@ tbody tr:hover {
 }
 .artist-link {
     display: block;
-    font-size: 0.65rem;
+    font-size: 0.875rem;
     margin: 0;
     padding: 6px 10px;
-    min-height: 32px;
+    min-height: 44px;
     border: 1px solid var(--line);
     color: var(--muted);
     width: auto;
@@ -1828,7 +2000,7 @@ tbody tr:hover {
     gap: 8px 18px;
     margin: 18px 0;
     color: var(--muted);
-    font-size: 0.75rem;
+    font-size: 0.875rem;
     overflow-wrap: anywhere;
 }
 #overview-stats,
@@ -1854,14 +2026,14 @@ tbody tr:hover {
     .filter-controls .button {
         grid-column: 1/-1;
         justify-self: start;
-        min-height: 40px;
+        min-height: 44px;
         padding: 8px 12px;
     }
     .filter-controls .field label {
-        font-size: 0.7rem;
+        font-size: 0.875rem;
     }
     .filter-controls select {
-        font-size: 0.75rem;
+        font-size: 0.875rem;
         padding: 10px;
     }
     .custom-dates {
@@ -1881,20 +2053,20 @@ tbody tr:hover {
         font-size: 1.15rem;
     }
     .fact-card .stat-label {
-        font-size: 0.55rem;
+        font-size: 0.875rem;
         min-height: 28px;
     }
     .fact-card .stat-caption {
-        font-size: 0.65rem;
+        font-size: 0.875rem;
     }
     .analysis-links a {
-        font-size: 0.65rem;
+        font-size: 0.875rem;
         padding: 6px 12px;
     }
     .timeline-highlights {
         flex-direction: column;
         gap: 10px;
-        font-size: 0.7rem;
+        font-size: 0.875rem;
     }
     .trend-chart {
         height: 220px;
@@ -1912,10 +2084,10 @@ tbody tr:hover {
         gap: 8px;
     }
     .ranked-value {
-        font-size: 0.65rem;
+        font-size: 0.875rem;
     }
     .discovery-date {
-        font-size: 0.6rem;
+        font-size: 0.875rem;
     }
     .platform-label {
         flex-wrap: wrap;
@@ -1936,7 +2108,7 @@ tbody tr:hover {
         max-width: 135px;
     }
     .small-copy {
-        font-size: 0.65rem;
+        font-size: 0.875rem;
     }
     .habit-item {
         gap: 4px 10px;
@@ -1949,9 +2121,28 @@ tbody tr:hover {
     *,
     *::before,
     *::after {
-        animation-duration: 0.01ms !important;
-        animation-iteration-count: 1 !important;
+        animation: none !important;
         transition: none !important;
         scroll-behavior: auto !important;
+    }
+}
+
+@media (pointer: coarse) {
+    :root {
+        --calendar-cell: 44px;
+    }
+}
+
+@media (max-width: 767px) {
+    input,
+    .history-type-trigger {
+        font-size: 1rem;
+    }
+    #overview-stats,
+    #listening-rhythm,
+    #library-insights,
+    #top-songs-section,
+    #artist-explorer {
+        scroll-margin-top: 112px;
     }
 }

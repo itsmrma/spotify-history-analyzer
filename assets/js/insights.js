@@ -267,9 +267,11 @@ window.HistoryInsights = (() => {
                     {
                         label: units === 'hours' ? 'Hours' : 'Plays',
                         data: values,
-                        borderColor: '#d0bcff',
-                        backgroundColor:
-                            options.type === 'line' ? 'rgba(208,188,255,.1)' : '#b4d9c2',
+                        borderColor: () => window.AppTheme.colors().primary,
+                        backgroundColor: () =>
+                            options.type === 'line'
+                                ? window.AppTheme.colors()['chart-fill']
+                                : window.AppTheme.colors()['mint'],
                         fill: options.type === 'line',
                         tension: 0.25,
                         pointRadius: labels.length > 36 ? 0 : 3,
@@ -286,27 +288,32 @@ window.HistoryInsights = (() => {
                     : { duration: 250 },
                 plugins: {
                     legend: { display: false },
-                    tooltip: { backgroundColor: '#49454f', padding: 12 },
+                    tooltip: {
+                        backgroundColor: () => window.AppTheme.colors()['tooltip-bg'],
+                        titleColor: () => window.AppTheme.colors()['tooltip-text'],
+                        bodyColor: () => window.AppTheme.colors()['tooltip-text'],
+                        padding: 12,
+                    },
                 },
                 scales: {
                     x: {
                         grid: { display: false },
                         border: { display: false },
                         ticks: {
-                            color: '#cac4d0',
+                            color: () => window.AppTheme.colors()['muted'],
                             maxTicksLimit: options.maxTicks || 12,
                             maxRotation: 0,
-                            font: { size: 10 },
+                            font: { size: 14 },
                         },
                     },
                     y: {
                         beginAtZero: true,
-                        grid: { color: '#49454f' },
+                        grid: { color: () => window.AppTheme.colors().line },
                         border: { display: false },
                         ticks: {
-                            color: '#cac4d0',
+                            color: () => window.AppTheme.colors()['muted'],
                             precision: units === 'hours' ? 1 : 0,
-                            font: { size: 10 },
+                            font: { size: 14 },
                         },
                     },
                 },
@@ -390,8 +397,8 @@ window.HistoryInsights = (() => {
         const count = Math.round((end - start) / 86400000);
         const offset = (start.getUTCDay() + 6) % 7;
         const weeks = Math.ceil((offset + count) / 7);
-        calendar.style.gridTemplateColumns = `repeat(${weeks}, 13px)`;
-        months.style.gridTemplateColumns = `repeat(${weeks}, 13px)`;
+        calendar.style.gridTemplateColumns = `repeat(${weeks}, var(--calendar-cell))`;
+        months.style.gridTemplateColumns = `repeat(${weeks}, var(--calendar-cell))`;
         const yearDays = [...currentStats.days.values()].filter((day) => day.date.startsWith(year));
         const max = yearDays.reduce((best, day) => Math.max(best, day.count), 0);
         for (let i = 0; i < offset; i++) calendar.append(node('span', 'calendar-spacer'));

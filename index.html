@@ -25,13 +25,13 @@
             type="font/otf"
             crossorigin
         />
-        <link rel="stylesheet" href="assets/css/style.css?v=14" />
+        <link rel="stylesheet" href="assets/css/style.css?v=15" />
         <script defer src="assets/vendor/jszip.min.js"></script>
         <script defer src="assets/vendor/chart.umd.min.js"></script>
         <script defer src="assets/js/analytics.js?v=8"></script>
         <script defer src="assets/js/date-fields.js?v=1"></script>
         <script defer src="assets/js/material-selects.js?v=1"></script>
-        <script defer src="assets/js/insights.js?v=10"></script>
+        <script defer src="assets/js/insights.js?v=11"></script>
         <script defer src="assets/js/history-explorer.js?v=4"></script>
         <script defer src="assets/js/mobile-navigation.js?v=1"></script>
         <script defer src="assets/js/app.js?v=12"></script>
@@ -162,18 +162,34 @@
                                 </button>
                                 <button
                                     id="undo-history-btn"
+                                    aria-label="Undo last change"
+                                    title="Undo last change"
                                     type="button"
                                     class="button button-secondary"
                                     disabled
                                 >
-                                    Undo last change
+                                    <span class="material-icons-outlined icon" aria-hidden="true"
+                                        >undo</span
+                                    >
+                                    <span class="action-label">Undo last change</span>
+                                    <span class="action-label-compact" aria-hidden="true"
+                                        >Undo</span
+                                    >
                                 </button>
                                 <button
                                     id="clear-history-btn"
+                                    aria-label="Clear history"
+                                    title="Clear history"
                                     type="button"
                                     class="button button-secondary"
                                 >
-                                    Clear history
+                                    <span class="material-icons-outlined icon" aria-hidden="true"
+                                        >delete_outline</span
+                                    >
+                                    <span class="action-label">Clear history</span>
+                                    <span class="action-label-compact" aria-hidden="true"
+                                        >Clear</span
+                                    >
                                 </button>
                             </div>
                         </div>
@@ -346,13 +362,25 @@
                                     Every month in the selected period, including months with no
                                     recorded plays.
                                 </p>
-                                <div class="trend-chart">
-                                    <canvas
-                                        id="timelineChart"
-                                        role="img"
-                                        aria-label="Monthly listening activity"
-                                    ></canvas>
+                                <div
+                                    class="chart-scroll"
+                                    role="region"
+                                    aria-label="Monthly listening chart"
+                                    tabindex="0"
+                                >
+                                    <div class="trend-chart">
+                                        <canvas
+                                            id="timelineChart"
+                                            role="img"
+                                            aria-label="Monthly listening activity"
+                                        ></canvas>
+                                    </div>
                                 </div>
+                                <p class="scroll-hint">
+                                    <span class="material-icons-outlined icon" aria-hidden="true"
+                                        >swipe</span
+                                    >Swipe to explore
+                                </p>
                                 <div id="timeline-fallback" class="sr-only"></div>
                                 <div id="timeline-highlights" class="timeline-highlights"></div>
                             </section>
@@ -372,13 +400,35 @@
                                 <p class="section-description muted">
                                     Select a day to see its songs. Empty cells mean no plays in the
                                     loaded data. Dates use UTC.
+                                    <span class="mobile-calendar-help"
+                                        >Swipe horizontally to see the full year.</span
+                                    >
                                 </p>
                                 <div
-                                    id="activity-calendar"
-                                    class="activity-calendar"
-                                    role="group"
-                                    aria-label="Daily listening activity"
-                                ></div>
+                                    class="calendar-scroll"
+                                    role="region"
+                                    aria-label="Listening activity calendar, scroll horizontally for the full year"
+                                    tabindex="0"
+                                >
+                                    <div
+                                        id="calendar-months"
+                                        class="calendar-months"
+                                        aria-hidden="true"
+                                    ></div>
+                                    <div class="calendar-body">
+                                        <div class="calendar-weekdays" aria-hidden="true">
+                                            <span>Mon</span><span></span><span>Wed</span
+                                            ><span></span><span>Fri</span><span></span
+                                            ><span>Sun</span>
+                                        </div>
+                                        <div
+                                            id="activity-calendar"
+                                            class="activity-calendar"
+                                            role="group"
+                                            aria-label="Daily listening activity"
+                                        ></div>
+                                    </div>
+                                </div>
                                 <div class="calendar-legend">
                                     <span>Less</span><i data-level="0"></i><i data-level="1"></i
                                     ><i data-level="2"></i><i data-level="3"></i
@@ -401,13 +451,27 @@
                                     <p class="section-description muted">
                                         Total activity by weekday · UTC
                                     </p>
-                                    <div class="rhythm-chart">
-                                        <canvas
-                                            id="weekdayChart"
-                                            role="img"
-                                            aria-label="Listening activity by weekday"
-                                        ></canvas>
+                                    <div
+                                        class="chart-scroll"
+                                        role="region"
+                                        aria-label="Listening by weekday chart"
+                                        tabindex="0"
+                                    >
+                                        <div class="rhythm-chart">
+                                            <canvas
+                                                id="weekdayChart"
+                                                role="img"
+                                                aria-label="Listening activity by weekday"
+                                            ></canvas>
+                                        </div>
                                     </div>
+                                    <p class="scroll-hint">
+                                        <span
+                                            class="material-icons-outlined icon"
+                                            aria-hidden="true"
+                                            >swipe</span
+                                        >Swipe to explore
+                                    </p>
                                     <div id="weekday-fallback" class="sr-only"></div>
                                 </section>
                                 <section class="panel insight-panel">
@@ -419,13 +483,27 @@
                                     <p class="section-description muted">
                                         When plays were recorded · 24-hour clock, UTC
                                     </p>
-                                    <div class="rhythm-chart">
-                                        <canvas
-                                            id="hoursChart"
-                                            role="img"
-                                            aria-label="Listening activity by hour"
-                                        ></canvas>
+                                    <div
+                                        class="chart-scroll"
+                                        role="region"
+                                        aria-label="Listening by hour chart"
+                                        tabindex="0"
+                                    >
+                                        <div class="rhythm-chart">
+                                            <canvas
+                                                id="hoursChart"
+                                                role="img"
+                                                aria-label="Listening activity by hour"
+                                            ></canvas>
+                                        </div>
                                     </div>
+                                    <p class="scroll-hint">
+                                        <span
+                                            class="material-icons-outlined icon"
+                                            aria-hidden="true"
+                                            >swipe</span
+                                        >Swipe to explore
+                                    </p>
                                     <div id="hours-fallback" class="sr-only"></div>
                                 </section>
                             </div>
@@ -441,13 +519,27 @@
                                             >graphic_eq</span
                                         >
                                     </div>
-                                    <div class="chart-container">
-                                        <canvas
-                                            id="artistsChart"
-                                            role="img"
-                                            aria-label="Top artists by number of streams"
-                                        ></canvas>
+                                    <div
+                                        class="chart-scroll"
+                                        role="region"
+                                        aria-label="Top artists chart"
+                                        tabindex="0"
+                                    >
+                                        <div class="chart-container">
+                                            <canvas
+                                                id="artistsChart"
+                                                role="img"
+                                                aria-label="Top artists by number of streams"
+                                            ></canvas>
+                                        </div>
                                     </div>
+                                    <p class="scroll-hint">
+                                        <span
+                                            class="material-icons-outlined icon"
+                                            aria-hidden="true"
+                                            >swipe</span
+                                        >Swipe to explore
+                                    </p>
                                     <ol id="artists-chart-fallback" class="hidden"></ol>
                                 </section>
                                 <section class="panel insight-panel">

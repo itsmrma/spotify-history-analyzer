@@ -132,27 +132,47 @@ test('calendar covers leap years, opens daily songs and supports arrow keys', as
     const leapDay = page.locator('.calendar-day[data-date="2024-02-29"]');
     await leapDay.click();
     await expect(page.locator('#calendar-day-detail')).toContainText('Everything');
-    await leapDay.press('ArrowRight');
+    await leapDay.press('ArrowDown');
     await expect(page.locator('.calendar-day[data-date="2024-03-01"]')).toBeFocused();
-    await page.locator('.calendar-day[data-date="2024-03-01"]').press('ArrowUp');
+    await page.locator('.calendar-day[data-date="2024-03-01"]').press('ArrowLeft');
     await expect(page.locator('.calendar-day[data-date="2024-02-23"]')).toBeFocused();
     await selectDropdown(page, 'calendar-year', '2026');
     await expect(page.locator('.calendar-day')).toHaveCount(365);
     await page.locator('.calendar-day[data-date="2026-01-01"]').click();
     await expect(page.locator('#calendar-day-detail')).toContainText('2 plays');
     await expect(page.locator('#calendar-day-detail')).toContainText('Runaway');
-    await expect(page.locator('.calendar-month')).toHaveCount(12);
+    await expect(page.locator('.calendar-month')).toHaveCount(0);
+    await expect(page.locator('#calendar-months > span')).toHaveCount(12);
     for (const width of [320, 390, 768, 1024, 1440, 1920, 3200]) {
         await page.setViewportSize({ width, height: 1000 });
-        const overflow = await page
-            .locator('#activity-calendar, .calendar-month-days')
-            .evaluateAll(
-                (nodes) => nodes.filter((node) => node.scrollWidth > node.clientWidth + 1).length,
-            );
-        expect(overflow).toBe(0);
+        const calendar = page.locator('.calendar-scroll');
+        const pointerIsFine = await page.evaluate(() => matchMedia('(pointer: fine)').matches);
+        if (width >= 1440 && pointerIsFine)
+            expect(
+                await calendar.evaluate((node) => node.scrollWidth <= node.clientWidth + 1),
+            ).toBe(true);
+        if (width <= 600) {
+            const actions = await page
+                .locator('#history-actions > button')
+                .evaluateAll((nodes) => nodes.map((node) => node.getBoundingClientRect().top));
+            expect(new Set(actions).size).toBe(1);
+            expect(
+                await page
+                    .locator('#history-actions')
+                    .evaluate((node) => node.scrollWidth <= node.clientWidth + 1),
+            ).toBe(true);
+            const charts = await page
+                .locator('.chart-scroll')
+                .evaluateAll((nodes) =>
+                    nodes.map((node) => ({ visible: node.clientWidth, content: node.scrollWidth })),
+                );
+            expect(charts).toHaveLength(4);
+            for (const chart of charts) expect(chart.content).toBeGreaterThan(chart.visible);
+        }
         const day = await page.locator('.calendar-day').first().boundingBox();
         expect(day.width).toBeGreaterThanOrEqual(24);
         expect(day.height).toBeGreaterThanOrEqual(24);
+        await noOverflow(page);
     }
     await noOverflow(page);
 });

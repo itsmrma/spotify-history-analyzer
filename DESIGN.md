@@ -208,12 +208,13 @@ Breakpoints at 900px and 600px progressively stack content. At 767px navigation
 moves into the existing side drawer; the theme toggle stays in the header.
 
 Keep the main overview visible. Put the six secondary personal records in an
-expandable group. The annual calendar shows twelve plain month grids, reflowing
-from one to twelve columns with the panel's width, without horizontal scrolling.
-Day targets are at least 24px wide; touch rows are at least 44px tall. On narrow
-phones the seven columns share available space instead of forcing 44px widths.
-Arrow keys move by day horizontally and by week vertically, including across month
-boundaries. Long track and artist names wrap within their field.
+expandable group. The annual calendar is one compact heatmap of weekly columns,
+with month labels above and weekdays on the left. Day targets are 24px for fine
+pointers and 44px for touch. A labeled horizontal scroll region keeps it usable
+on small screens; desktop calendars use compact spacing to fit the shared shell.
+Arrow keys move by week horizontally and by day vertically. Mobile charts retain
+readable plot widths inside their own labeled horizontal scroll regions, with
+their textual equivalents preserved. Long track and artist names wrap within their field.
 
 ## Elevation & Depth
 
@@ -260,6 +261,9 @@ clearing. Success, warning and error states use paired semantic surface/ink role
 Status remains textual and announced; never rely on color alone.
 Notifications provide a labeled dismiss button. Group Add files, Undo last change
 and Clear history beside the listening overview; keep Undo available after clearing.
+On mobile keep all three actions on one row, with Undo and Clear as compact visible
+labels and their full accessible names preserved. At enlarged text sizes the action
+row can scroll horizontally instead of clipping controls or widening the page.
 The habits and platform panels share their row height while the platform list is
 collapsed. Expanded lists grow independently.
 

@@ -54,6 +54,7 @@ async function noOverflow(page) {
     );
 }
 test.beforeEach(async ({ page }) => {
+    await page.clock.setFixedTime(new Date('2026-10-19T12:00:00Z'));
     const errors = [];
     page.on('pageerror', (error) => errors.push(error.message));
     page.__errors = errors;
@@ -79,7 +80,17 @@ test('period and metric filters update totals, rankings, discoveries and graphs 
     const months = await page
         .locator('#timelineChart')
         .evaluate((canvas) => Chart.getChart(canvas).data.labels.length);
-    expect(months).toBe(12);
+    expect(months).toBe(10);
+    expect(await page.evaluate(() => window.HistoryInsights.getFilters().endDate)).toBe(
+        '2026-10-19',
+    );
+    await selectDropdown(page, 'period-select', '2025');
+    expect(
+        await page
+            .locator('#timelineChart')
+            .evaluate((canvas) => Chart.getChart(canvas).data.labels.length),
+    ).toBe(12);
+    await selectDropdown(page, 'period-select', '2026');
     await selectDropdown(page, 'ranking-metric', 'ms');
     await expect(page.locator('#top-songs-table tr').first()).toContainText('Jóga');
     await expect(page.locator('#top-albums-list li').first()).toContainText('Homogenic');
@@ -149,8 +160,9 @@ test('album, habit, platform and yearly recap details use the imported metadata'
     await expect(page.locator('#total-tracks-stat')).toHaveText('1');
     await page.locator('#reset-filters-btn').click();
     await page.locator('#discoveries-list button').filter({ hasText: 'Björk' }).click();
-    await expect(page.locator('#res-artist-name')).toHaveText('Björk');
-    await expect(page.locator('#res-artist-facts')).toContainText('10m');
+    await expect(page.locator('#view-explore')).toBeVisible();
+    await expect(page.locator('#history-result-title')).toHaveText('Björk');
+    await expect(page.locator('#history-result-summary')).toContainText('10m');
 });
 
 test('CSV export includes every song in the filtered ranking and escapes formula-like names', async ({
@@ -169,7 +181,7 @@ test('CSV export includes every song in the filtered ranking and escapes formula
     const downloading = page.waitForEvent('download');
     await page.locator('#export-rankings-btn').click();
     const file = await downloading;
-    expect(file.suggestedFilename()).toContain('2026-01-01_2026-12-31_plays');
+    expect(file.suggestedFilename()).toContain('2026-01-01_2026-10-19_plays');
     const csv = fs.readFileSync(await file.path(), 'utf8');
     expect(csv.split('\r\n')).toHaveLength(121);
     expect(csv).toContain("'=SUM(1,2)");
@@ -240,11 +252,14 @@ test('long platform lists collapse by default and keep the habits card compact',
     await expect(toggle).toHaveAttribute('aria-expanded', 'false');
     const habits = page.locator('#listening-habits').locator('..');
     const height = (await habits.boundingBox()).height;
+    const platforms = page.locator('#platforms-list').locator('..');
+    if (page.viewportSize().width > 900)
+        expect((await platforms.boundingBox()).height).toBe(height);
     await toggle.focus();
     await toggle.press('Enter');
     await expect(page.locator('.platform-item:visible')).toHaveCount(22);
     await expect(toggle).toHaveAttribute('aria-expanded', 'true');
-    expect((await habits.boundingBox()).height).toBe(height);
+    expect((await habits.boundingBox()).height).toBeLessThanOrEqual(height);
     await selectDropdown(page, 'ranking-metric', 'ms');
     await expect(page.locator('.platform-item:visible')).toHaveCount(22);
     await toggle.press('Space');

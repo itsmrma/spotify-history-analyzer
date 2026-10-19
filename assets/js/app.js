@@ -14,13 +14,26 @@ let importing = false;
 let lbController = null;
 
 function showMessage(text, kind = 'success') {
-    $('app-message').textContent = text;
+    $('app-message-text').textContent = text;
     $('app-message').dataset.kind = kind;
     $('app-message').classList.remove('hidden');
 }
 
+$('dismiss-message-btn').addEventListener('click', () => {
+    $('app-message').classList.add('hidden');
+    const active = tabNames.find((tab) => !$(`view-${tab}`).classList.contains('hidden'));
+    const target =
+        active === 'explore'
+            ? 'history-search-input'
+            : active === 'lb'
+              ? 'lb-username'
+              : globalData.length
+                ? 'add-files-btn'
+                : 'choose-files-btn';
+    $(target).focus({ preventScroll: true });
+});
+
 function setTab(name, focus = false) {
-    document.querySelector('.app-shell').classList.toggle('is-exploring', name === 'explore');
     for (const tab of tabNames) {
         const selected = name === tab;
         const button = $(`tab-${tab}-btn`);
@@ -75,6 +88,9 @@ function updateBusyControls() {
     $('undo-history-btn').disabled = busy || previousData === null;
     $('clear-history-btn').disabled = busy || !globalData.length;
     $('history-actions').classList.toggle('hidden', !globalData.length && previousData === null);
+    $('history-toolbar').classList.toggle('hidden', !globalData.length && previousData === null);
+    $('overview-heading').classList.toggle('hidden', !globalData.length);
+    $('add-files-btn').classList.toggle('hidden', !globalData.length);
 }
 
 function commitHistory(entries) {
@@ -314,8 +330,6 @@ function renderDashboard() {
     renderTopSongs();
     I.render(stats, filters);
     updateBusyControls();
-    if ($('artist-search-input').value.trim()) searchArtist();
-    else $('artist-results').classList.add('hidden');
 }
 
 function renderTopSongs() {
@@ -356,7 +370,7 @@ function renderArtistsChart() {
                 const item = element('li');
                 const button = element(
                     'button',
-                    'artist-song artist-link',
+                    'artist-link',
                     `${artist.name} · ${artist.count.toLocaleString()} plays`,
                 );
                 button.type = 'button';
@@ -439,74 +453,11 @@ function renderArtistsChart() {
     });
 }
 
-function searchArtist() {
-    if (!stats) return;
-    const query = $('artist-search-input').value.trim().toLocaleLowerCase();
-    $('search-message').classList.add('hidden');
-    if (!query) {
-        $('artist-results').classList.add('hidden');
-        return;
-    }
-    const artist =
-        stats.sortedArtists.find((item) => item.name.toLocaleLowerCase() === query) ||
-        stats.sortedArtists.find((item) => item.name.toLocaleLowerCase().includes(query));
-    if (!artist) {
-        $('artist-results').classList.add('hidden');
-        $('search-message').textContent =
-            'No artist matches this name in your history. Try a different search.';
-        $('search-message').classList.remove('hidden');
-        return;
-    }
-    $('res-artist-name').textContent = artist.name;
-    const streaks = A.getAllStreaks(artist.dates).sort((a, b) => b.length - a.length);
-    const record = streaks[0];
-    $('res-artist-streak').textContent = !record
-        ? 'No valid listening dates available.'
-        : record.length > 1
-          ? `Your record: ${record.length} consecutive days · ${formatDate(record.start)} – ${formatDate(record.end)}`
-          : 'Listened on individual days. No consecutive-day streak yet.';
-    $('res-artist-facts').replaceChildren(
-        element('span', '', `${artist.count.toLocaleString()} plays · ${A.formatTime(artist.ms)}`),
-        element(
-            'span',
-            '',
-            `${((artist.count / stats.totalPlays) * 100).toFixed(1)}% of this period's plays`,
-        ),
-        element(
-            'span',
-            '',
-            `First seen in loaded history: ${stats.firstSeen.has(artist.name) ? formatDate(stats.firstSeen.get(artist.name)) : 'Date not recorded'}`,
-        ),
-        element(
-            'span',
-            '',
-            `Last play in this period: ${artist.lastDate ? formatDate(artist.lastDate) : 'Date not recorded'}`,
-        ),
-    );
-    const songs = stats.sortedTracks.filter((song) => song.artist === artist.name).slice(0, 10);
-    $('res-artist-songs').replaceChildren(
-        ...songs.map((song, index) => {
-            const item = element('li', 'artist-song');
-            item.append(
-                element('span', 'artist-song-name', `${index + 1}. ${song.track}`),
-                element('span', 'artist-song-count', `${song.count.toLocaleString()} plays`),
-            );
-            return item;
-        }),
-    );
-    $('artist-results').classList.remove('hidden');
-}
-
 function exploreArtist(name) {
-    $('artist-search-input').value = name;
-    searchArtist();
-    $('artist-explorer').scrollIntoView({
-        behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches
-            ? 'instant'
-            : 'smooth',
-        block: 'start',
-    });
-    $('artist-search-input').focus({ preventScroll: true });
+    setTab('explore');
+    H.openArtist(name);
+    $('history-search-input').focus({ preventScroll: true });
+    $('view-explore').scrollIntoView({ block: 'start', behavior: 'instant' });
 }
 
 I.initialize(() => {
@@ -514,14 +465,6 @@ I.initialize(() => {
 }, exploreArtist);
 
 $('songs-limit-select').addEventListener('change', renderTopSongs);
-$('artist-search-form').addEventListener('submit', (event) => {
-    event.preventDefault();
-    searchArtist();
-});
-$('artist-search-input').addEventListener('input', () => {
-    $('search-message').classList.add('hidden');
-    $('artist-results').classList.add('hidden');
-});
 $('lb-date').max = new Date().toISOString().slice(0, 10);
 $('lb-form').addEventListener('submit', (event) => {
     event.preventDefault();

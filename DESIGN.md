@@ -199,7 +199,10 @@ stays above -0.04em. Hero prose is limited to 70ch and help copy to 65ch.
 ## Layout
 
 The standard shell is capped at 1160px with 32px horizontal padding, reduced on
-small screens. History search uses 80% of wide desktop viewports. Dashboard groups
+small screens. Every tab shares this shell; switching tabs never changes its width.
+Initial tab surfaces share a 560px minimum height, 32px insets (20px on small
+screens), and a left-aligned title and description separated by 12px. Surfaces
+grow naturally with results, optional fields or expanded help. Dashboard groups
 use 16px or 24px gaps, with three-column statistics and two-column insight panels.
 Breakpoints at 900px and 600px progressively stack content. At 767px navigation
 moves into the existing side drawer; the theme toggle stays in the header.
@@ -252,6 +255,10 @@ The upload panel presents one primary action, a visible privacy/session explanat
 and expandable export instructions. Undo restores the last history change, including
 clearing. Success, warning and error states use paired semantic surface/ink roles.
 Status remains textual and announced; never rely on color alone.
+Notifications provide a labeled dismiss button. Group Add files, Undo last change
+and Clear history beside the listening overview; keep Undo available after clearing.
+The habits and platform panels share their row height while the platform list is
+collapsed. Expanded lists grow independently.
 
 ### Listening visualizations
 
@@ -259,6 +266,9 @@ Chart colors read the active CSS palette and update in place on theme changes.
 Keep the existing textual chart equivalents, artist picker and keyboard calendar.
 The calendar legend follows the same palette as the cells. Missing dates, metadata
 and estimated durations are stated explicitly.
+The current-year filter ends on today's UTC date. First recorded artist listens
+refer to the earliest dated appearance across loaded files, never a discovery date.
+Artist links open the dedicated history search instead of a second dashboard form.
 
 ## Do's and Don'ts
 

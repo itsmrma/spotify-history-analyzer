@@ -1,3 +1,22 @@
 {
-    "buildPath": "code"
+    "buildPath": "code",
+    "detector": {
+        "ignoreRules": [],
+        "ignoreFiles": [],
+        "ignoreValues": [
+            {
+                "rule": "overused-font",
+                "value": "inter",
+                "createdAt": "2026-10-19T16:19:01.485Z",
+                "reason": "Agent: the HTML preload references the same local Inter family required by PRODUCT.md and DESIGN.md."
+            },
+            {
+                "rule": "cramped-padding",
+                "value": "*",
+                "files": ["index.html"],
+                "createdAt": "2026-10-19T16:19:03.489Z",
+                "reason": "Agent: reviewed all three current findings against CSS and rendered desktop/mobile views. Brand icon is centered at 26px inside a 42px mark (8px inset); table wrappers intentionally contain full-width tables whose cells already provide 10-18px horizontal padding. Wrapper padding would double the table inset."
+            }
+        ]
+    }
 }

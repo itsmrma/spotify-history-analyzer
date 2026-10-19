@@ -350,5 +350,10 @@ window.HistoryExplorer = (() => {
             renderPage();
         });
     setHistory([]);
-    return { setHistory };
+    function openArtist(name) {
+        chooseType($('history-type-artist'));
+        const group = indexes.artist.get(JSON.stringify([name, null]));
+        if (group) choose(group);
+    }
+    return { setHistory, openArtist };
 })();

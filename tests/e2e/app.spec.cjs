@@ -68,16 +68,21 @@ test('import, switch tabs, search, add files and reimport without losing results
     await expect(page.locator('#dashboard')).toBeHidden();
     await switchTab(page, 'Your history');
     await expect(page.locator('#dashboard')).toBeVisible();
-    await page.locator('#artist-search-input').fill('aur');
-    await page.locator('#artist-search-input').press('Enter');
-    await expect(page.locator('#res-artist-name')).toHaveText('Aurora');
-    await expect(page.locator('#res-artist-songs li')).toHaveCount(2);
-    await page.locator('#artist-search-input').fill('missing');
-    await page.locator('#artist-search-input').press('Enter');
-    await expect(page.locator('#search-message')).toBeVisible();
+    await switchTab(page, 'Search history');
+    await page.locator('#history-search-input').fill('Aurora');
+    await page.locator('#history-search-btn').click();
+    await expect(page.locator('#history-result-title')).toHaveText('Aurora');
+    await expect(page.locator('#history-plays tr')).toHaveCount(3);
+    await page.locator('#history-search-input').fill('missing');
+    await page.locator('#history-search-btn').click();
+    await expect(page.locator('#history-search-message')).toContainText('No matching');
+    await switchTab(page, 'Your history');
     await upload(page);
     await expect(page.locator('#total-tracks-stat')).toHaveText('4');
     await expect(page.locator('#app-message')).toContainText('duplicate');
+    await page.getByRole('button', { name: 'Dismiss notification' }).click();
+    await expect(page.locator('#app-message')).toBeHidden();
+    await expect(page.locator('#add-files-btn')).toBeFocused();
     await upload(page, [play('Björk', 'Jóga', 4)]);
     await expect(page.locator('#total-tracks-stat')).toHaveText('5');
     await noOverflow(page);
@@ -126,9 +131,10 @@ test('titles and artist names are displayed as text and never executed as HTML',
     await expect(
         page.locator('#top-songs-table img, #top-songs-table svg, #global-streaks-list img'),
     ).toHaveCount(0);
-    await page.locator('#artist-search-input').fill(artist);
-    await page.locator('#artist-search-input').press('Enter');
-    await expect(page.locator('#res-artist-name')).toHaveText(artist);
+    await switchTab(page, 'Search history');
+    await page.locator('#history-search-input').fill(artist);
+    await page.locator('#history-search-btn').click();
+    await expect(page.locator('#history-result-title')).toHaveText(artist);
     expect(await page.evaluate(() => window.compromised)).toBeUndefined();
     await noOverflow(page);
 });

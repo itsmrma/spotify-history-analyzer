@@ -25,16 +25,16 @@
             type="font/otf"
             crossorigin
         />
-        <link rel="stylesheet" href="assets/css/style.css?v=10" />
+        <link rel="stylesheet" href="assets/css/style.css?v=12" />
         <script defer src="assets/vendor/jszip.min.js"></script>
         <script defer src="assets/vendor/chart.umd.min.js"></script>
         <script defer src="assets/js/analytics.js?v=6"></script>
         <script defer src="assets/js/date-fields.js?v=1"></script>
         <script defer src="assets/js/material-selects.js?v=1"></script>
-        <script defer src="assets/js/insights.js?v=8"></script>
-        <script defer src="assets/js/history-explorer.js?v=2"></script>
+        <script defer src="assets/js/insights.js?v=9"></script>
+        <script defer src="assets/js/history-explorer.js?v=3"></script>
         <script defer src="assets/js/mobile-navigation.js?v=1"></script>
-        <script defer src="assets/js/app.js?v=10"></script>
+        <script defer src="assets/js/app.js?v=12"></script>
     </head>
     <body>
         <a class="skip-link" href="#main">Skip to content</a>
@@ -125,67 +125,93 @@
                             </button>
                         </div>
                     </div>
-                    <div
-                        id="app-message"
-                        class="message hidden"
-                        role="status"
-                        aria-live="polite"
-                        aria-atomic="true"
-                    ></div>
-                    <section id="view-analyze" role="tabpanel" aria-labelledby="tab-analyze-btn">
-                        <div
-                            id="history-actions"
-                            class="history-actions hidden"
-                            aria-label="History session controls"
+                    <div id="app-message" class="message hidden">
+                        <span
+                            id="app-message-text"
+                            role="status"
+                            aria-live="polite"
+                            aria-atomic="true"
+                        ></span>
+                        <button
+                            id="dismiss-message-btn"
+                            class="message-dismiss"
+                            type="button"
+                            aria-label="Dismiss notification"
                         >
-                            <button
-                                id="undo-history-btn"
-                                type="button"
-                                class="button button-secondary"
-                                disabled
+                            <span class="material-icons-outlined icon" aria-hidden="true"
+                                >close</span
                             >
-                                Undo last change
-                            </button>
-                            <button
-                                id="clear-history-btn"
-                                type="button"
-                                class="button button-secondary"
-                            >
-                                Clear history
-                            </button>
-                        </div>
-                        <div id="upload-section" class="upload-panel panel">
-                            <div class="upload-art" aria-hidden="true">
-                                <span class="material-icons-outlined icon" aria-hidden="true"
-                                    >upload_file</span
-                                ><span class="file-tag">.zip / .json</span>
+                        </button>
+                    </div>
+                    <section id="view-analyze" role="tabpanel" aria-labelledby="tab-analyze-btn">
+                        <div id="history-toolbar" class="dashboard-heading hidden">
+                            <div id="overview-heading">
+                                <h2>Listening overview</h2>
+                                <p id="history-summary" class="muted"></p>
                             </div>
-                            <h2>Drop your listening history here</h2>
-                            <p class="muted upload-description">
-                                Add your Spotify ZIP archive or JSON files.<br />You can include
-                                JSON exports from ListenBrainz, Last.fm or Maloja in the same
-                                upload.
-                            </p>
-                            <button id="choose-files-btn" class="button button-primary">
-                                <span class="material-icons-outlined icon" aria-hidden="true"
-                                    >upload_file</span
+                            <div
+                                id="history-actions"
+                                class="history-actions hidden"
+                                aria-label="History session controls"
+                            >
+                                <button id="add-files-btn" class="button button-secondary">
+                                    <span class="material-icons-outlined icon" aria-hidden="true"
+                                        >upload_file</span
+                                    >
+                                    Add files
+                                </button>
+                                <button
+                                    id="undo-history-btn"
+                                    type="button"
+                                    class="button button-secondary"
+                                    disabled
                                 >
-                                Choose files
-                                <span class="material-icons-outlined icon" aria-hidden="true"
-                                    >arrow_forward</span
+                                    Undo last change
+                                </button>
+                                <button
+                                    id="clear-history-btn"
+                                    type="button"
+                                    class="button button-secondary"
                                 >
-                            </button>
-                            <p class="upload-help muted">
-                                Files stay in your browser. Refreshing clears your history.
-                            </p>
-                            <details class="upload-guide">
-                                <summary>Where do I get my Spotify history?</summary>
+                                    Clear history
+                                </button>
+                            </div>
+                        </div>
+                        <div id="upload-section" class="upload-panel panel workspace-surface">
+                            <div class="workspace-intro">
+                                <h2>Drop your listening history here</h2>
                                 <p>
-                                    In Spotify account privacy settings, request your Extended
-                                    Streaming History. When it is ready, import the ZIP here or
-                                    select the extracted JSON files.
+                                    Add your Spotify ZIP archive or JSON files. You can include JSON
+                                    exports from ListenBrainz, Last.fm or Maloja in the same upload.
                                 </p>
-                            </details>
+                            </div>
+                            <div class="upload-content">
+                                <div class="upload-art" aria-hidden="true">
+                                    <span class="material-icons-outlined icon" aria-hidden="true"
+                                        >upload_file</span
+                                    ><span class="file-tag">.zip / .json</span>
+                                </div>
+                                <button id="choose-files-btn" class="button button-primary">
+                                    <span class="material-icons-outlined icon" aria-hidden="true"
+                                        >upload_file</span
+                                    >
+                                    Choose files
+                                    <span class="material-icons-outlined icon" aria-hidden="true"
+                                        >arrow_forward</span
+                                    >
+                                </button>
+                                <p class="upload-help muted">
+                                    Files stay in your browser. Refreshing clears your history.
+                                </p>
+                                <details class="upload-guide">
+                                    <summary>Where do I get my Spotify history?</summary>
+                                    <p>
+                                        In Spotify account privacy settings, request your Extended
+                                        Streaming History. When it is ready, import the ZIP here or
+                                        select the extracted JSON files.
+                                    </p>
+                                </details>
+                            </div>
                             <input
                                 type="file"
                                 id="file-upload"
@@ -197,7 +223,7 @@
                         </div>
                         <div
                             id="loading-section"
-                            class="loading-panel panel hidden"
+                            class="loading-panel panel workspace-surface hidden"
                             role="status"
                             aria-live="polite"
                         >
@@ -206,18 +232,6 @@
                             <p class="muted">This may take a moment for large files.</p>
                         </div>
                         <div id="dashboard" class="dashboard hidden">
-                            <div class="dashboard-heading">
-                                <div>
-                                    <h2>Listening overview</h2>
-                                    <p id="history-summary" class="muted"></p>
-                                </div>
-                                <button id="add-files-btn" class="button button-secondary">
-                                    <span class="material-icons-outlined icon" aria-hidden="true"
-                                        >upload_file</span
-                                    >
-                                    Add files
-                                </button>
-                            </div>
                             <form id="analysis-filters" class="panel filter-panel">
                                 <div class="filter-controls">
                                     <div class="field">
@@ -286,8 +300,7 @@
                                 <a href="#overview-stats">Overview</a
                                 ><a href="#listening-rhythm">Rhythm</a
                                 ><a href="#library-insights">Library</a
-                                ><a href="#top-songs-section">Songs</a
-                                ><a href="#artist-explorer">Artist explorer</a>
+                                ><a href="#top-songs-section">Songs</a>
                             </nav>
                             <p id="filtered-empty" class="message hidden" role="status">
                                 No plays in this period. Try another year or reset the filters.
@@ -486,13 +499,14 @@
                                 <section class="panel insight-panel">
                                     <div class="section-heading">
                                         <div>
-                                            <h3>Artist discoveries</h3>
+                                            <h3>First recorded listens</h3>
                                         </div>
                                         <span id="discovery-count" class="count-badge"></span>
                                     </div>
                                     <p class="section-description muted">
-                                        First seen in your loaded history. Only artists first
-                                        appearing in this period are included.
+                                        Earliest dated play for each artist across all loaded files,
+                                        shown when it falls in this period. These are not discovery
+                                        dates; earlier or undated listens may be missing.
                                     </p>
                                     <ol id="discoveries-list" class="ranked-list"></ol>
                                 </section>
@@ -584,59 +598,22 @@
                                     </table>
                                 </div>
                             </section>
-                            <section id="artist-explorer" class="panel search-panel">
-                                <div>
-                                    <h3>Explore an artist</h3>
-                                    <p class="muted">
-                                        Find their most played songs and your longest streak.
-                                    </p>
-                                </div>
-                                <form id="artist-search-form" class="search-form" role="search">
-                                    <div class="search-field">
-                                        <label for="artist-search-input" class="sr-only"
-                                            >Artist name</label
-                                        ><input
-                                            type="search"
-                                            id="artist-search-input"
-                                            placeholder="Search your artists…"
-                                            autocomplete="off"
-                                            required
-                                        />
-                                    </div>
-                                    <button
-                                        id="artist-search-btn"
-                                        class="button button-primary"
-                                        aria-label="Search artist"
-                                    >
-                                        <span
-                                            class="material-icons-outlined icon"
-                                            aria-hidden="true"
-                                            >search</span
-                                        ><span>Search</span>
-                                    </button>
-                                </form>
-                                <p id="search-message" class="muted hidden" role="status"></p>
-                                <div id="artist-results" class="artist-results hidden">
-                                    <h4 id="res-artist-name"></h4>
-                                    <p id="res-artist-streak" class="muted"></p>
-                                    <div id="res-artist-facts" class="artist-facts"></div>
-                                    <ol id="res-artist-songs" class="artist-songs"></ol>
-                                </div>
-                            </section>
                         </div>
                     </section>
                     <section
                         id="view-explore"
-                        class="panel insight-panel hidden"
+                        class="panel workspace-surface hidden"
                         role="tabpanel"
                         aria-labelledby="tab-explore-btn"
                     >
-                        <div class="section-heading"><h2>Search your listening history</h2></div>
-                        <p class="section-description muted">
-                            Find an artist, album or song to see every matching play in your loaded
-                            files. This view uses your complete history, regardless of dashboard
-                            filters. Dates and times use UTC.
-                        </p>
+                        <div class="workspace-intro">
+                            <h2>Search your listening history</h2>
+                            <p>
+                                Find an artist, album or song to see every matching play in your
+                                loaded files. This view uses your complete history, regardless of
+                                dashboard filters. Dates and times use UTC.
+                            </p>
+                        </div>
                         <form id="history-search-form" class="history-search-form" role="search">
                             <div class="field history-type-field">
                                 <label id="history-type-label" for="history-search-type"
@@ -796,16 +773,11 @@
                     </section>
                     <section
                         id="view-lb"
-                        class="panel lb-panel hidden"
+                        class="panel lb-panel workspace-surface hidden"
                         role="tabpanel"
                         aria-labelledby="tab-lb-btn"
                     >
-                        <div class="lb-intro">
-                            <span class="lb-mark"
-                                ><span class="material-icons-outlined icon" aria-hidden="true"
-                                    >headphones</span
-                                ></span
-                            >
+                        <div class="workspace-intro">
                             <h2>Import from scrobblers</h2>
                             <p class="muted">
                                 Get missing listens from ListenBrainz, Last.fm or Maloja. Add them
@@ -920,7 +892,7 @@
             <footer>
                 <span>Music History Analyzer</span
                 ><span
-                    >Personal project ·
+                    >Personal project by <a href="https://github.com/itsmrma">@itsmrma</a> ·
                     <a href="https://github.com/itsmrma/spotify-history-analyzer">GitHub</a></span
                 >
             </footer>

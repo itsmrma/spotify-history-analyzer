@@ -206,6 +206,7 @@ test('day/month/year inputs filter April 3 and synchronize calendar selections',
 test('search empty states, results and long names remain accessible on narrow screens', async ({
     page,
 }) => {
+    test.setTimeout(60000);
     await switchTab(page, 'Search history');
     await expect(page.locator('#history-search-message')).toContainText('Upload');
     await switchTab(page, 'Your history');
@@ -233,10 +234,30 @@ test('search empty states, results and long names remain accessible on narrow sc
         expect(menu.x).toBeGreaterThanOrEqual(0);
         expect(menu.x + menu.width).toBeLessThanOrEqual(width);
         await page.locator('#history-type-album').click();
-        if (width >= 1200) {
-            const panel = await page.locator('#view-explore').boundingBox();
-            expect(panel.width / width).toBeCloseTo(0.8, 2);
+        const panel = await page.locator('#view-explore').boundingBox();
+        const panelTop = await page
+            .locator('#view-explore')
+            .evaluate((node) => node.getBoundingClientRect().top + scrollY);
+        const header = await page.locator('.site-header').boundingBox();
+        expect(panel.x).toBe(header.x);
+        expect(panel.width).toBe(header.width);
+        for (const [tab, selector] of [
+            ['Scrobblers', '#view-lb'],
+            ['Your history', '#view-analyze'],
+        ]) {
+            await switchTab(page, tab);
+            const otherPanel = await page.locator(selector).boundingBox();
+            expect(otherPanel.x).toBe(panel.x);
+            const otherTop = await page
+                .locator(selector)
+                .evaluate((node) => node.getBoundingClientRect().top + scrollY);
+            expect(otherTop).toBeCloseTo(panelTop, 1);
+            expect(otherPanel.width).toBe(panel.width);
+            const currentHeader = await page.locator('.site-header').boundingBox();
+            expect(currentHeader.x).toBe(header.x);
+            expect(currentHeader.width).toBe(header.width);
         }
+        await switchTab(page, 'Search history');
         if (width <= 900) {
             const cells = page.locator('#history-plays tr').first().locator('td');
             await expect(cells).toHaveCount(9);

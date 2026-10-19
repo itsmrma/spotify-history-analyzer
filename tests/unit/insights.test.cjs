@@ -79,6 +79,24 @@ test('artist discoveries use first appearance in all imported history, regardles
     assert.deepEqual(stats.discoveries, [{ artist: 'New', date: '2026-03-01' }]);
     assert.equal(stats.firstSeen.get('Old'), '2025-01-01');
 });
+test('first recorded artist dates use the oldest UTC date and update when older files are added', () => {
+    const recent = [
+        play('A', 'Recent', '2026-03-01T12:00:00Z'),
+        play('A', 'Earlier', '2025-12-31T23:30:00-02:00'),
+        play('A', 'Undated', null),
+    ];
+    assert.equal(A.analyze(recent).firstSeen.get('A'), '2026-01-01');
+    const older = play('A', 'Old export', '2024-02-29T12:00:00Z');
+    for (const data of [
+        [older, ...recent],
+        [...recent, older],
+    ]) {
+        const stats = A.analyze(data, { startDate: '2026-01-01', endDate: '2026-10-19' });
+        assert.equal(stats.firstSeen.get('A'), '2024-02-29');
+        assert.deepEqual(stats.discoveries, []);
+    }
+});
+
 test('monthly timeline includes empty months and crosses the year boundary', () => {
     const stats = A.analyze([
         play('A', 'T', '2025-12-01T12:00:00Z'),

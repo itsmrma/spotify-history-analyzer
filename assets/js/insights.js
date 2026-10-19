@@ -50,8 +50,14 @@ window.HistoryInsights = (() => {
             if (!startDate || !endDate || startDate > endDate) return { ...currentFilters, metric };
             return { metric, startDate, endDate };
         }
-        if (/^\d{4}$/.test(period))
-            return { metric, startDate: `${period}-01-01`, endDate: `${period}-12-31` };
+        if (/^\d{4}$/.test(period)) {
+            const today = new Date().toISOString().slice(0, 10);
+            return {
+                metric,
+                startDate: `${period}-01-01`,
+                endDate: period === today.slice(0, 4) ? today : `${period}-12-31`,
+            };
+        }
         return { metric };
     }
 

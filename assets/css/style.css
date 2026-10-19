@@ -28,6 +28,8 @@
     --primary-container: #4f378b;
     --on-primary-container: #eaddff;
     --radius: 16px;
+    --workspace-inset: 32px;
+    --workspace-min-height: 560px;
     --state-hover: rgba(230, 224, 233, 0.08);
     --state-pressed: rgba(230, 224, 233, 0.12);
     --divider: rgba(167, 171, 192, 0.12);
@@ -284,15 +286,6 @@ ol {
     max-width: 1160px;
     margin: auto;
     padding: 0 32px;
-}
-.app-shell.is-exploring {
-    max-width: none;
-}
-@media (min-width: 1200px) {
-    .app-shell.is-exploring {
-        width: 80%;
-        padding: 0;
-    }
 }
 .site-header {
     display: flex;
@@ -563,18 +556,42 @@ ol {
     border-radius: var(--radius);
     min-width: 0;
 }
+.workspace-surface {
+    width: 100%;
+    min-height: var(--workspace-min-height);
+    padding: var(--workspace-inset);
+}
+.workspace-intro {
+    display: grid;
+    gap: 12px;
+    margin-bottom: 32px;
+}
+.workspace-intro > p {
+    max-width: 70ch;
+    color: var(--muted);
+    font-size: 0.875rem;
+}
 .upload-panel {
     position: relative;
     display: flex;
     flex-direction: column;
-    align-items: center;
-    text-align: center;
-    padding: 46px 24px 32px;
-    border: 1px dashed var(--outline);
-    background: var(--surface);
+    align-items: stretch;
+    padding: var(--workspace-inset);
+    border: 1px solid var(--line);
     transition:
         background 0.2s,
         border-color 0.2s;
+}
+.upload-content {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 24px;
+    border: 1px dashed var(--outline);
+    border-radius: 12px;
 }
 .upload-panel.drag-over {
     border-color: var(--mint);
@@ -607,11 +624,6 @@ ol {
     font-size: 0.875rem;
     font-weight: 700;
     letter-spacing: 0.06em;
-}
-.upload-description {
-    margin-top: 14px;
-    font-size: 0.9rem;
-    max-width: 560px;
 }
 .button {
     display: inline-flex;
@@ -657,7 +669,7 @@ ol {
     box-shadow: inset 0 0 0 100px var(--state-pressed);
 }
 .upload-panel .button {
-    margin-top: 26px;
+    margin-top: 0;
 }
 .upload-help,
 .upload-guide {
@@ -707,6 +719,34 @@ footer {
     border-color: var(--warning-line);
     color: var(--warning-text);
 }
+#app-message {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 8px 8px 8px 18px;
+}
+#app-message-text {
+    min-width: 0;
+}
+.message-dismiss {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    flex-shrink: 0;
+    padding: 10px;
+    border: 0;
+    border-radius: 50%;
+    color: inherit;
+    background: transparent;
+}
+.message-dismiss:hover {
+    background: var(--state-hover);
+}
+.message-dismiss:active {
+    background: var(--state-pressed);
+}
 .dashboard {
     display: grid;
     gap: 24px;
@@ -717,13 +757,14 @@ footer {
     justify-content: space-between;
     gap: 20px;
     padding: 4px 0;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
 }
 .history-actions {
     display: flex;
     justify-content: flex-end;
     flex-wrap: wrap;
     gap: 8px;
-    margin-bottom: 16px;
 }
 .records-disclosure > summary {
     cursor: pointer;
@@ -783,8 +824,7 @@ footer {
     gap: 24px;
 }
 .insight-panel,
-.songs-panel,
-.search-panel {
+.songs-panel {
     padding: 26px;
 }
 .section-heading {
@@ -949,29 +989,6 @@ td:first-child {
 }
 tbody tr:hover {
     background: var(--row-hover);
-}
-.search-panel > .muted,
-.search-panel > div > .muted {
-    font-size: 0.875rem;
-    margin-top: 10px;
-}
-.search-form {
-    display: flex;
-    gap: 10px;
-    margin-top: 24px;
-    max-width: 620px;
-}
-.search-field {
-    flex: 1;
-    min-width: 0;
-}
-.search-form .button {
-    flex-shrink: 0;
-}
-.artist-results {
-    margin-top: 26px;
-    padding-top: 24px;
-    border-top: 1px solid var(--line);
 }
 .history-search-form {
     display: grid;
@@ -1215,65 +1232,6 @@ tbody tr:hover {
         white-space: normal;
     }
 }
-.artist-results > p {
-    font-size: 0.875rem;
-    margin-top: 8px;
-}
-.artist-songs {
-    display: grid;
-    gap: 8px;
-    margin-top: 18px;
-}
-.artist-song {
-    display: flex;
-    justify-content: space-between;
-    gap: 16px;
-    background: var(--surface-raised);
-    padding: 12px 16px;
-    border-radius: 10px;
-    font-size: 0.875rem;
-}
-.artist-song-name {
-    min-width: 0;
-    overflow-wrap: anywhere;
-}
-.artist-song-count {
-    white-space: nowrap;
-    color: var(--primary);
-}
-#search-message {
-    margin-top: 18px;
-    font-size: 0.875rem;
-}
-.lb-panel {
-    padding: 40px;
-    max-width: 860px;
-    margin: auto;
-}
-.lb-intro {
-    text-align: center;
-    margin-bottom: 32px;
-}
-.lb-mark {
-    display: grid;
-    place-items: center;
-    margin: 0 auto 24px;
-    width: 64px;
-    height: 64px;
-    border-radius: 20px;
-    background: var(--primary-container);
-    color: var(--primary);
-}
-.lb-mark .icon {
-    width: 32px;
-    height: 32px;
-    font-size: 32px;
-}
-.lb-intro > .muted {
-    font-size: 0.875rem;
-    margin: 16px auto 0;
-    max-width: 580px;
-}
 .form-grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1339,6 +1297,9 @@ tbody tr:hover {
     margin-top: 20px;
 }
 .habits-grid {
+    align-items: stretch;
+}
+.habits-grid:has(#platforms-toggle[aria-expanded='true']) {
     align-items: start;
 }
 .form-help {
@@ -1409,6 +1370,9 @@ tbody tr:hover {
     }
 }
 @media (max-width: 600px) {
+    :root {
+        --workspace-inset: 20px;
+    }
     .app-shell {
         padding: 0 18px;
     }
@@ -1445,11 +1409,8 @@ tbody tr:hover {
         order: -1;
         flex-basis: 100%;
     }
-    .upload-panel {
-        padding: 32px 18px 26px;
-    }
-    .upload-description {
-        font-size: 0.875rem;
+    .upload-content {
+        padding: 24px 16px;
     }
     .upload-art {
         margin-bottom: 20px;
@@ -1489,8 +1450,7 @@ tbody tr:hover {
         grid-column: 1;
     }
     .insight-panel,
-    .songs-panel,
-    .search-panel {
+    .songs-panel {
         padding: 20px 16px;
         border-radius: 18px;
     }
@@ -1527,22 +1487,6 @@ tbody tr:hover {
     td {
         padding: 12px;
     }
-    .search-form {
-        gap: 8px;
-    }
-    .search-form .button {
-        padding: 12px;
-    }
-    .search-form .button span:not(.icon) {
-        display: none;
-    }
-    .search-form input {
-        padding: 12px;
-    }
-    .lb-panel {
-        padding: 28px 18px;
-        border-radius: 18px;
-    }
     .form-grid {
         grid-template-columns: 1fr;
         gap: 16px;
@@ -1555,10 +1499,6 @@ tbody tr:hover {
         gap: 6px;
         font-size: 0.875rem;
     }
-    .artist-song {
-        padding: 12px;
-        gap: 10px;
-    }
 }
 /* ListenBrainz keeps its own orange accent within the shared component system. */
 #tab-lb-btn.is-active {
@@ -1569,10 +1509,6 @@ tbody tr:hover {
     --primary-ink: var(--scrobbler-ink);
     --primary-container: var(--scrobbler-container);
     --on-primary-container: var(--on-scrobbler-container);
-}
-.lb-mark {
-    background: var(--scrobbler-mark);
-    color: var(--scrobbler);
 }
 .lb-panel .button-primary:hover:not(:disabled) {
     background: var(--scrobbler-hover);
@@ -1989,25 +1925,18 @@ tbody tr:hover {
     white-space: nowrap;
     text-overflow: ellipsis;
     overflow: hidden;
+    background: var(--surface-raised);
+    border-radius: 10px;
 }
 .artist-link:hover {
     color: var(--primary);
     border-color: var(--primary);
 }
-.artist-facts {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px 18px;
-    margin: 18px 0;
-    color: var(--muted);
-    font-size: 0.875rem;
-    overflow-wrap: anywhere;
-}
 #overview-stats,
 #listening-rhythm,
 #library-insights,
 #top-songs-section,
-#artist-explorer {
+#view-explore {
     scroll-margin-top: 24px;
 }
 @media (max-width: 900px) {
@@ -2142,7 +2071,7 @@ tbody tr:hover {
     #listening-rhythm,
     #library-insights,
     #top-songs-section,
-    #artist-explorer {
+    #view-explore {
         scroll-margin-top: 112px;
     }
 }

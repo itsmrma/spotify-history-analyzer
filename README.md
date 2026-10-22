@@ -2,6 +2,8 @@
 
 A personal project for viewing Spotify listening stats and adding listens from ListenBrainz, Last.fm and Maloja.
 
+Connect a private [scrobbl.rs](https://github.com/itsmrma/scrobbl-rs) archive from **Scrobblers → Connect to scrobbl.rs**.
+
 [![Feature tour: import history, explore listening charts and calendar, search plays and add scrobbler history](docs/media/music-history-tour.gif)](docs/media/music-history-tour.mp4)
 
 24-second demo with synthetic listening history. [Video details and credits](docs/media/README.md).
@@ -22,6 +24,19 @@ Your history, filters and search results stay available when switching tabs. Mob
 The header theme toggle switches between light and dark. Initially the app follows your system preference; an explicit selection is saved locally. Switching theme updates existing charts without resetting your analysis. Only this display preference is persisted, never listening history or API keys. If browser storage is blocked, the toggle still works for the current session.
 
 Use **Undo last change** to reverse the latest successful import or scrobbler integration. **Clear history** starts an empty session and can itself be undone until the next history change. The header brand returns to the content without reloading. The upload panel includes Spotify export instructions and explains session privacy. Personal records are expandable; calendar days have larger pointer and touch targets.
+
+## Connect a private scrobbl.rs archive
+
+1. Reach your private scrobbl.rs HTTPS address over LAN or VPN, with a trusted certificate. In its **Settings → API keys**, allow the exact origin `https://itsmrma.github.io` (without a repository path), then create a read key. All sites at that origin share CORS permission.
+2. In this app open **Scrobblers → Connect to scrobbl.rs**, paste the API URL and key, optionally choose UTC dates (both days included), then select **Connect & load archive**. Existing history requires confirmation before replacement. It stays available if loading fails. Each successful load publishes one complete copy, including an empty archive.
+3. Use **Update now** for incremental changes, including older listens, corrections and removals. Optionally enable **Automatic updates**: default interval 120 seconds, allowed range 30–86400 whole seconds, initially off. Background timers depend on the browser; returning to the page catches up. Updates never overlap. The interval does not alter Spotify collection on the server.
+4. **Disconnect** cancels pending requests, stops timers and erases the key and synchronization state. Loaded history remains consultable. Other imports and history editing become available again. Importing into a disconnected scrobbl.rs copy asks to replace it; archives are never automatically combined. To change server or UTC selection, disconnect and reconnect for a fresh complete copy.
+
+Canonical listens keep the server’s stable IDs, ordered artist credits, sources and countability. Different listens with identical names and timestamps remain distinct. Short uncounted listens remain searchable; statistics count only listens marked eligible by scrobbl.rs. Actual, estimated and unknown listening time stay distinct. Unknown time contributes no invented minutes; counted plays with unknown time still count. Time totals and charts add only known durations; captions identify missing time. CSV rankings add an unknown-duration count when needed, leaving an entirely unknown time blank.
+
+The browser sends the read key in Authorization headers with owner cookies omitted. History, URL, key, selection, cursors and automatic options stay in page memory; reload clears the connection. The app adds no persistent storage or service worker. Transient failures retry with growing delays and respect Retry-After, keeping partial results separate. Invalid checkpoints reload the archive; revocation, expiry or insufficient permissions stop automatic reads and request a new connection. DNS, TLS, CORS and local-network permissions may appear as the same network error: check each without disabling general browser protections or adding a public proxy.
+
+The contract lives in [Come deve collegarsi spotify_analysis e quali garanzie deve offrire l’API di lettura?](https://github.com/itsmrma/scrobbl-rs/issues/8#issuecomment-6292907035); the [wire guide](https://github.com/itsmrma/scrobbl-rs/blob/main/docs/read-api.md) describes v1. The other import rules below continue to apply to file and scrobbler imports; this connection uses the canonical server rules described above.
 
 ## Analysis features
 
@@ -56,12 +71,23 @@ Open `http://127.0.0.1:4173`. The static files can also be hosted directly on Gi
 
 ```sh
 npm test
-npx playwright install chromium webkit
+npx playwright install chromium webkit firefox
 npm run test:e2e
 npm run format:check
 ```
 
 Regression tests cover validation, duplicate handling, large histories, streaks, date filters, timeline gaps, metadata coverage, ranking metrics and CSV safety. Browser tests exercise imports, search, calendar interaction, exports, filters, empty states and scrobbler integration, downloads and error recovery. Checks cover desktop and mobile layouts in Chromium and mobile WebKit, widths from 320 to 1920 pixels, containment of empty and filled inputs in their fields, keyboard navigation and automated accessibility audits. Scrobbler tests use mocked API responses so they are deterministic and do not download anyone's personal history. GitHub Actions runs the checks on pushes and pull requests.
+
+The scrobbl.rs protocol tests use synthetic responses for failure, pagination, races, UTC boundaries, canonical identities and duration semantics. Browser scenarios cover Chromium desktop/mobile, Firefox desktop and mobile WebKit, including optional background updates, cancellation, confirmation, authentication, accessibility and memory-only state.
+
+An optional test launches a real Rust server with disposable storage, imports 1,002 synthetic listens and checks cross-origin CORS/preflight, coherent pagination, historical incrementals, read-only isolation, revocation and expiry. Build scrobbl.rs from the linked repository, then run (PowerShell):
+
+```powershell
+$env:SCROBBL_TEST_BINARY = 'C:\path\to\scrobbl-rs\target\debug\scrobbl-rs.exe'
+npx playwright test tests/e2e/scrobbl-live.spec.cjs --workers=2 --output=test-results-live
+```
+
+These local browser and loopback-server checks do not certify GitHub Pages → private HTTPS on physical devices. The single final acceptance pass on Firefox PC/Mac and Safari iPhone/iPad, on LAN and VPN, remains tracked in [Collaudare e pubblicare la prima release](https://github.com/itsmrma/scrobbl-rs/issues/31), including trusted certificates/DNS, local-network permissions denied/restored, key creation/revocation/expiry, interrupted multi-page loads, server loss and recovery, suspension/resume, restore invalidation and reconnection. Record actual versions and results there without publishing personal history or secrets.
 
 ## Project structure
 
@@ -72,6 +98,7 @@ assets/
   icons/favicon.svg         Local app icon
   fonts/                    Inter, Material Icons and their licenses
   js/analytics.js           DOM-free validation and analysis
+  js/scrobbl-client.js      In-memory scrobbl.rs v1 protocol, cancellation and atomic synchronization
   js/insights.js            Filters, charts, calendar and CSV export
   js/date-fields.js         Day/month/year input and native calendar shortcuts
   js/history-explorer.js    Suggestions and detailed full-history search

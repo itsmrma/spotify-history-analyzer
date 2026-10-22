@@ -28,13 +28,14 @@
         <link rel="stylesheet" href="assets/css/style.css?v=16" />
         <script defer src="assets/vendor/jszip.min.js"></script>
         <script defer src="assets/vendor/chart.umd.min.js"></script>
-        <script defer src="assets/js/analytics.js?v=8"></script>
+        <script defer src="assets/js/scrobbl-client.js?v=1"></script>
+        <script defer src="assets/js/analytics.js?v=9"></script>
         <script defer src="assets/js/date-fields.js?v=1"></script>
         <script defer src="assets/js/material-selects.js?v=1"></script>
-        <script defer src="assets/js/insights.js?v=11"></script>
-        <script defer src="assets/js/history-explorer.js?v=5"></script>
+        <script defer src="assets/js/insights.js?v=12"></script>
+        <script defer src="assets/js/history-explorer.js?v=6"></script>
         <script defer src="assets/js/mobile-navigation.js?v=1"></script>
-        <script defer src="assets/js/app.js?v=12"></script>
+        <script defer src="assets/js/app.js?v=13"></script>
     </head>
     <body>
         <a class="skip-link" href="#main">Skip to content</a>
@@ -851,8 +852,134 @@
                         role="tabpanel"
                         aria-labelledby="tab-lb-btn"
                     >
+                        <section class="scrobbl-connection" aria-labelledby="scrobbl-title">
+                            <div class="workspace-intro">
+                                <h2 id="scrobbl-title">Connect to scrobbl.rs</h2>
+                                <p class="muted">
+                                    Explore your private archive directly over LAN or VPN. A
+                                    complete copy replaces the history on this page after your
+                                    confirmation.
+                                </p>
+                            </div>
+                            <form id="scrobbl-form" autocomplete="off">
+                                <div class="form-grid">
+                                    <div class="field">
+                                        <label for="scrobbl-url">Private HTTPS API URL</label>
+                                        <input
+                                            id="scrobbl-url"
+                                            type="url"
+                                            required
+                                            placeholder="https://music.example.com/api/v1"
+                                            autocomplete="off"
+                                        />
+                                    </div>
+                                    <div class="field">
+                                        <label for="scrobbl-key">Read API key</label>
+                                        <input
+                                            id="scrobbl-key"
+                                            type="password"
+                                            required
+                                            autocomplete="off"
+                                            spellcheck="false"
+                                        />
+                                    </div>
+                                    <div class="field">
+                                        <label for="scrobbl-start">From date (UTC, optional)</label>
+                                        <input
+                                            id="scrobbl-start"
+                                            class="date-input"
+                                            type="text"
+                                            inputmode="numeric"
+                                            placeholder="dd/mm/yyyy"
+                                            maxlength="10"
+                                            autocomplete="off"
+                                        />
+                                    </div>
+                                    <div class="field">
+                                        <label for="scrobbl-end"
+                                            >Through date (UTC, optional)</label
+                                        >
+                                        <input
+                                            id="scrobbl-end"
+                                            class="date-input"
+                                            type="text"
+                                            inputmode="numeric"
+                                            placeholder="dd/mm/yyyy"
+                                            maxlength="10"
+                                            autocomplete="off"
+                                        />
+                                    </div>
+                                </div>
+                                <p class="form-help muted">
+                                    Create a read key in scrobbl.rs Settings → API keys and allow
+                                    this site’s exact origin. Dates include both calendar days in
+                                    UTC. History, key and options stay only in this page’s memory;
+                                    reload clears them. Other imports are available after
+                                    disconnecting.
+                                </p>
+                                <div class="form-actions">
+                                    <button
+                                        id="scrobbl-connect"
+                                        type="submit"
+                                        class="button button-primary"
+                                    >
+                                        Connect &amp; load archive
+                                    </button>
+                                    <button
+                                        id="scrobbl-refresh"
+                                        type="button"
+                                        class="button button-secondary"
+                                        disabled
+                                    >
+                                        Update now
+                                    </button>
+                                    <button
+                                        id="scrobbl-disconnect"
+                                        type="button"
+                                        class="button button-secondary"
+                                        disabled
+                                    >
+                                        Disconnect
+                                    </button>
+                                </div>
+                            </form>
+                            <div class="scrobbl-options">
+                                <label class="field scrobbl-auto-label" for="scrobbl-auto"
+                                    ><input id="scrobbl-auto" type="checkbox" disabled /> Automatic
+                                    updates</label
+                                >
+                                <div class="field">
+                                    <label for="scrobbl-interval">Interval (seconds)</label>
+                                    <input
+                                        id="scrobbl-interval"
+                                        type="number"
+                                        min="30"
+                                        max="86400"
+                                        step="1"
+                                        value="120"
+                                        disabled
+                                    />
+                                </div>
+                            </div>
+                            <p class="form-help muted">
+                                Automatic updates start off. Background updates depend on browser
+                                and device suspension; returning to the page catches up. This
+                                interval does not change Spotify collection on the server.
+                            </p>
+                            <p
+                                id="scrobbl-status"
+                                class="form-help"
+                                role="status"
+                                aria-live="polite"
+                            >
+                                Not connected.
+                            </p>
+                            <p id="scrobbl-last-success" class="form-help muted">
+                                Last completed update: never
+                            </p>
+                        </section>
                         <div class="workspace-intro">
-                            <h2>Import from scrobblers</h2>
+                            <h2>Import from other scrobblers</h2>
                             <p class="muted">
                                 Get missing listens from ListenBrainz, Last.fm or Maloja. Add them
                                 to your dashboard or save a Spotify-compatible JSON file.

@@ -103,12 +103,13 @@ window.HistoryExplorer = (() => {
         $('history-result-title').textContent = group.label;
         $('history-result-artist').textContent = group.artist || '';
         $('history-result-summary').textContent =
-            `${plays(group.records.length)} · ${A.formatTime(group.ms)} · Complete loaded history, newest first · UTC${group.estimated ? ` · ${number(group.estimated)} estimated durations` : ''}`;
+            `${plays(group.records.length)} · ${A.listeningTime(group)} · Complete loaded history, newest first · UTC${group.estimated ? ` · ${number(group.estimated)} estimated durations` : ''}${group.uncounted ? ` · ${number(group.uncounted)} excluded from statistics by scrobbl.rs` : ''}${group.unknownPlays ? ` · ${number(group.unknownPlays)} unknown durations` : ''}`;
         $('history-search-message').textContent = 'Showing all matching plays, 100 per page.';
         renderPage();
     }
 
     function duration(ms) {
+        if (ms === null) return 'Unknown';
         const seconds = Math.floor(ms / 1000);
         return `${Math.floor(seconds / 60)}m ${String(seconds % 60).padStart(2, '0')}s`;
     }
@@ -123,6 +124,12 @@ window.HistoryExplorer = (() => {
             ['Skipped', raw.skipped],
             ['Incognito', raw.incognito_mode],
             ['Duration estimated', record.estimated ? true : null],
+            ['Duration category', record.durationKind],
+            ['Included in statistics', record.counted],
+            [
+                'Track duration',
+                record.trackDurationMs == null ? null : duration(record.trackDurationMs),
+            ],
         ].filter(([, value]) => value !== null && value !== undefined && value !== '');
         if (!values.length) return null;
         const list = node('dl', undefined, 'history-metadata');
@@ -190,14 +197,17 @@ window.HistoryExplorer = (() => {
                 lastfm: 'Last.fm',
                 maloja: 'Maloja',
             };
-            const source = sourceNames[record.raw.source] || record.raw.source || 'Spotify';
+            const source = record.sources
+                ? record.sources.map((name) => sourceNames[name] || name).join(', ') ||
+                  'Not recorded'
+                : sourceNames[record.raw.source] || record.raw.source || 'Spotify';
             for (const value of [
                 record.date ? A.formatInputDate(record.date) : 'Not recorded',
                 record.timestamp ? record.timestamp.slice(11, 19) : 'Not recorded',
                 record.track,
                 record.artist,
                 record.album || 'Not recorded',
-                `${duration(record.ms)}${record.estimated ? ' (estimated)' : ''}`,
+                `${duration(record.ms)}${record.estimated ? ' (estimated)' : ''}${record.counted === false ? ' · excluded from statistics' : ''}`,
                 record.platform || 'Not recorded',
                 source,
             ]) {
@@ -239,7 +249,7 @@ window.HistoryExplorer = (() => {
         for (const index of Object.values(indexes)) index.clear();
         const records = [];
         for (const raw of entries) {
-            const record = A.normalizeEntry(raw);
+            const record = A.normalizeEntry(raw, { includeUncounted: true });
             if (record) records.push({ ...record, raw });
         }
         records.sort((a, b) =>
@@ -252,8 +262,8 @@ window.HistoryExplorer = (() => {
                     : 0,
         );
         hasData = records.length > 0;
-        const add = (type, label, artist, record) => {
-            const key = JSON.stringify([label, artist]);
+        const add = (type, label, artist, record, identity) => {
+            const key = identity || JSON.stringify([label, artist]);
             let group = indexes[type].get(key);
             if (!group) {
                 group = {
@@ -264,20 +274,41 @@ window.HistoryExplorer = (() => {
                     records: [],
                     ms: 0,
                     estimated: 0,
+                    unknownPlays: 0,
+                    uncounted: 0,
                 };
                 indexes[type].set(key, group);
             }
             group.records.push(record);
-            group.ms += record.ms;
+            group.ms += record.ms ?? 0;
             if (record.estimated) group.estimated++;
+            if (record.ms === null) group.unknownPlays++;
+            if (record.counted === false) group.uncounted++;
         };
         for (const record of records) {
-            add('artist', record.artist, null, record);
-            for (const member of record.artistNames || credits.get(record.artist) || []) {
-                if (member !== record.artist) add('artist', member, null, record);
+            add(
+                'artist',
+                record.artist,
+                null,
+                record,
+                record.artistIds ? JSON.stringify(record.artistIds) : undefined,
+            );
+            for (const [position, member] of (
+                record.artistNames ||
+                credits.get(record.artist) ||
+                []
+            ).entries()) {
+                if (member !== record.artist)
+                    add(
+                        'artist',
+                        member,
+                        null,
+                        record,
+                        record.artistIds ? JSON.stringify([record.artistIds[position]]) : undefined,
+                    );
             }
-            add('song', record.track, record.artist, record);
-            if (record.album) add('album', record.album, record.artist, record);
+            add('song', record.track, record.artist, record, record.trackId);
+            if (record.album) add('album', record.album, record.artist, record, record.albumId);
         }
         updateType();
         const previous = previousKey && indexes[searchType].get(previousKey);
@@ -396,9 +427,11 @@ window.HistoryExplorer = (() => {
             renderPage();
         });
     setHistory([]);
-    function openArtist(name) {
+    function openArtist(name, identity) {
         chooseType($('history-type-artist'));
-        const group = indexes.artist.get(JSON.stringify([name, null]));
+        const group =
+            indexes.artist.get(identity || JSON.stringify([name, null])) ||
+            [...indexes.artist.values()].find((item) => item.label === name);
         if (group) choose(group);
     }
     return { setHistory, openArtist };

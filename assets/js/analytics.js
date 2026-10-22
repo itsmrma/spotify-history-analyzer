@@ -32,8 +32,44 @@
             : null;
     }
 
-    function normalizeEntry(entry) {
+    function normalizeEntry(entry, { includeUncounted = false } = {}) {
         if (!entry || typeof entry !== 'object' || Array.isArray(entry)) return null;
+        if (entry.scrobbl) {
+            const S =
+                typeof module === 'object' && module.exports
+                    ? require('./scrobbl-client.js')
+                    : globalThis.ScrobblClient;
+            let item;
+            try {
+                item = S.validateListen(entry.scrobbl);
+            } catch {
+                return null;
+            }
+            if (!item.counted && !includeUncounted) return null;
+            const timestamp = new Date(item.played_at_ms).toISOString();
+            return {
+                id: item.id,
+                trackId: item.track_id,
+                albumId: item.album_id,
+                artistIds: item.artists.map((artist) => artist.id),
+                artist:
+                    item.artists.map((artist) => artist.name).join(', ') || 'Artist not recorded',
+                artistNames: item.artists.map((artist) => artist.name),
+                track: item.title,
+                album: item.album,
+                ms: item.listened_ms,
+                durationKind: item.duration_kind,
+                trackDurationMs: item.track_duration_ms,
+                counted: item.counted,
+                sources: item.sources,
+                date: timestamp.slice(0, 10),
+                timestamp,
+                estimated: item.duration_kind === 'estimated',
+                platform: null,
+                shuffle: null,
+                offline: null,
+            };
+        }
         const artist = entry.master_metadata_album_artist_name ?? entry.artistName;
         const track = entry.master_metadata_track_name ?? entry.trackName;
         const ms = entry.ms_played ?? entry.msPlayed ?? 0;
@@ -191,12 +227,15 @@
         let totalMs = 0;
         let totalPlays = 0;
         let estimatedPlays = 0;
+        let unknownPlays = 0;
         let firstDate = null;
         let lastDate = null;
         for (const raw of entries) {
             const entry = normalizeEntry(raw);
             if (!entry) continue;
-            const { artist, track, ms, date, estimated, album, platform } = entry;
+            const { artist, track, date, estimated, album, platform } = entry;
+            const ms = entry.ms ?? 0; // Sum known time only; the record keeps unknown time as null.
+            const artistKey = entry.artistIds ? JSON.stringify(entry.artistIds) : artist;
             const credited = entry.artistNames || credits.get(artist) || [artist];
             if (date) {
                 availableYears.add(date.slice(0, 4));
@@ -219,18 +258,22 @@
             totalPlays++;
             totalMs += ms;
             if (estimated) estimatedPlays++;
-            if (!artists.has(artist))
-                artists.set(artist, {
+            if (entry.ms === null) unknownPlays++;
+            if (!artists.has(artistKey))
+                artists.set(artistKey, {
                     name: artist,
+                    identity: artistKey,
                     count: 0,
                     ms: 0,
+                    unknownPlays: 0,
                     dates: new Set(),
                     firstDate: null,
                     lastDate: null,
                 });
-            const artistStat = artists.get(artist);
+            const artistStat = artists.get(artistKey);
             artistStat.count++;
             artistStat.ms += ms;
+            if (entry.ms === null) artistStat.unknownPlays++;
             if (date) {
                 artistStat.dates.add(date);
                 if (!artistStat.firstDate || date < artistStat.firstDate)
@@ -239,19 +282,21 @@
                 if (!firstDate || date < firstDate) firstDate = date;
                 if (!lastDate || date > lastDate) lastDate = date;
             }
-            const key = JSON.stringify([track, artist]);
+            const key = entry.trackId || JSON.stringify([track, artist]);
             if (!tracks.has(key))
                 tracks.set(key, {
                     track,
                     artist,
                     count: 0,
                     ms: 0,
+                    unknownPlays: 0,
                     firstDate: null,
                     lastDate: null,
                 });
             const trackStat = tracks.get(key);
             trackStat.count++;
             trackStat.ms += ms;
+            if (entry.ms === null) trackStat.unknownPlays++;
             if (date) {
                 if (!trackStat.firstDate || date < trackStat.firstDate) trackStat.firstDate = date;
                 if (!trackStat.lastDate || date > trackStat.lastDate) trackStat.lastDate = date;
@@ -289,12 +334,20 @@
                 hours[timestamp.getUTCHours()].ms += ms;
             }
             if (album) {
-                const albumKey = JSON.stringify([album, artist]);
+                const albumKey = entry.albumId || JSON.stringify([album, artist]);
                 if (!albums.has(albumKey))
-                    albums.set(albumKey, { album, artist, count: 0, ms: 0, tracks: new Set() });
+                    albums.set(albumKey, {
+                        album,
+                        artist,
+                        count: 0,
+                        ms: 0,
+                        unknownPlays: 0,
+                        tracks: new Set(),
+                    });
                 const albumStat = albums.get(albumKey);
                 albumStat.count++;
                 albumStat.ms += ms;
+                if (entry.ms === null) albumStat.unknownPlays++;
                 albumStat.tracks.add(track);
             }
             platforms.set(
@@ -363,6 +416,7 @@
             totalMs,
             totalPlays,
             estimatedPlays,
+            unknownPlays,
             firstDate,
             lastDate,
             records,
@@ -416,10 +470,20 @@
             if (/^[\s]*[=+\-@\t\r\n]/.test(text)) text = `'${text}`;
             return `"${text.replace(/"/g, '""')}"`;
         };
+        const unknown = stats.unknownPlays > 0;
         return [
-            'Rank,Song,Artist,Plays,Listening time (ms)',
+            'Rank,Song,Artist,Plays,Listening time (ms)' + (unknown ? ',Unknown durations' : ''),
             ...stats.sortedTracks.map((song, index) =>
-                [index + 1, song.track, song.artist, song.count, song.ms].map(cell).join(','),
+                [
+                    index + 1,
+                    song.track,
+                    song.artist,
+                    song.count,
+                    song.unknownPlays === song.count ? '' : song.ms,
+                    ...(unknown ? [song.unknownPlays || 0] : []),
+                ]
+                    .map(cell)
+                    .join(','),
             ),
         ].join('\r\n');
     }
@@ -516,9 +580,15 @@
     }
 
     function formatTime(ms) {
+        if (ms === null) return 'Unknown';
         const totalMinutes = Math.floor(ms / 60000);
         const hours = Math.floor(totalMinutes / 60);
         return hours ? `${hours.toLocaleString()}h ${totalMinutes % 60}m` : `${totalMinutes}m`;
+    }
+    function listeningTime(item) {
+        const count = item.totalPlays ?? item.count ?? item.records?.length;
+        if (count > 0 && item.unknownPlays === count) return 'Unknown';
+        return formatTime(item.totalMs ?? item.ms) + (item.unknownPlays ? ' + unknown' : '');
     }
     return {
         validDate,
@@ -533,6 +603,7 @@
         convertMaloja,
         historyEntries,
         formatTime,
+        listeningTime,
         monthlyTimeline,
         artistCredits,
         rankingCSV,

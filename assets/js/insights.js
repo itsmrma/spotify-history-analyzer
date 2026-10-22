@@ -173,7 +173,7 @@ window.HistoryInsights = (() => {
         const detail = (item) => {
             if (!item) return 'No plays in this period';
             const plays = `${number(item.count)} ${item.count === 1 ? 'play' : 'plays'}`;
-            const time = A.formatTime(item.ms);
+            const time = A.listeningTime(item);
             const totals = byTime ? `${time} · ${plays}` : `${plays} · ${time}`;
             return item.artist ? `${item.artist} · ${totals}` : totals;
         };
@@ -538,7 +538,7 @@ window.HistoryInsights = (() => {
                     'span',
                     'ranked-value',
                     currentFilters.metric === 'ms'
-                        ? A.formatTime(album.ms)
+                        ? A.listeningTime(album)
                         : `${number(album.count)} plays`,
                 ),
             );
@@ -723,7 +723,7 @@ window.HistoryInsights = (() => {
         $('custom-dates').classList.toggle('hidden', $('period-select').value !== 'custom');
         $('filter-message').classList.remove('filter-error');
         $('filter-message').textContent =
-            `Showing ${number(stats.totalPlays)} plays · ${filters.metric === 'ms' ? 'Ranked by listening time' : 'Ranked by plays'} · Dates and hours use UTC.${stats.undatedPlays ? ` ${number(stats.undatedPlays)} plays without valid timestamps ${filters.startDate ? 'excluded from this date filter' : 'included in totals, excluded from time-based views'}.` : ''}${stats.estimatedPlays ? ' Time-based statistics include estimated durations.' : ''}`;
+            `Showing ${number(stats.totalPlays)} plays · ${filters.metric === 'ms' ? 'Ranked by listening time' : 'Ranked by plays'} · Dates and hours use UTC.${stats.undatedPlays ? ` ${number(stats.undatedPlays)} plays without valid timestamps ${filters.startDate ? 'excluded from this date filter' : 'included in totals, excluded from time-based views'}.` : ''}${stats.estimatedPlays ? ' Time-based statistics include estimated durations.' : ''}${stats.unknownPlays ? ` ${number(stats.unknownPlays)} plays have unknown durations: counts include them; time totals and charts include only known time.` : ''}`;
         renderTopListening(stats);
         renderFacts(stats);
         renderRhythm(stats);

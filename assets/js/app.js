@@ -12,6 +12,96 @@ let stats = null;
 let artistsChart = null;
 let importing = false;
 let lbController = null;
+const scrobbl = new window.ScrobblClient.Connection({
+    publish(entries) {
+        commitHistory(entries);
+        previousData = null;
+    },
+    state(state) {
+        if (!state.active && !globalData.length) {
+            $('dashboard').classList.add('hidden');
+            $('upload-section').classList.remove('hidden');
+            stats = null;
+        }
+        if (state.status) {
+            $('scrobbl-status').dataset.status = state.status;
+            $('scrobbl-status').textContent = state.detail;
+        }
+        $('scrobbl-last-success').textContent = state.lastSuccess
+            ? `Last completed update: ${new Date(state.lastSuccess).toLocaleString()} · ${new Date(state.lastSuccess).toISOString()} (UTC)`
+            : 'Last completed update: never';
+        $('scrobbl-auto').checked = state.automatic;
+        updateBusyControls();
+    },
+});
+
+$('scrobbl-form').addEventListener('submit', (event) => {
+    event.preventDefault();
+    if (importing || lbController || scrobbl.active) return;
+    try {
+        const start = $('scrobbl-start').value;
+        const end = $('scrobbl-end').value;
+        const startDate = start ? A.parseInputDate(start) : '';
+        const endDate = end ? A.parseInputDate(end) : '';
+        if ((start && !startDate) || (end && !endDate))
+            throw new Error('Enter valid dates in dd/mm/yyyy format.');
+        const selection = window.ScrobblClient.selectionFromDates(startDate, endDate);
+        const url = $('scrobbl-url').value.trim();
+        window.ScrobblClient.apiBase(url);
+        if (
+            globalData.length &&
+            !window.confirm(
+                'Replace the history on this page with a complete copy from scrobbl.rs? Your current history stays available if loading fails.',
+            )
+        )
+            return;
+        const key = $('scrobbl-key').value;
+        const loading = scrobbl.connect({ url, key, selection });
+        $('scrobbl-key').value = '';
+        loading.then(updateBusyControls);
+        updateBusyControls();
+    } catch (error) {
+        $('scrobbl-status').textContent = error.message;
+        $('scrobbl-status').dataset.status = 'error';
+    }
+});
+$('scrobbl-refresh').addEventListener('click', () => scrobbl.sync());
+$('scrobbl-disconnect').addEventListener('click', () => scrobbl.disconnect());
+function changeScrobblAutomatic() {
+    const input = $('scrobbl-interval');
+    const seconds = Number(input.value);
+    input.setCustomValidity(
+        Number.isInteger(seconds) && seconds >= 30 && seconds <= 86400
+            ? ''
+            : 'Choose 30 to 86400 whole seconds.',
+    );
+    if (!input.reportValidity()) {
+        $('scrobbl-auto').checked = scrobbl.automatic;
+        return;
+    }
+    scrobbl.setAutomatic($('scrobbl-auto').checked, seconds);
+}
+for (const id of ['scrobbl-auto', 'scrobbl-interval'])
+    $(id).addEventListener('change', changeScrobblAutomatic);
+document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible' && scrobbl.automatic) scrobbl.sync();
+});
+window.addEventListener('pageshow', (event) => {
+    if (event.persisted && scrobbl.automatic) scrobbl.sync();
+});
+window.addEventListener('pagehide', (event) => {
+    if (!event.persisted) scrobbl.disconnect();
+    $('scrobbl-key').value = '';
+});
+
+function replacingCanonicalHistory() {
+    return (
+        !globalData.some((entry) => entry.scrobbl) ||
+        window.confirm(
+            'Replace the disconnected scrobbl.rs copy with this import? Copies from different sources will not be merged.',
+        )
+    );
+}
 
 function showMessage(text, kind = 'success') {
     $('app-message-text').textContent = text;
@@ -80,13 +170,21 @@ for (const name of tabNames) {
 
 function updateBusyControls() {
     const busy = importing || lbController !== null;
+    const connected = scrobbl.active;
     for (const id of ['choose-files-btn', 'add-files-btn', 'lb-integrate-btn', 'lb-download-btn'])
-        $(id).disabled = busy;
-    $('scrobbler-source').disabled = busy;
+        $(id).disabled = busy || connected;
+    $('scrobbler-source').disabled = busy || connected;
     $('export-rankings-btn').disabled = busy || !stats?.totalPlays;
-    $('file-upload').disabled = busy;
-    $('undo-history-btn').disabled = busy || previousData === null;
-    $('clear-history-btn').disabled = busy || !globalData.length;
+    $('file-upload').disabled = busy || connected;
+    $('undo-history-btn').disabled = busy || connected || previousData === null;
+    $('clear-history-btn').disabled = busy || connected || !globalData.length;
+    for (const input of $('scrobbl-form').querySelectorAll('.field input, .date-calendar'))
+        input.disabled = busy || connected;
+    $('scrobbl-connect').disabled = busy || connected;
+    $('scrobbl-refresh').disabled = !connected || Boolean(scrobbl.running);
+    $('scrobbl-disconnect').disabled = !connected;
+    $('scrobbl-auto').disabled = !connected;
+    $('scrobbl-interval').disabled = !connected;
     $('history-actions').classList.toggle('hidden', !globalData.length && previousData === null);
     $('history-toolbar').classList.toggle('hidden', !globalData.length && previousData === null);
     $('overview-heading').classList.toggle('hidden', !globalData.length);
@@ -125,14 +223,14 @@ function restoreHistoryView() {
 }
 
 $('undo-history-btn').addEventListener('click', () => {
-    if (previousData === null || importing || lbController) return;
+    if (previousData === null || importing || lbController || scrobbl.active) return;
     globalData = previousData;
     previousData = null;
     restoreHistoryView();
     showMessage('Last history change undone.');
 });
 $('clear-history-btn').addEventListener('click', () => {
-    if (!globalData.length || importing || lbController) return;
+    if (!globalData.length || importing || lbController || scrobbl.active) return;
     previousData = globalData;
     globalData = [];
     restoreHistoryView();
@@ -144,7 +242,8 @@ for (const id of ['choose-files-btn', 'add-files-btn'])
 $('file-upload').addEventListener('change', (event) => handleFiles(event.target.files));
 $('upload-section').addEventListener('dragover', (event) => {
     event.preventDefault();
-    if (!importing && !lbController) $('upload-section').classList.add('drag-over');
+    if (!importing && !lbController && !scrobbl.active)
+        $('upload-section').classList.add('drag-over');
 });
 $('upload-section').addEventListener('dragleave', (event) => {
     if (!$('upload-section').contains(event.relatedTarget))
@@ -163,7 +262,11 @@ for (const type of ['dragover', 'drop'])
 
 async function handleFiles(fileList) {
     const files = Array.from(fileList);
-    if (!files.length || importing || lbController) return;
+    if (!files.length || importing || lbController || scrobbl.active) return;
+    if (!replacingCanonicalHistory()) {
+        $('file-upload').value = '';
+        return;
+    }
     importing = true;
     const restoreImportFocus = ['choose-files-btn', 'add-files-btn', 'file-upload'].includes(
         document.activeElement.id,
@@ -220,7 +323,10 @@ async function handleFiles(fileList) {
                 }
             } else warnings.push(`Unsupported file: ${file.name}. Use ZIP or JSON.`);
         }
-        const merged = A.mergeEntries(globalData, incoming);
+        const merged = A.mergeEntries(
+            globalData.some((entry) => entry.scrobbl) ? [] : globalData,
+            incoming,
+        );
         if (!incoming.some((entry) => A.normalizeEntry(entry))) {
             showMessage(
                 `No supported music plays of at least 30 seconds were found. ${warnings.join(' ')}`,
@@ -285,9 +391,16 @@ function renderDashboard() {
     $('dashboard').classList.remove('hidden');
     $('total-tracks-stat').textContent = stats.totalPlays.toLocaleString();
     $('total-artists-stat').textContent = stats.artists.size.toLocaleString();
-    $('total-time-stat').textContent = A.formatTime(stats.totalMs);
-    $('time-caption').textContent = stats.estimatedPlays
-        ? `Includes ${stats.estimatedPlays.toLocaleString()} estimated durations`
+    $('total-time-stat').textContent = A.listeningTime(stats);
+    const durationNotes = [];
+    if (stats.estimatedPlays)
+        durationNotes.push(`${stats.estimatedPlays.toLocaleString()} estimated durations`);
+    if (stats.unknownPlays)
+        durationNotes.push(
+            `${stats.unknownPlays.toLocaleString()} unknown durations excluded from time`,
+        );
+    $('time-caption').textContent = durationNotes.length
+        ? durationNotes.join(' · ')
         : 'Total listening time';
     $('history-summary').textContent = stats.firstDate
         ? `${formatDate(stats.firstDate)} – ${formatDate(stats.lastDate)} · ${stats.sortedTracks.length.toLocaleString()} unique songs · UTC`
@@ -346,7 +459,7 @@ function renderTopSongs() {
             title,
             element('td', 'song-artist', song.artist),
             element('td', 'numeric song-plays', song.count.toLocaleString()),
-            element('td', 'numeric muted', A.formatTime(song.ms)),
+            element('td', 'numeric muted', A.listeningTime(song)),
         );
         fragment.append(row);
     }
@@ -374,7 +487,7 @@ function renderArtistsChart() {
                     `${artist.name} · ${artist.count.toLocaleString()} plays`,
                 );
                 button.type = 'button';
-                button.addEventListener('click', () => exploreArtist(artist.name));
+                button.addEventListener('click', () => exploreArtist(artist.name, artist.identity));
                 item.append(button);
                 return item;
             })(),
@@ -408,7 +521,8 @@ function renderArtistsChart() {
         },
         options: {
             onClick: (_event, items) => {
-                if (items.length) exploreArtist(top[items[0].index].name);
+                if (items.length)
+                    exploreArtist(top[items[0].index].name, top[items[0].index].identity);
             },
             indexAxis: 'y',
             responsive: true,
@@ -453,9 +567,9 @@ function renderArtistsChart() {
     });
 }
 
-function exploreArtist(name) {
+function exploreArtist(name, identity) {
     setTab('explore');
-    H.openArtist(name);
+    H.openArtist(name, identity);
     $('history-search-input').focus({ preventScroll: true });
     $('view-explore').scrollIntoView({ block: 'start', behavior: 'instant' });
 }
@@ -674,7 +788,8 @@ async function downloadMaloja(server, targetTs, signal) {
 }
 
 async function fetchScrobbler(integrate) {
-    if (lbController || importing) return;
+    if (lbController || importing || scrobbl.active) return;
+    if (integrate && !replacingCanonicalHistory()) return;
     const username = $('lb-username').value.trim();
     const source = $('scrobbler-source').value;
     const service = scrobblerNames[source];
@@ -734,8 +849,9 @@ async function fetchScrobbler(integrate) {
             return;
         }
         if (integrate) {
-            const previousCount = globalData.length;
-            const merged = A.mergeEntries(globalData, incoming);
+            const base = globalData.some((entry) => entry.scrobbl) ? [] : globalData;
+            const previousCount = base.length;
+            const merged = A.mergeEntries(base, incoming);
             if (!merged.entries.length) {
                 showMessage('No music plays of at least 30 seconds were found.', 'warning');
                 return;

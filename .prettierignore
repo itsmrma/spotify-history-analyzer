@@ -1,7 +1,11 @@
 assets/vendor/
 node_modules/
 test-results/
+test-results-*/
 playwright-report/
 package-lock.json
 coverage/
 blob-report/
+.agents/skills/
+.impeccable/*.local.json
+.impeccable/hook.cache.json

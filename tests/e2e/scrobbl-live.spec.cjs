@@ -53,7 +53,7 @@ test('real Rust API: cross-origin CORS, coherent pagination, historical incremen
             .toBe(200);
         const setup = await owner.request.post(`${origin}/api/setup`, {
             headers: { Origin: origin },
-            data: { password: 'synthetic integration password only' },
+            data: { username: 'synthetic_owner', password: 'Synthetic-Password-1!' },
         });
         expect(setup.status()).toBe(200);
         const { csrf } = await setup.json();
@@ -80,6 +80,19 @@ test('real Rust API: cross-origin CORS, coherent pagination, historical incremen
         });
         expect(preflight.status()).toBe(204);
         expect(preflight.headers()['access-control-allow-origin']).toBe('http://127.0.0.1:4173');
+        expect(preflight.headers()['access-control-allow-private-network']).toBe('true');
+        const pnaPreflight = await owner.request.fetch(`${origin}/api/v1/info`, {
+            method: 'OPTIONS',
+            headers: {
+                Origin: 'http://127.0.0.1:4173',
+                'Access-Control-Request-Method': 'GET',
+                'Access-Control-Request-Headers':
+                    'authorization, access-control-request-private-network',
+                'Access-Control-Request-Private-Network': 'true',
+            },
+        });
+        expect(pnaPreflight.status()).toBe(204);
+        expect(pnaPreflight.headers()['access-control-allow-private-network']).toBe('true');
         const denied = await owner.request.fetch(`${origin}/api/v1/info`, {
             method: 'OPTIONS',
             headers: {
@@ -126,7 +139,15 @@ test('real Rust API: cross-origin CORS, coherent pagination, historical incremen
         await upload(Array.from({ length: 1002 }, (_, index) => row(index)));
         await page.goto('/');
         await switchTab(page, 'Scrobblers');
+        await expect(
+            page.locator('.scrobbl-connection a[href="https://github.com/itsmrma/scrobbl-rs"]'),
+        ).toBeVisible();
+        await expect(page.locator('#scrobbl-origin-hint')).toHaveText('http://127.0.0.1:4173');
         await page.locator('#scrobbl-url').fill(`${origin}/api/v1`);
+        await expect(page.locator('#scrobbl-test-link')).toHaveAttribute(
+            'href',
+            `${origin}/api/v1/info`,
+        );
         await page.locator('#scrobbl-key').fill(created.secret);
         const readRequests = [];
         page.on('request', (request) => {

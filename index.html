@@ -856,7 +856,14 @@
                             <div class="workspace-intro">
                                 <h2 id="scrobbl-title">Connect to scrobbl.rs</h2>
                                 <p class="muted">
-                                    Explore your private archive directly over LAN or VPN. A
+                                    <a
+                                        href="https://github.com/itsmrma/scrobbl-rs"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        >scrobbl.rs</a
+                                    >
+                                    is a self-hosted, private music listening tracker and scrobbler.
+                                    Connect your private archive directly over LAN or VPN. A
                                     complete copy replaces the history on this page after your
                                     confirmation.
                                 </p>
@@ -912,10 +919,21 @@
                                 </div>
                                 <p class="form-help muted">
                                     Create a read key in scrobbl.rs Settings → API keys and allow
-                                    this site’s exact origin. Dates include both calendar days in
-                                    UTC. History, key and options stay only in this page’s memory;
-                                    reload clears them. Other imports are available after
-                                    disconnecting.
+                                    this site’s exact origin (<code id="scrobbl-origin-hint"></code
+                                    >). Dates include both calendar days in UTC. History, key and
+                                    options stay only in this page’s memory; reload clears them.
+                                    Other imports are available after disconnecting.
+                                    <span id="scrobbl-test-section" class="hidden">
+                                        <a
+                                            id="scrobbl-test-link"
+                                            href="#"
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            >Open API address in a new tab</a
+                                        >
+                                        to verify network reachability and accept its HTTPS
+                                        certificate.
+                                    </span>
                                 </p>
                                 <div class="form-actions">
                                     <button

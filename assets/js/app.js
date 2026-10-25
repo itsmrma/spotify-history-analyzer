@@ -26,6 +26,7 @@ const scrobbl = new window.ScrobblClient.Connection({
         if (state.status) {
             $('scrobbl-status').dataset.status = state.status;
             $('scrobbl-status').textContent = state.detail;
+            if (state.status === 'error') updateScrobblTestLink();
         }
         $('scrobbl-last-success').textContent = state.lastSuccess
             ? `Last completed update: ${new Date(state.lastSuccess).toLocaleString()} · ${new Date(state.lastSuccess).toISOString()} (UTC)`
@@ -93,6 +94,29 @@ window.addEventListener('pagehide', (event) => {
     if (!event.persisted) scrobbl.disconnect();
     $('scrobbl-key').value = '';
 });
+
+const originHint = $('scrobbl-origin-hint');
+if (originHint) originHint.textContent = window.location.origin;
+
+function updateScrobblTestLink() {
+    const raw = $('scrobbl-url')?.value.trim();
+    const section = $('scrobbl-test-section');
+    const link = $('scrobbl-test-link');
+    if (!section || !link) return;
+    try {
+        if (!raw) {
+            section.classList.add('hidden');
+            return;
+        }
+        const base = window.ScrobblClient.apiBase(raw);
+        link.href = new URL('info', base).href;
+        section.classList.remove('hidden');
+    } catch {
+        section.classList.add('hidden');
+    }
+}
+$('scrobbl-url')?.addEventListener('input', updateScrobblTestLink);
+updateScrobblTestLink();
 
 function replacingCanonicalHistory() {
     return (

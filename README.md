@@ -8,7 +8,7 @@ Connect a private [scrobbl.rs](https://github.com/itsmrma/scrobbl-rs) archive fr
 
 24-second demo with synthetic listening history. [Video details and credits](docs/media/README.md).
 
-**[Open the web app](https://itsmrma.github.io/spotify-history-analyzer/)**
+**[Open the web app](https://spotify-history-analyzer.benassimatteo.dev/)**
 
 ## Using the app
 
@@ -27,7 +27,7 @@ Use **Undo last change** to reverse the latest successful import or scrobbler in
 
 ## Connect a private scrobbl.rs archive
 
-1. Reach your private scrobbl.rs HTTPS address over LAN or VPN, with a trusted certificate. In its **Settings → API keys**, allow the exact origin shown in the app (`https://itsmrma.github.io`, without a repository path), then create a read key. All sites at that origin share CORS permission. Use the test link in the connection form to verify reachability and accept the certificate if prompted.
+1. Reach your private scrobbl.rs HTTPS address over LAN or VPN, with a trusted certificate. In its **Settings → API keys**, allow the exact origin shown in the app (`https://spotify-history-analyzer.benassimatteo.dev`), then create a read key. All sites at that origin share CORS permission. Use the test link in the connection form to verify reachability and accept the certificate if prompted.
 2. In this app open **Scrobblers → Connect to scrobbl.rs**, paste the API URL and key, optionally choose UTC dates (both days included), then select **Connect & load archive**. Existing history requires confirmation before replacement. It stays available if loading fails. Each successful load publishes one complete copy, including an empty archive.
 3. Use **Update now** for incremental changes, including older listens, corrections and removals. Optionally enable **Automatic updates**: default interval 120 seconds, allowed range 30–86400 whole seconds, initially off. Background timers depend on the browser; returning to the page catches up. Updates never overlap. The interval does not alter Spotify collection on the server.
 4. **Disconnect** cancels pending requests, stops timers and erases the key and synchronization state. Loaded history remains consultable. Other imports and history editing become available again. Importing into a disconnected scrobbl.rs copy asks to replace it; archives are never automatically combined. To change server or UTC selection, disconnect and reconnect for a fresh complete copy.

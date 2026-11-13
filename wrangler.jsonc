@@ -4,17 +4,17 @@
     "workers_dev": true,
     "preview_urls": true,
     "build": {
-        "command": "npm run build"
+        "command": "npm run build",
     },
     "assets": {
         "directory": "./dist",
         "html_handling": "auto-trailing-slash",
-        "not_found_handling": "none"
+        "not_found_handling": "none",
     },
     "routes": [
         {
             "pattern": "spotify-history-analyzer.benassimatteo.dev",
-            "custom_domain": true
-        }
-    ]
+            "custom_domain": true,
+        },
+    ],
 }

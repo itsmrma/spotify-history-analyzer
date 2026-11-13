@@ -1,0 +1,20 @@
+{
+    "name": "spotify-history-analyzer",
+    "compatibility_date": "2026-10-01",
+    "workers_dev": true,
+    "preview_urls": true,
+    "build": {
+        "command": "npm run build"
+    },
+    "assets": {
+        "directory": "./dist",
+        "html_handling": "auto-trailing-slash",
+        "not_found_handling": "none"
+    },
+    "routes": [
+        {
+            "pattern": "spotify-history-analyzer.benassimatteo.dev",
+            "custom_domain": true
+        }
+    ]
+}

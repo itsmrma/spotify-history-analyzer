@@ -54,7 +54,7 @@ Date filters exclude records without valid timestamps. Without a date filter, th
 
 Uploaded files are processed locally and are never sent to a server. The interface follows Material Design 3 with locally served Inter and Google Material Icons Outlined (licenses in `assets/fonts/`). Fonts and icons are local, and the app makes no third-party requests until you explicitly fetch scrobbler history. That action sends your username and requested range to ListenBrainz or Last.fm, or the requested range to your Maloja server. Last.fm requests include the API key you entered; it is kept only in the page session and is never stored by the app.
 
-The app is a static site with no build step. JSZip 3.10.1 and Chart.js 4.5.1 are checked into `assets/vendor/` with their licenses, so the site does not rely on a runtime CDN. To refresh these assets after changing the locked dependencies, run `npm run vendor` and commit the updated files.
+The app is a static site with no bundler or compilation step. JSZip 3.10.1 and Chart.js 4.5.1 are checked into `assets/vendor/` with their licenses, so the site does not rely on a runtime CDN. To refresh these assets after changing the locked dependencies, run `npm run vendor` and commit the updated files.
 
 ListenBrainz pagination follows the [official API documentation](https://listenbrainz.readthedocs.io/en/latest/users/api/core.html): `max_ts` is exclusive and timestamps are UTC. Requests have a timeout, bounded retries for rate limits and a cancel control. Failed downloads do not integrate partial history. Last.fm follows [user.getRecentTracks](https://www.last.fm/api/show/user.getRecentTracks), using pages of 200 and a fixed end timestamp, ignoring currently playing tracks. Last.fm durations are estimated. Maloja follows its [native scrobbles API](https://github.com/krateng/maloja/blob/master/maloja/apis/native_v1.py) and [entity format](https://github.com/krateng/maloja/blob/master/API.md), using pages of 1,000 and filtering returned timestamps to UTC. All services support cancellation and timeout/rate-limit handling.
 
@@ -67,7 +67,7 @@ npm ci
 npm start
 ```
 
-Open `http://127.0.0.1:4173`. The static files can also be hosted directly on GitHub Pages.
+Open `http://127.0.0.1:4173`. Run `npm run build` to assemble the static output in `dist/` for Cloudflare Workers Static Assets (configured in `wrangler.jsonc`).
 
 ```sh
 npm test
@@ -87,12 +87,14 @@ $env:SCROBBL_TEST_BINARY = 'C:\path\to\scrobbl-rs\target\debug\scrobbl-rs.exe'
 npx playwright test tests/e2e/scrobbl-live.spec.cjs --workers=2 --output=test-results-live
 ```
 
-These local browser and loopback-server checks do not certify GitHub Pages → private HTTPS on physical devices. The single final acceptance pass on Firefox PC/Mac and Safari iPhone/iPad, on LAN and VPN, remains tracked in [Collaudare e pubblicare la prima release](https://github.com/itsmrma/scrobbl-rs/issues/31), including trusted certificates/DNS, local-network permissions denied/restored, key creation/revocation/expiry, interrupted multi-page loads, server loss and recovery, suspension/resume, restore invalidation and reconnection. Record actual versions and results there without publishing personal history or secrets.
+These local browser and loopback-server checks do not certify hosted HTTPS → private HTTPS on physical devices. The single final acceptance pass on Firefox PC/Mac and Safari iPhone/iPad, on LAN and VPN, remains tracked in [Collaudare e pubblicare la prima release](https://github.com/itsmrma/scrobbl-rs/issues/31), including trusted certificates/DNS, local-network permissions denied/restored, key creation/revocation/expiry, interrupted multi-page loads, server loss and recovery, suspension/resume, restore invalidation and reconnection. Record actual versions and results there without publishing personal history or secrets.
 
 ## Project structure
 
 ```text
-index.html                  Static entry point for GitHub Pages
+index.html                  Static entry point
+_headers                    Security headers copied into dist/ for Cloudflare Workers
+wrangler.jsonc              Cloudflare Workers Static Assets and custom domain configuration
 assets/
   css/style.css             Shared visual style and responsive layouts
   icons/favicon.svg         Local app icon
@@ -108,6 +110,7 @@ assets/
   js/theme.js               System-aware, persistent light/dark display preference
   vendor/                   Pinned libraries and their licenses
 scripts/
+  build.cjs                 Assemble dist/ for Cloudflare Workers Static Assets
   serve.cjs                 Local development/test server
   vendor.cjs                Refresh the checked-in third-party assets
 tests/
